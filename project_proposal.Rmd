@@ -3,29 +3,46 @@ title: "Multi-label classification of legal text - Project proposal"
 author: "Team Eur-Lex"
 date: "13 November 2018"
 output: html_document
+bookdown::html_document2: default
 bibliography: bibliography.bib
+link-citations: yes
 csl: biomed-central.csl
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+if (!require(kableExtra)) {
+install.packages("knitr")
+} else if (!require(knitr)) {
+install.packages("knitr")
+} else if (!require(timevis)) {
+install.packages("timevis")
+}
+
+library(knitr)
+library(kableExtra)
+library(timevis)
 ```
 
-## Project title
+### Project title
 
 Multi-label classification of legal text documents
 
-## Names of team members
+### Project GitHub URL
+
+https://github.com/suhitaghosh10/EurLexClassification.git
+
+### Names of team members
 * Ali Raza Memon
 * Majed Ali 
 * Noor Jamaludeen
 * Suhita Ghosh 
 
-## Background and motivation
+### Background and motivation
 
-A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the EUR-Lex dataset [1] containing about twenty thousand documents and seven thousand labels. The dataset constitutes a very challenging multilabel scenario due to the high number of possible labels along with a skewed distribution of multiple labels per document. In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we plan to experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario.
+A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public **multi labelled legal** text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the _**EUR-Lex**_ dataset containing about twenty thousand documents and seven thousand labels. The dataset constitutes a very challenging multilabel scenario due to the high number of possible labels along with a skewed distribution of multiple labels per document. In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we plan to experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario.
 
-##Project objectives
+### Project objectives
 * Statistical exploration  of the dataset
 * Pre-processing  of the text ,extraction of features and generation of  the data format which can be used for multi-label classification.
 * Apply classifiers over the pre-processed data. 
@@ -33,18 +50,20 @@ A single text document often has multiple semantic aspects. A single news articl
 * Compare the accuracies of at least two state-of-the-art classifiers on this data set. Possible interpretation of the results.
 
 
-## Name of dataset:
-European Union law documents (EUR-Lex) [@vsimerka2009council;@tsoumakas2007multi]
+### Name of dataset:
+European Union law documents (EUR-Lex).
+The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX) is inside the software distributed by European Union.
 
 
-## Design overview (algorithms and methods we plan to use)
+
+### Design overview (algorithms and methods we plan to use)
 * Statistical exploration  :  
     + Basic exploration  - distribution  of attributes/labels
-    + Multi-label specific exploration-  labelset distribution, relationship among labels, and relationship between attributes and labels/labelsets
+    + Multi-label specific exploration- labelset distribution, relationship among labels, and relationship between attributes and labels/labelsets
 * Pre-processing : 
     + Exclude stop words, perform stemming or lemmatization. 
     + Extract features - tf-idf features weights. 
-    + Generate the MLD[] data format, which is needed for multi label data exploration and classification using mldr package[].
+    + Generate the MLD [@Gibaja:2015:TML:2737799.2716262] data format, which is needed for multi label data exploration and classification using mldr package [@charte2015working].
 * Apply (atleast) the following classifiers over the generated dataset. 
     + IBk (Nearest Neighbour)
     + RandomForest
@@ -55,6 +74,43 @@ European Union law documents (EUR-Lex) [@vsimerka2009council;@tsoumakas2007multi
     + Average Precision and Recall
     + Coverage
     + Ranking Loss
-    + Compare the accuracies of the state-of-the-art classifiers on this dataset.
-    
-# References
+* Compare the accuracies of the state-of-the-art classifiers on this dataset.
+  
+  
+### Time plan including distribution of responsibilites and workload among team members written as weekly deadlines
+```{r timeline-table, echo=FALSE}
+
+data <- data.frame(
+  id      = 1:16,
+  content = c("Exploratory analysis/visualisation",
+              "Basic preprocessing and extract features",
+              "Preprocess - generate MLD xml",
+              "Exploration of classifiers and packages for visualisation specific to  multilable classification task",
+              
+              "Start with site - Exploratory analysis",
+              "Preprocess - create arff file for classification",
+              "Documentation - RMarkdown -preprocessing",
+              "Start with site - Preprocessing",
+              
+              "Site - update with classification results",
+              "Final Analysis+ RMarkdown",
+              "Final Analysis+ RMarkdown",
+              "Evaluation and visualisation of classifier performance",
+              
+              "Screencast",
+              "Rmarkdown+ Site work remaining",
+              "Rmarkdown+ Site work remaining",
+              "Screencast"
+              ),
+  group = c(1, 2, 3, 4,1,2,3,4,1,2,3,4,1,2,3,4),
+  start   = c("2018-11-16", "2018-11-16","2018-11-16", "2018-11-16","2018-11-23", "2018-11-23", "2018-11-23","2018-11-23","2018-11-30", "2018-11-30", "2018-11-30","2018-11-30","2018-12-07","2018-12-07","2018-12-07","2018-12-07"),
+  end     = c("2018-11-23", "2018-11-23", "2018-11-23", "2018-11-23","2018-11-30", "2018-11-30", "2018-11-30","2018-11-30","2018-12-07","2018-12-07","2018-12-07","2018-12-07","2018-12-14","2018-12-14","2018-12-14","2018-12-14")
+)
+
+
+timevis(data,width = 1100,groups = data.frame(id = 1:4, content = c("M", "S", "N","R")))%>%
+setGroups(data.frame(id = 1:4, content = c("Majed", "Suhita","Noor","Raza")))
+
+```
+
+#### References
