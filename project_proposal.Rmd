@@ -1,0 +1,60 @@
+---
+title: "Multi-label classification of legal text - Project proposal"
+author: "Team Eur-Lex"
+date: "13 November 2018"
+output: html_document
+bibliography: bibliography.bib
+csl: biomed-central.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project title
+
+Multi-label classification of legal text documents
+
+## Names of team members
+* Ali Raza Memon
+* Majed Ali 
+* Noor Jamaludeen
+* Suhita Ghosh 
+
+## Background and motivation
+
+A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the EUR-Lex dataset [1] containing about twenty thousand documents and seven thousand labels. The dataset constitutes a very challenging multilabel scenario due to the high number of possible labels along with a skewed distribution of multiple labels per document. In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we plan to experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario.
+
+##Project objectives
+* Statistical exploration  of the dataset
+* Pre-processing  of the text ,extraction of features and generation of  the data format which can be used for multi-label classification.
+* Apply classifiers over the pre-processed data. 
+* Interpretation and understanding of the evaluation measures for multi label classification
+* Compare the accuracies of at least two state-of-the-art classifiers on this data set. Possible interpretation of the results.
+
+
+## Name of dataset:
+European Union law documents (EUR-Lex) [@vsimerka2009council;@tsoumakas2007multi]
+
+
+## Design overview (algorithms and methods we plan to use)
+* Statistical exploration  :  
+    + Basic exploration  - distribution  of attributes/labels
+    + Multi-label specific exploration-  labelset distribution, relationship among labels, and relationship between attributes and labels/labelsets
+* Pre-processing : 
+    + Exclude stop words, perform stemming or lemmatization. 
+    + Extract features - tf-idf features weights. 
+    + Generate the MLD[] data format, which is needed for multi label data exploration and classification using mldr package[].
+* Apply (atleast) the following classifiers over the generated dataset. 
+    + IBk (Nearest Neighbour)
+    + RandomForest
+    + SVM
+* The following evaluation measures have been used to assess the multilabel predictive performance:
+    + Accuracy
+    + Hamming Loss
+    + Average Precision and Recall
+    + Coverage
+    + Ranking Loss
+    + Compare the accuracies of the state-of-the-art classifiers on this dataset.
+    
+# References
