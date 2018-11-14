@@ -3,25 +3,27 @@ title: "Multi-label classification of legal text - Project proposal"
 author: "Team Eur-Lex"
 date: "13 November 2018"
 output: html_document
-bookdown::html_document2: default
+bookdown::html_document: default
 bibliography: bibliography.bib
 link-citations: yes
 csl: biomed-central.csl
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-if (!require(kableExtra)) {
-install.packages("knitr")
-} else if (!require(knitr)) {
-install.packages("knitr")
-} else if (!require(timevis)) {
-install.packages("timevis")
+
+# check.packages function: install and load multiple R packages.
+# Check to see if packages are installed. Install them if they are not, then load them into the R session.
+check.packages <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, library, character.only = TRUE)
 }
 
-library(knitr)
-library(kableExtra)
-library(timevis)
+packages<-c("knitr", "timevis")
+check.packages(packages)
+
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ### Project title
@@ -80,36 +82,96 @@ The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer
 ### Time plan including distribution of responsibilites and workload among team members written as weekly deadlines
 ```{r timeline-table, echo=FALSE}
 
-data <- data.frame(
-  id      = 1:16,
-  content = c("Exploratory analysis/visualisation",
-              "Basic preprocessing and extract features",
-              "Preprocess - generate MLD xml",
-              "Exploration of classifiers and packages for visualisation specific to  multilable classification task",
-              
-              "Start with site - Exploratory analysis",
-              "Preprocess - create arff file for classification",
-              "Documentation - RMarkdown -preprocessing",
-              "Start with site - Preprocessing",
-              
-              "Site - update with classification results",
-              "Final Analysis+ RMarkdown",
-              "Final Analysis+ RMarkdown",
-              "Evaluation and visualisation of classifier performance",
-              
-              "Screencast",
-              "Rmarkdown+ Site work remaining",
-              "Rmarkdown+ Site work remaining",
-              "Screencast"
-              ),
-  group = c(1, 2, 3, 4,1,2,3,4,1,2,3,4,1,2,3,4),
-  start   = c("2018-11-16", "2018-11-16","2018-11-16", "2018-11-16","2018-11-23", "2018-11-23", "2018-11-23","2018-11-23","2018-11-30", "2018-11-30", "2018-11-30","2018-11-30","2018-12-07","2018-12-07","2018-12-07","2018-12-07"),
-  end     = c("2018-11-23", "2018-11-23", "2018-11-23", "2018-11-23","2018-11-30", "2018-11-30", "2018-11-30","2018-11-30","2018-12-07","2018-12-07","2018-12-07","2018-12-07","2018-12-14","2018-12-14","2018-12-14","2018-12-14")
+
+
+timeline_data <- data.frame(
+id      = 1:16,
+content = c(
+"Exploratory analysis/visualisation",
+"Basic preprocessing and extract features",
+"Preprocess - generate MLD xml",
+"Exploration of classifiers and packages for visualisation specific to multilable classification",
+
+"Start with site - Exploratory analysis",
+"Preprocess - create arff file for classification",
+"Documentation - RMarkdown -preprocessing",
+"Start with site - Preprocessing",
+
+"Site - update with classification results",
+"Final Analysis+ RMarkdown",
+"Final Analysis+ RMarkdown",
+"Evaluation and visualisation of classifier performance",
+
+"Screencast",
+"Rmarkdown+ Site work remaining",
+"Rmarkdown+ Site work remaining",
+"Screencast"
+),
+group = c(
+"M",
+"S",
+"N",
+"R",
+"M",
+"S",
+"N",
+"R",
+"M",
+"S",
+"N",
+"R",
+"M",
+"S",
+"N",
+"R"
+),
+start   = c(
+"2018-11-16",
+"2018-11-16",
+"2018-11-16",
+"2018-11-16",
+"2018-11-23",
+"2018-11-23",
+"2018-11-23",
+"2018-11-23",
+"2018-11-30",
+"2018-11-30",
+"2018-11-30",
+"2018-11-30",
+"2018-12-07",
+"2018-12-07",
+"2018-12-07",
+"2018-12-07"
+),
+end     = c(
+"2018-11-23",
+"2018-11-23",
+"2018-11-23",
+"2018-11-23",
+"2018-11-30",
+"2018-11-30",
+"2018-11-30",
+"2018-11-30",
+"2018-12-07",
+"2018-12-07",
+"2018-12-07",
+"2018-12-07",
+"2018-12-14",
+"2018-12-14",
+"2018-12-14",
+"2018-12-14"
+)
 )
 
 
-timevis(data,width = 1100,groups = data.frame(id = 1:4, content = c("M", "S", "N","R")))%>%
-setGroups(data.frame(id = 1:4, content = c("Majed", "Suhita","Noor","Raza")))
+timevis(timeline_data,
+width = 1100,
+groups = data.frame(id = 1:4, content = c("M", "S", "N", "R"))) %>%
+
+setGroups(data.frame(
+id = 1:4,
+content = c("Majed", "Suhita", "Noor", "Raza")
+))
 
 ```
 
