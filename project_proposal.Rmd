@@ -1,27 +1,25 @@
+
 ---
-title: "Multi-label classification of legal text - Project proposal"
+title: "Project proposal"
 author: "Team Eur-Lex"
 date: "13 November 2018"
 output: html_document
-bookdown::html_document: default
+bookdown::html_document2: default
 bibliography: bibliography.bib
 link-citations: yes
 csl: biomed-central.csl
 ---
 
 ```{r setup, include=FALSE}
-
-# check.packages function: install and load multiple R packages.
-# Check to see if packages are installed. Install them if they are not, then load them into the R session.
-check.packages <- function(pkg){
-    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
-    if (length(new.pkg)) 
-        install.packages(new.pkg, dependencies = TRUE)
-    sapply(pkg, library, character.only = TRUE)
+if (!require(knitr)) {
+install.packages("knitr")
+} else if (!require(timevis)) {
+install.packages("timevis")
 }
 
-packages<-c("knitr", "timevis")
-check.packages(packages)
+
+library(knitr)
+library(timevis)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -36,95 +34,83 @@ https://github.com/suhitaghosh10/EurLexClassification.git
 
 ### Names of team members
 * Ali Raza Memon
-* Majed Ali 
+* Majed Ali
 * Noor Jamaludeen
-* Suhita Ghosh 
+* Suhita Ghosh
 
 ### Background and motivation
 
-A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public **multi labelled legal** text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the _**EUR-Lex**_ dataset containing about twenty thousand documents and seven thousand labels. The dataset constitutes a very challenging multilabel scenario due to the high number of possible labels along with a skewed distribution of multiple labels per document. In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we plan to experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario.
+A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public **multi labelled legal** text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the _**EUR-Lex**_ dataset containing about twenty thousand documents and seven thousand labels. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this data set an interesting proposition. Few publications have used this dataset; the ones that have used this have reported relatively poor values in the range of 50% (which may be fair, given the high number of labels).
 
 ### Project objectives
-* Statistical exploration  of the dataset
-* Pre-processing  of the text ,extraction of features and generation of  the data format which can be used for multi-label classification.
-* Apply classifiers over the pre-processed data. 
-* Interpretation and understanding of the evaluation measures for multi label classification
-* Compare the accuracies of at least two state-of-the-art classifiers on this data set. Possible interpretation of the results.
+In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we plan to experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario.
+In the process, we try to answer the following research questions:  
+  
+* How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).  
+* How the classifiers' performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.  
+* How the classifiers' performance changes when the number of labels is reduced
 
 
 ### Name of dataset:
 European Union law documents (EUR-Lex).
-The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX) is inside the software distributed by European Union.
+The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX) is located inside the software distributed by European Union.
 
 
 
 ### Design overview (algorithms and methods we plan to use)
-* Statistical exploration  :  
-    + Basic exploration  - distribution  of attributes/labels
-    + Multi-label specific exploration- labelset distribution, relationship among labels, and relationship between attributes and labels/labelsets
-* Pre-processing : 
-    + Exclude stop words, perform stemming or lemmatization. 
-    + Extract features - tf-idf features weights. 
-    + Generate the MLD [@Gibaja:2015:TML:2737799.2716262] data format, which is needed for multi label data exploration and classification using mldr package [@charte2015working].
-* Apply (atleast) the following classifiers over the generated dataset. 
-    + IBk (Nearest Neighbour)
-    + RandomForest
-    + SVM
-* The following evaluation measures have been used to assess the multilabel predictive performance:
-    + Accuracy
-    + Hamming Loss
-    + Average Precision and Recall
-    + Coverage
-    + Ranking Loss
-* Compare the accuracies of the state-of-the-art classifiers on this dataset.
-  
-  
+* Statistical exploration  :
+     + Basic exploration  - distribution  of attributes/labels
+     + Multi-label specific exploration- labelset distribution, relationship among labels, and relationship between attributes and labels/labelsets
+* Pre-processing :
+     + Exclude stop words, perform stemming or lemmatization.
+     + Extract features - term frequency–inverse document frequency(tf-idf) and term incidence.
+     + Generate the MLD [@Gibaja:2015:TML:2737799.2716262] data format, which is needed for multi label data exploration and classification using _mldr_[@charte2015working] and _utiml_[@rivolliutiml] packages .
+* Apply (atleast) the following classifiers over the preprocessed dataset.
+     + IBk (Nearest Neighbour)
+     + RandomForest
+     + SVM
+* The following evaluation measures cab be used to assess the multilabel predictive performance:
+     + Accuracy
+     + Hamming Loss
+     + Average Precision and Recall
+     + Coverage
+     + Ranking Loss
+* Compare the accuracies of the state-of-the-art classifiers on this dataset, for two languages.
+
+
 ### Time plan including distribution of responsibilites and workload among team members written as weekly deadlines
 ```{r timeline-table, echo=FALSE}
-
-
-
-timeline_data <- data.frame(
-id      = 1:16,
+txt <- "Exploration of classifiers and\n visualisation packages"
+b <- str
+data <- data.frame(
+id      = 1:20,
 content = c(
 "Exploratory analysis/visualisation",
-"Basic preprocessing and extract features",
-"Preprocess - generate MLD xml",
-"Exploration of classifiers and packages for visualisation specific to multilable classification",
+"Basic preprocessing and extract features(tf-idf)",
+"Preprocess - generate label MLD xml",
+"Exploration of multi-label classification packages",
 
-"Start with site - Exploratory analysis",
+"Start with site",
 "Preprocess - create arff file for classification",
-"Documentation - RMarkdown -preprocessing",
-"Start with site - Preprocessing",
+"Documentation - RMarkdown(preprocessing)",
+"Preprocess - extract features(term incidence)",
 
-"Site - update with classification results",
-"Final Analysis+ RMarkdown",
-"Final Analysis+ RMarkdown",
+"Work on site",
+"Build model using tf-idf features",
+"Build model using term incidence features",
+"Documentation - RMarkdown(build models)",
+
+"Work on site",
+"Documentation - RMarkdown(evaluation)",
+"Screencast",
 "Evaluation and visualisation of classifier performance",
 
-"Screencast",
+"Work on site",
 "Rmarkdown+ Site work remaining",
 "Rmarkdown+ Site work remaining",
 "Screencast"
 ),
-group = c(
-"M",
-"S",
-"N",
-"R",
-"M",
-"S",
-"N",
-"R",
-"M",
-"S",
-"N",
-"R",
-"M",
-"S",
-"N",
-"R"
-),
+group = c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4),
 start   = c(
 "2018-11-16",
 "2018-11-16",
@@ -141,7 +127,11 @@ start   = c(
 "2018-12-07",
 "2018-12-07",
 "2018-12-07",
-"2018-12-07"
+"2018-12-07",
+"2018-12-14",
+"2018-12-14",
+"2018-12-14",
+"2018-12-14"
 ),
 end     = c(
 "2018-11-23",
@@ -159,15 +149,16 @@ end     = c(
 "2018-12-14",
 "2018-12-14",
 "2018-12-14",
-"2018-12-14"
+"2018-12-14",
+"2018-12-21",
+"2018-12-21",
+"2018-12-21",
+"2018-12-21"
 )
 )
 
 
-timevis(timeline_data,
-width = 1100,
-groups = data.frame(id = 1:4, content = c("M", "S", "N", "R"))) %>%
-
+timevis(data, width = 1100, groups = data.frame(id = 1:4, content = c("M", "S", "N", "R"))) %>%
 setGroups(data.frame(
 id = 1:4,
 content = c("Majed", "Suhita", "Noor", "Raza")
