@@ -11,7 +11,6 @@ csl: biomed-central.csl
 ---
 
 ```{r setup, include=FALSE}
-<<<<<<< HEAD
 if(!"knitr" %in% rownames(installed.packages())) {
 install.packages("knitr")
 }
@@ -22,21 +21,7 @@ install.packages("timevis")
 library(knitr)
 library(timevis)
 
-knitr::opts_chunk$set(echo = TRUE
-)
-=======
-if (!require(knitr)) {
-install.packages("knitr")
-} else if (!require(timevis)) {
-install.packages("timevis")
-}
-
-
-library(knitr)
-library(timevis)
-
 knitr::opts_chunk$set(echo = TRUE)
->>>>>>> origin/master
 ```
 
 ### Project title
