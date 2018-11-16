@@ -1,6 +1,6 @@
 library(stringr)
 # Read a txt file, named "mtcars.txt"
-data_short <- read.delim("acquis_short.txt", stringsAsFactors = TRUE)
+data_short <- read.delim("C:\\Users\\com\\Documents\\eurolex\\EurLexClassification\\data\\acquis\\acquis.cf", stringsAsFactors = TRUE)
 data_full <- read.delim("acquis.cf", header=FALSE)
 even_indexes<-seq(2,9482,2)
 odd_indexes<-seq(1,9481,2)
