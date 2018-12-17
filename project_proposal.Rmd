@@ -3,11 +3,14 @@
 title: "Project proposal"
 author: "Team Eur-Lex"
 date: "13 November 2018"
-output: html_document
+always_allow_html: yes
+output:
+  pdf_document: default
+  html_document: default
 bookdown::html_document2: default
-bibliography: bibliography.bib
 link-citations: yes
 csl: biomed-central.csl
+bibliography: bibliography.bib
 ---
 
 ```{r setup, include=FALSE}
