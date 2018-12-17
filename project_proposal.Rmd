@@ -5,7 +5,6 @@ author: "Team Eur-Lex"
 date: "13 November 2018"
 always_allow_html: yes
 output:
-  pdf_document: default
   html_document: default
 bookdown::html_document2: default
 link-citations: yes
