@@ -89,10 +89,10 @@ print("1")
     tfidfXMLFileName <<- "output/tfidf_DE.xml"
     incXMLFileName <<- "output/inc_DE.xml"
     labelFile <<- "data/german/desc_de.xml"
-    model_file <<- "german-gsd-ud-2.3-181115.udpipe"
+    model_file <<- "output/german-gsd-ud-2.3-181115.udpipe"
     if (!file.exists(model_file))
     {
-      model <<- udpipe_download_model(language = "german")
+      model <<- udpipe_download_model(language = "german", model_dir = "output/")
     } else {
       model <<- udpipe_load_model(model_file)
     }
