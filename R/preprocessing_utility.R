@@ -1,11 +1,20 @@
 get_clean_content <- function(content) {
 
+if(lang == "english"){
   stopwords <-
-    c('gt','notext','p','lt','aka','oj','n','a','eec','article','directive')  %>%
+    c('gt','notext','p','lt','aka','oj','n','a','eec','article','directive','shall','follow')  %>%
     append(stopwords(lang))
-  
+  }
+  else if(lang == "german"){
+  stopwords <-
+    c('gt','notext','p','lt','aka','oj','n','a','eec','article','directive','soll','folgen')  %>%
+    append(stopwords(lang))
+  }
   clean_content <- content  %>%
     replace_html(replacement = " ") %>%
+	{
+      gsub('-', '', .)
+    } %>%
     {
       gsub('[[:punct:] ]+', ' ', .)
     } %>%

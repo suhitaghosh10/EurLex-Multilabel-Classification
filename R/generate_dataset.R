@@ -1,13 +1,14 @@
 init("english")
+#init("german")
 
 connection <- fileName  %>% file(open="r")
 raw_text_char <- connection %>% readLines()
 close.connection(connection)
 
-temp_text_content_list <- raw_text_char[seq (2, 100,2)]
-#temp_text_content_list <- raw_text_char[seq (2, length(raw_text_char),2)]
-temp_class_labels_list <- raw_text_char[seq (1, 100,2)] %>%
-#temp_class_labels_list <- raw_text_char[seq (1, length(raw_text_char),2)] %>%
+#temp_text_content_list <- raw_text_char[seq (2, 100,2)]
+temp_text_content_list <- raw_text_char[seq (2, length(raw_text_char),2)]
+#temp_class_labels_list <- raw_text_char[seq (1, 100,2)] %>%
+temp_class_labels_list <- raw_text_char[seq (1, length(raw_text_char),2)] %>%
 strsplit("#") %>%
 sapply("[[", 1) %>%
 trimws()
