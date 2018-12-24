@@ -1,6 +1,11 @@
 
 ---
 title: "Home"
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'process_notebook.html'))})
 author: "Suhita"
 date: "20 December 2018"
 header-includes:
