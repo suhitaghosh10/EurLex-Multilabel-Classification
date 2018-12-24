@@ -1,0 +1,27 @@
+
+---
+header-includes:
+   - \usepackage{bbm}
+always_allow_html: yes
+output:
+  html_document:
+    theme: united
+    highlight: haddock
+    css: "style.css"
+    
+bookdown::html_document2: default
+link-citations: yes
+csl: biomed-central.csl
+bibliography: bibliography.bib
+---
+&nbsp;
+&nbsp;
+&nbsp;
+    
+#Exploratory analysis {.tabset}
+
+
+
+## Preparing the data
+
+## Data exploration

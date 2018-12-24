@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Suhita" />
+
+<meta name="date" content="2018-12-20" />
+
+<title>R Notebook</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">My Website</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="multilabel_classification_intro.html">Multi-label classification</a>
+</li>
+<li>
+  <a href="process_notebook.html">Exploratory Analysis</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">R Notebook</h1>
+<h4 class="author"><em>Suhita</em></h4>
+<h4 class="date"><em>20 December 2018</em></h4>
+
+</div>
+
+
+<div id="overview-and-motivation" class="section level1 tabset tabset-fade">
+<h1>Overview and motivation</h1>
+<p>Most of the classification algorithms deal with datasets which have a set of input features and only <em>one</em> output class. However, in reality the problem might be different from a typical binary or multiclass classification. A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. Therefore, often a document needs to be tagged to multiple labels/categories, instead of a single category. An introduction of enormous amount of documents belonging to multiple categories in the legal domain, makes it an attractive area for employing automated solutions.<br />
+In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the <strong>EUR-Lex</strong> dataset containing about twenty thousand documents, around seven thousand labels and in several European languages. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this dataset an interesting proposition. Few publications have used an older version of the dataset which had around four thousand labels. The ones that have used this have reported relatively poor values in the range of 50% (which may be fair, given the high number of labels). To the best of our knowledge there has been no publications for the new dataset having around 7000 labels.</p>
+</div>
+<div id="multilable-vs-multiclass-classification" class="section level1">
+<h1>Multilable v/s Multiclass classification</h1>
+<p>In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single lable, and the task is to predict the <em>label-sets</em> of unseen instances, instead of a single label. There is a difference between <em>multi-class classification</em> and <em>multi-label classification</em>. In multi-class problem the classes or labels are mutually-exclusive, i.e. it makes the assumption that each instance can be assigned to only one label. E.g - an animal can be either a dog or a cat but not both. But in multi-label problem multiple labels may be assigned to an instance. E.g - a movie can belong to a comedy genre as well a detective genre. <img src="Figs/multiclass-label.png" alt="Multilable v/s Multiclass classification" /></p>
+</div>
+<div id="working-with-multilabel-datasets" class="section level1">
+<h1>Working with multilabel datasets</h1>
+<div id="multilabel-dataset-traits" class="section level2">
+<h2>Multilabel dataset traits</h2>
+<p>Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances. The figure below outlines the measures. Some of the important measures have been explained below.</p>
+<div class="figure">
+<img src="Figs/measures.png" alt="measures for MLD" />
+<p class="caption">measures for MLD</p>
+</div>
+<p>Basic measures : { .subheader}</p>
+<p>The most basic information that can be obtained from an MLD is the number of instances, attributes and labels. Each instance has an associated labelset, whose length (number of active labels) can be in the range {0..|L|}.</p>
+<p><strong>Label related measures :</strong></p>
+<ul>
+<li><p>Card : The average number of active labels per instance is the most basic measure of any MLD, usually known as Card (standing for cardinality).</p></li>
+<li><p>Dens : Dividing * Card * by the number of labels results in a dimension-less measure, known as Dens (standing for label density).</p></li>
+<li><p>IRLb : Most multilabel datasets are imbalanced, meaning that some of the labels are very frequent whereas others are quite rare. The level of imbalance of a determinate label can be measured by the imbalance ratio,</p></li>
+<li><p>UniqLabelsets : The number of different labelsets, as well as the amount of them being unique labelsets (appearing only once in D), give us a glimpse on how sparsely the labels are distributed.</p></li>
+<li><p>SCUMBLE : is used to assess the concurrence level among frequent and infrequent labels.</p></li>
+</ul>
+</div>
+<div id="multilabel-classification" class="section level2">
+<h2>Multilabel classification</h2>
+<p>There are two possibilities to deal with multi-label classification: - <strong>Algorithm adaptation:</strong> Modify existing algorithms taking into account the multilabel nature of the samples, for instance hosting more than one class in the leaves of a tree instead of only one. - <strong>Problem transformation:</strong> Transforming the original data to make it suitable to existing traditional classification algorithms and combining the obtained predictions to build the labelsets given as output result.</p>
+<p>There are several transformation methods in literature. Three have been defined and used for our case study.</p>
+<ul>
+<li><p><strong>Binary Relevance (BR):</strong> Introduced by [8] as an adaptation of OVA (one-vs-all ) to the multilabel scenario, this method transforms the original multilabel dataset into several binary datasets. Here an ensemble of binary classifiers is trained, one for each class. Each classifier predicts either the membership or the non-membership of one class. A union of all predicted classes is taken as the multi-label output. The approach is popular because it is easy to implement, but it ignores the possible correlations between class labels.</p></li>
+<li><p><strong>Label Powerset (LP):</strong> Introduced by [1], this method transforms the multilabel dataset into a multiclass dataset by using the labelset of each instance as class identifier. This approach does take possible correlations between class labels into account. The downside of the method is it has a high computational complexity and when the number of classes increases the number of distinct label combinations can grow exponentially. This easily leads to combinatorial explosion and thus computational infeasibility. The method is called <em>Label Powerset</em> because it considers each member of the power set of labels in the training set as a single label.</p></li>
+<li><p><strong>Classifier Chains (CC):</strong> Introduced in [15] , this method comprises a chain of binary classifiers <span class="math inline">\(C_0, C_1, . . . , C_m \)</span> is constructed, where a classifier <span class="math inline">\(C_i\)</span> uses the predictions of all the classifier <span class="math inline">\(C_j\)</span> , where j &lt; i. This way the method can take into account label correlations. The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved.</p></li>
+</ul>
+</div>
+<div id="evaluation-metric" class="section level2">
+<h2>Evaluation metric</h2>
+<p>Evaluation measures for a multi-label classification problem needs discussion as it is different from multiclass/binary class problem. In single label classification the commonly used metrics are - accuracy, precision, recall, F1-measure, among others. In multi-label classification we cannot define misclassification as a hard correct or incorrect, but a prediction comprising subset of actual classes is deemed better than containg none of them.</p>
+<div id="hamming-loss" class="section level3">
+<h3>Hamming Loss</h3>
+<p>Hamming Loss is is an example based measure. It is defined as the fraction of labels that are incorrectly predicted.</p>
+<p><span class="math inline">\(HL = \frac{1}{N . L} \sum_{l=1}^L\sum_{i=1}^N Y_{i,l} \oplus X_{i,l}\)</span></p>
+<p>where denotes exlusive-or, <span class="math inline">\(X_{i,l} (Y_{i,l})\)</span> stands for boolean that the i-th prediction contains the l-th label. For binary scenario (L=1) equals to (1 - accuracy).</p>
+</div>
+<div id="micro-average-and-macro-average" class="section level3">
+<h3>Micro-average and Macro-average</h3>
+<p>In order to measure the performance of a multi-class classifier we have to consider the average performance over all classes. There are two different ways of doing this called micro-averaging and macro-averaging. A macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), whereas a micro-average will aggregate the contributions of all classes to compute the average metric. In a multi-class classification setup, micro-average is preferable if is class imbalance, like our dataset.</p>
+<div id="micro-average" class="section level4">
+<h4>Micro Average</h4>
+<p>In micro all TPs, TNs, FPs and FNs for each class are summed up and then the average is taken. The micro-average F1 is the harmonic mean of the below two equations.</p>
+<p><span class="math inline">\(Microaverage Precision Prc^{micro}(D) = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FP_c} \)</span></p>
+<p><span class="math inline">\(Microaverage Recall Rcl^{micro}(D) = = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FN_c} \)</span></p>
+</div>
+<div id="macro-average" class="section level4">
+<h4>Macro Average</h4>
+<p>In macro average we take the average of precision and recall of the system on different sets. It is used when we want to know how the algorithm performs overall across different subset of data.</p>
+<p><span class="math inline">\(Macrooaverage Precision Prc^{macro}(D) = \frac{\sum_c Prc(D,c)}{|C|} \)</span></p>
+<p><span class="math inline">\(Microaverage Recall Rcl^{macro}(D) = \frac{\sum_c Rcl(D,c)}{|C|} \)</span></p>
+</div>
+<div id="references" class="section level4">
+<h4>References</h4>
+</div>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
