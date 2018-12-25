@@ -1,0 +1,116 @@
+
+---
+header-includes:
+   - \usepackage{bbm}
+always_allow_html: yes
+output:
+  html_document: 
+    theme: united
+    highlight: haddock
+    css: "style.css"
+    
+bookdown::html_document2: default
+link-citations: yes
+csl: biomed-central.csl
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+source("R/requirements.R")
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+&nbsp;
+&nbsp;
+&nbsp;
+    
+# Basics of multilabel classification 
+
+
+In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single lable, and the task is to predict the label-sets of unseen instances, instead of a single label. There is a difference between multi-class classification and multi-label classification. In multi-class problem the classes or labels are mutually-exclusive, i.e. it makes the assumption that each instance can be assigned to only one label. E.g - an animal can be either a dog or a cat but not both. But in multi-label problem multiple labels may be assigned to an instance. E.g - a movie can belong to a comedy genre as well a detective genre.  
+
+# Working with multilabel datasets {.tabset  .tabset-fade}
+ 
+ 
+ Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances.
+ 
+## Multilabel dataset traits
+
+Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances. The figure below outlines the measures. Some of the important measures have been explained below.
+  
+
+![measures for MLD](Figs/measures.png)
+
+<span class="sub-header">Basic measures :</span>  
+
+The most basic information that can be obtained from an MLD is the number of instances, attributes
+and labels. Each instance has an associated labelset, whose length (number of active labels) can be in the range
+{0..|L|}.
+
+<span class="sub-header">Label related measures :</span>  
+
+<span class="sub-sub-header"> Card:</span> The average number of active labels per instance is the most basic measure of any MLD, usually
+known as Card (standing for cardinality).
+
+<span class="sub-sub-header"> Dens:</span> Dividing * Card * by the number of labels results in a dimension-less measure, known as Dens (standing for label density).
+
+<span class="sub-sub-header"> IRLb:</span> Most multilabel datasets are imbalanced, meaning that some of the labels are very frequent whereas
+others are quite rare. The level of imbalance of a determinate label can be measured by the imbalance ratio,
+
+<span class="sub-header">Imbalance related measures:</span>  
+
+<span class="sub-sub-header">  UniqLabelsets:</span> The number of different labelsets, as well as the amount of them being unique labelsets (appearing only
+once in D), give us a glimpse on how sparsely the labels are distributed.
+
+<span class="sub-sub-header"> SCUMBLE:</span> is used to assess the concurrence level among frequent and infrequent labels.
+
+## Multilabel classification  
+
+There are two possibilities to deal with multi-label classification:  
+<span class="sub-header"> Algorithm adaptation:</span>   
+Modify existing algorithms taking into account the multilabel nature of the samples, for instance hosting more than one class in the leaves of a tree instead of only one.
+
+<span class="sub-header"> Problem transformation:</span>  
+Transforming the original data to make it suitable to existing traditional classification algorithms and combining the obtained predictions to build the labelsets given as output result. There are several transformation methods in literature. Three have been defined and used for our case study.  
+
+<span class="sub-sub-header">  Binary Relevance (BR):</span>  
+Introduced by [8] as an adaptation of OVA (one-vs-all ) to the multilabel scenario, this method transforms the original multilabel dataset into several binary datasets. Here an ensemble of binary classifiers is trained, one for each class. Each classifier predicts either the membership or the non-membership of one class. A union of all predicted classes is taken as the multi-label output. The approach is popular because it is easy to implement, but it ignores the possible correlations between class labels.  
+
+<span class="sub-sub-header">  Label Powerset (LP):</span>  
+Introduced by [1], this method transforms the multilabel dataset into a multiclass dataset by using the labelset of each instance as class identifier. This approach does take possible correlations between class labels into account. The downside of the method is it has a high computational complexity and when the number of classes increases the number of distinct label combinations can grow exponentially. This easily leads to combinatorial explosion and thus computational infeasibility. The method is called *Label Powerset* because it considers each member of the power set of labels in the training set as a single label.
+
+<span class="sub-sub-header">  Classifier Chains (CC):</span>   
+Introduced in [15] , this method comprises a chain of binary classifiers \(C_0, C_1, . . . , C_m \) is constructed, where a classifier \(C_i\) uses the predictions of all the classifier \(C_j\) , where j < i. This way the method can take into account label correlations. The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved. 
+
+## Evaluation metric
+
+Evaluation measures for a multi-label classification problem needs discussion as it is different from multiclass/binary class problem. In single label classification the commonly used metrics are - accuracy, precision, recall, F1-measure, among others. In multi-label classification we cannot define misclassification as a hard correct or incorrect, but a prediction comprising subset of actual classes is deemed better than containg none of them. Multilabel evaluation metrics are grouped into two main categories: example based and label based metrics. Example based metrics are computed individually for each instance, then averaged to obtain the final value. Label based metrics are computed per label, instead of per instance.
+
+<span class="sub-header"> Hamming Loss (Example based)</span>
+Hamming Loss is is an example based measure. It is defined as the fraction of labels that are incorrectly predicted.
+
+\(HL = \frac{1}{N . L} \sum_{l=1}^L\sum_{i=1}^N Y_{i,l} \oplus X_{i,l}\)  
+  
+  where \oplus denotes exlusive-or, \(X_{i,l} (Y_{i,l})\) stands for boolean that the i-th prediction contains the l-th label. For binary scenario (L=1) equals to (1 - accuracy).
+  
+<span class="sub-header"> Micro-average and Macro-average (Label based)</span>
+In order to measure the performance of a multi-class classifier we have to consider the average performance over all classes. There are two different ways of doing this called micro-averaging and macro-averaging. A macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), whereas a micro-average will aggregate the contributions of all classes to compute the average metric. In a multi-class classification setup, micro-average is preferable if is class imbalance, like our dataset.
+  
+<span class="sub-header"> Micro Average</span>
+In micro all TPs, TNs, FPs and FNs for each class are summed up and then the average is taken. The micro-average F1 is the harmonic mean of the below two equations.  
+  
+\(Microaverage Precision Prc^{micro}(D) = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FP_c} \)  
+  
+\(Microaverage Recall Rcl^{micro}(D) =  = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FN_c} \) 
+  
+<span class="sub-header"> Macro Average</span>
+In macro average we take the average of precision and recall of the system on different sets. It is used when we want to know how the algorithm performs overall across different subset of data.  
+
+\(Macrooaverage Precision Prc^{macro}(D) = \frac{\sum_c Prc(D,c)}{|C|} \)  
+  
+\(Microaverage Recall Rcl^{macro}(D) = \frac{\sum_c Rcl(D,c)}{|C|} \) 
+
+<span class="sub-header"> Subset accuracy (Example based)</span>
+It is also called subset accuracy, is the most strict evaluation metric. It indicates the percentage of samples that have all their labels classified correctly. The downside of this measure is that it is too strcit to be true, i.e - it ignores the partially correct matches. In a dataset having huge number of labels it is very challenging to get a good score for this measure.
+References
+ 
