@@ -29,12 +29,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single lable, and the task is to predict the label-sets of unseen instances, instead of a single label. There is a difference between multi-class classification and multi-label classification. In multi-class problem the classes or labels are mutually-exclusive, i.e. it makes the assumption that each instance can be assigned to only one label. E.g - an animal can be either a dog or a cat but not both. But in multi-label problem multiple labels may be assigned to an instance. E.g - a movie can belong to a comedy genre as well a detective genre.  
 
-# Working with multilabel datasets {.tabset  .tabset-fade}
+## Working with multilabel datasets {.tabset  .tabset-fade}
  
  
  Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances.
  
-## Multilabel dataset traits
+### Multilabel dataset traits
 
 Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances. The figure below outlines the measures. Some of the important measures have been explained below.
   
@@ -64,7 +64,7 @@ once in D), give us a glimpse on how sparsely the labels are distributed.
 
 <span class="sub-sub-header"> SCUMBLE:</span> is used to assess the concurrence level among frequent and infrequent labels.
 
-## Multilabel classification  
+### Multilabel classification  
 
 There are two possibilities to deal with multi-label classification:  
 <span class="sub-header"> Algorithm adaptation:</span>   
@@ -82,7 +82,7 @@ Introduced by [1], this method transforms the multilabel dataset into a multicla
 <span class="sub-sub-header">  Classifier Chains (CC):</span>   
 Introduced in [15] , this method comprises a chain of binary classifiers \(C_0, C_1, . . . , C_m \) is constructed, where a classifier \(C_i\) uses the predictions of all the classifier \(C_j\) , where j < i. This way the method can take into account label correlations. The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved. 
 
-## Evaluation metric
+### Evaluation metric
 
 Evaluation measures for a multi-label classification problem needs discussion as it is different from multiclass/binary class problem. In single label classification the commonly used metrics are - accuracy, precision, recall, F1-measure, among others. In multi-label classification we cannot define misclassification as a hard correct or incorrect, but a prediction comprising subset of actual classes is deemed better than containg none of them. Multilabel evaluation metrics are grouped into two main categories: example based and label based metrics. Example based metrics are computed individually for each instance, then averaged to obtain the final value. Label based metrics are computed per label, instead of per instance.
 

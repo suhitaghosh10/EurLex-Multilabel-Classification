@@ -171,7 +171,7 @@ $(document).ready(function () {
   <a href="multilabel_classification_intro.html">Multi-label classification</a>
 </li>
 <li>
-  <a href="process_notebook.html">Exploratory Analysis</a>
+  <a href="exploratory_analysis.html">Exploratory Analysis</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -193,12 +193,11 @@ $(document).ready(function () {
 <div id="basics-of-multilabel-classification" class="section level1">
 <h1>Basics of multilabel classification</h1>
 <p>In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single lable, and the task is to predict the label-sets of unseen instances, instead of a single label. There is a difference between multi-class classification and multi-label classification. In multi-class problem the classes or labels are mutually-exclusive, i.e. it makes the assumption that each instance can be assigned to only one label. E.g - an animal can be either a dog or a cat but not both. But in multi-label problem multiple labels may be assigned to an instance. E.g - a movie can belong to a comedy genre as well a detective genre.</p>
-</div>
-<div id="working-with-multilabel-datasets" class="section level1 tabset tabset-fade">
-<h1>Working with multilabel datasets</h1>
+<div id="working-with-multilabel-datasets" class="section level2 tabset tabset-fade">
+<h2>Working with multilabel datasets</h2>
 <p>Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances.</p>
-<div id="multilabel-dataset-traits" class="section level2">
-<h2>Multilabel dataset traits</h2>
+<div id="multilabel-dataset-traits" class="section level3">
+<h3>Multilabel dataset traits</h3>
 <p>Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances. The figure below outlines the measures. Some of the important measures have been explained below.</p>
 <div class="figure">
 <img src="Figs/measures.png" alt="measures for MLD" />
@@ -214,8 +213,8 @@ $(document).ready(function () {
 <p><span class="sub-sub-header"> UniqLabelsets:</span> The number of different labelsets, as well as the amount of them being unique labelsets (appearing only once in D), give us a glimpse on how sparsely the labels are distributed.</p>
 <p><span class="sub-sub-header"> SCUMBLE:</span> is used to assess the concurrence level among frequent and infrequent labels.</p>
 </div>
-<div id="multilabel-classification" class="section level2">
-<h2>Multilabel classification</h2>
+<div id="multilabel-classification" class="section level3">
+<h3>Multilabel classification</h3>
 <p>There are two possibilities to deal with multi-label classification:<br />
 <span class="sub-header"> Algorithm adaptation:</span><br />
 Modify existing algorithms taking into account the multilabel nature of the samples, for instance hosting more than one class in the leaves of a tree instead of only one.</p>
@@ -228,8 +227,8 @@ Introduced by [1], this method transforms the multilabel dataset into a multicla
 <p><span class="sub-sub-header"> Classifier Chains (CC):</span><br />
 Introduced in [15] , this method comprises a chain of binary classifiers <span class="math inline">\(C_0, C_1, . . . , C_m \)</span> is constructed, where a classifier <span class="math inline">\(C_i\)</span> uses the predictions of all the classifier <span class="math inline">\(C_j\)</span> , where j &lt; i. This way the method can take into account label correlations. The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved.</p>
 </div>
-<div id="evaluation-metric" class="section level2">
-<h2>Evaluation metric</h2>
+<div id="evaluation-metric" class="section level3">
+<h3>Evaluation metric</h3>
 <p>Evaluation measures for a multi-label classification problem needs discussion as it is different from multiclass/binary class problem. In single label classification the commonly used metrics are - accuracy, precision, recall, F1-measure, among others. In multi-label classification we cannot define misclassification as a hard correct or incorrect, but a prediction comprising subset of actual classes is deemed better than containg none of them. Multilabel evaluation metrics are grouped into two main categories: example based and label based metrics. Example based metrics are computed individually for each instance, then averaged to obtain the final value. Label based metrics are computed per label, instead of per instance.</p>
 <p><span class="sub-header"> Hamming Loss (Example based)</span> Hamming Loss is is an example based measure. It is defined as the fraction of labels that are incorrectly predicted.</p>
 <p><span class="math inline">\(HL = \frac{1}{N . L} \sum_{l=1}^L\sum_{i=1}^N Y_{i,l} \oplus X_{i,l}\)</span></p>
@@ -242,6 +241,7 @@ Introduced in [15] , this method comprises a chain of binary classifiers <span c
 <p><span class="math inline">\(Macrooaverage Precision Prc^{macro}(D) = \frac{\sum_c Prc(D,c)}{|C|} \)</span></p>
 <p><span class="math inline">\(Microaverage Recall Rcl^{macro}(D) = \frac{\sum_c Rcl(D,c)}{|C|} \)</span></p>
 <p><span class="sub-header"> Subset accuracy (Example based)</span> It is also called subset accuracy, is the most strict evaluation metric. It indicates the percentage of samples that have all their labels classified correctly. The downside of this measure is that it is too strcit to be true, i.e - it ignores the partially correct matches. In a dataset having huge number of labels it is very challenging to get a good score for this measure. References</p>
+</div>
 </div>
 </div>
 

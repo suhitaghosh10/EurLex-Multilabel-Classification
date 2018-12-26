@@ -79,24 +79,23 @@ generate_ARFF <- function(dtm, arff_name) {
 }
 
 init <- function(language) {
-print("1")
   if (language == "english") {
-  print("eng")
+  print("english chosen")
     lang <<- "english"
     fileName <<- "data/english/acquis.cf"
     tfidfArffFileName <<- "output/tfidf_EN.arff"
     incArffFileName <<- "output/inc_EN.arff"
-    tfidfXMLFileName <<- "output/tfidf_EN.xml"
-    incXMLFileName <<- "output/inc_EN.xml"
+    XMLFileName <<- "output/EN.xml"
     labelFile <<- "data/english/desc_en.xml"
   }
   else if (language == "german") {
+  print("german chosen")
     lang <<- "german"
     fileName <<- "data/german/acquis_german.cf"
     tfidfArffFileName <<- "output/tfidf_DE.arff"
     incArffFileName <<- "output/inc_DE.arff"
     tfidfXMLFileName <<- "output/tfidf_DE.xml"
-    incXMLFileName <<- "output/inc_DE.xml"
+    XMLFileName <<- "output/DE.xml"
     labelFile <<- "data/german/desc_de.xml"
     model_file <<- "output/german-gsd-ud-2.3-181115.udpipe"
     if (!file.exists(model_file))

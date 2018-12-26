@@ -14,7 +14,10 @@ packages <- c(
   "utiml",
   "ggplot2",
   "RColorBrewer",
-  "udpipe"
+  "udpipe",
+  "xgboost",
+  "randomForest",
+  "matrixStats"
 )
 
 

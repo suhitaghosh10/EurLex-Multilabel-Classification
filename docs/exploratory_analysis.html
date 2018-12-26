@@ -22,6 +22,44 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #0000ff; } /* Keyword */
+code > span.ch { color: #008080; } /* Char */
+code > span.st { color: #008080; } /* String */
+code > span.co { color: #008000; } /* Comment */
+code > span.ot { color: #ff4000; } /* Other */
+code > span.al { color: #ff0000; } /* Alert */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #008000; font-weight: bold; } /* Warning */
+code > span.cn { } /* Constant */
+code > span.sc { color: #008080; } /* SpecialChar */
+code > span.vs { color: #008080; } /* VerbatimString */
+code > span.ss { color: #008080; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { } /* Variable */
+code > span.cf { color: #0000ff; } /* ControlFlow */
+code > span.op { } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #ff4000; } /* Preprocessor */
+code > span.do { color: #008000; } /* Documentation */
+code > span.an { color: #008000; } /* Annotation */
+code > span.cv { color: #008000; } /* CommentVar */
+code > span.at { } /* Attribute */
+code > span.in { color: #008000; } /* Information */
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
 
 
 <style type="text/css">
@@ -171,7 +209,7 @@ $(document).ready(function () {
   <a href="multilabel_classification_intro.html">Multi-label classification</a>
 </li>
 <li>
-  <a href="process_notebook.html">Exploratory Analysis</a>
+  <a href="exploratory_analysis.html">Exploratory Analysis</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -194,6 +232,231 @@ $(document).ready(function () {
 <h1>Exploratory analysis</h1>
 <div id="preparing-the-data" class="section level2">
 <h2>Preparing the data</h2>
+<p>The legal text is available in several European languages, but we will experiment with two languages - English and German. The text content (laws/treaties) for each of them is available in a file (acquis.cf), where every odd line consists of identifier of categories/labels and the document-id the document is associated with. The labels and document-id is separted by a <em>#</em>. Every even line consists of the actual text. An example has been shown below in the diagram. On the 1st line there are two lable-ids - <em>3032, 525</em> and the document-id is <em># 31958d1006(01)</em>, and the actual text is on 2nd line.</p>
+<div class="figure">
+<img src="Figs/acquis.png" alt="Data" />
+<p class="caption">Data</p>
+</div>
+<p>Binary and multiclass datasets can be handled in R by using dataframes and usually the last attribute is the output class, whether it contains only TRUE/FALSE values or a value belonging to a finite set/factor. <em>R data.frame</em> can also be utilised for the Multilabel datasets (MLDs), but an additional structure is required to understand which attributes are labels. For the same reason <em>mldr</em> package is used, which provides the user with the functions needed to perform exploratory analysis over MLDs, as well brings the data in the format suitable for use by the classification algorithms.<br />
+The <em>mldr</em> package needs two files - an <em>ARFF</em> file containing the attributes and labelsets information and the <em>xml</em> file (has to be same name as ARFF file) which contains the mapping between the label-id and label names.</p>
+<p>We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - *“How the classifiers’ performance changes with different features- one with term frequencyâ€“inverse document frequency(tf-idf), another with term incidence”*</p>
+<p>Therefore we will have two ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features. Preprocessing will be same for both language - English and German, except for the following:</p>
+<ul>
+<li>list of stopwords</li>
+<li>lemmatization</li>
+</ul>
+<p>The below preprocessing is being portrayed for english. Some utility methods needs to be run before the actual preprocessing. Please execute them before the actual preprocessing code</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Utility method to get label names without special characters</span>
+get_clean_label &lt;-<span class="st"> </span><span class="cf">function</span>(label) {
+clean_label &lt;-<span class="st"> </span>label <span class="op">%&gt;%</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s|</span><span class="ch">\\</span><span class="st">.|</span><span class="ch">\\</span><span class="st">[|</span><span class="ch">\\</span><span class="st">]|-|</span><span class="ch">\\</span><span class="st">(|</span><span class="ch">\\</span><span class="st">)&quot;</span>, <span class="st">&quot;_&quot;</span>, .)
+} <span class="op">%&gt;%</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, .)
+} <span class="op">%&gt;%</span>
+<span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
+<span class="kw">tolower</span>()  <span class="op">%&gt;%</span>
+<span class="kw">paste</span>(<span class="st">&quot;tag&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;_&quot;</span>)
+
+clean_label
+}
+
+<span class="co"># Utility method to retrieve list of label-names from list of label-ids</span>
+<span class="co">#input: label-ids # doc-id [3032 525 # 31958d1006(01)]</span>
+<span class="co">#output: labelnames separated by space[class1 class2]</span>
+get_label_name_list &lt;-<span class="st"> </span><span class="cf">function</span>(label_id_list) {
+desc_xml &lt;-<span class="st"> </span><span class="kw">xmlParse</span>(<span class="st">&quot;data/english/desc_en.xml&quot;</span>)
+<span class="co">#create a datframe having label id and label name</span>
+xm_df &lt;-
+<span class="kw">data.frame</span>(<span class="dt">did =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//DESCRIPTEUR_ID&quot;</span>], xmlValue),
+<span class="dt">dname =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//LIBELLE&quot;</span>], xmlValue))
+<span class="co">#remove special characters from label names</span>
+xm_df<span class="op">$</span>dname &lt;-<span class="st"> </span><span class="kw">get_clean_label</span>(xm_df<span class="op">$</span>dname)
+
+label_name_list &lt;-<span class="st"> </span>label_id_list <span class="op">%&gt;%</span>
+<span class="kw">lapply</span>(<span class="cf">function</span>(labelsets)
+<span class="kw">strsplit</span>(labelsets, <span class="st">&quot; &quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># split each member of the list, containg the labels for the document</span>
+<span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#retrieving the label-list for each document</span>
+<span class="kw">lapply</span>(<span class="cf">function</span>(label_id_array)
+<span class="kw">lapply</span>(label_id_array, <span class="cf">function</span>(label_id)
+<span class="kw">get_label_name</span>(label_id, xm_df))) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># retrieve the label name for the corresponding label-id</span>
+<span class="kw">lapply</span>(<span class="cf">function</span>(label)
+<span class="kw">paste</span>(label, <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>)) <span class="co"># appending the label-names with space</span>
+
+label_name_list
+}
+
+<span class="co">#Utility method to get labelname for corresponding label-id</span>
+get_label_name &lt;-<span class="st"> </span><span class="cf">function</span>(label_id, label_id_name_df) {
+label_name =<span class="st"> </span>label_id_name_df[label_id_name_df<span class="op">$</span>did <span class="op">==</span><span class="st"> </span>label_id, <span class="dv">2</span>]
+<span class="cf">if</span> (<span class="kw">length</span>(label_name) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)
+<span class="kw">return</span>(<span class="kw">as.character</span>(label_name))
+<span class="cf">else</span>
+<span class="kw">return</span>(<span class="kw">paste</span>(label_id, <span class="st">&quot;tag&quot;</span> , <span class="dt">sep =</span> <span class="st">&quot;_&quot;</span>))
+}
+
+<span class="co"># Utility method to perform preprocessing over content - removal of special characters and stopwords and lemmatization</span>
+get_clean_content &lt;-<span class="st"> </span><span class="cf">function</span>(content) {
+<span class="cf">if</span> (lang <span class="op">==</span><span class="st"> &quot;english&quot;</span>) {
+stopwords &lt;-
+<span class="kw">c</span>(
+<span class="st">&#39;gt&#39;</span>,
+<span class="st">&#39;notext&#39;</span>,
+<span class="st">&#39;p&#39;</span>,
+<span class="st">&#39;lt&#39;</span>,
+<span class="st">&#39;aka&#39;</span>,
+<span class="st">&#39;oj&#39;</span>,
+<span class="st">&#39;n&#39;</span>,
+<span class="st">&#39;a&#39;</span>,
+<span class="st">&#39;eec&#39;</span>,
+<span class="st">&#39;article&#39;</span>,
+<span class="st">&#39;directive&#39;</span>,
+<span class="st">&#39;shall&#39;</span>,
+<span class="st">&#39;follow&#39;</span>
+)  <span class="op">%&gt;%</span>
+<span class="kw">append</span>(<span class="kw">stopwords</span>(lang))
+}
+<span class="cf">else</span> <span class="cf">if</span> (lang <span class="op">==</span><span class="st"> &quot;german&quot;</span>) {
+stopwords &lt;-
+<span class="kw">c</span>(
+<span class="st">&#39;gt&#39;</span>,
+<span class="st">&#39;notext&#39;</span>,
+<span class="st">&#39;p&#39;</span>,
+<span class="st">&#39;lt&#39;</span>,
+<span class="st">&#39;aka&#39;</span>,
+<span class="st">&#39;oj&#39;</span>,
+<span class="st">&#39;n&#39;</span>,
+<span class="st">&#39;a&#39;</span>,
+<span class="st">&#39;eec&#39;</span>,
+<span class="st">&#39;article&#39;</span>,
+<span class="st">&#39;directive&#39;</span>,
+<span class="st">&#39;soll&#39;</span>,
+<span class="st">&#39;folgen&#39;</span>
+)  <span class="op">%&gt;%</span>
+<span class="kw">append</span>(<span class="kw">stopwords</span>(lang))
+}
+clean_content &lt;-<span class="st"> </span>content  <span class="op">%&gt;%</span>
+<span class="kw">replace_html</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># replace html tags like &lt;p&gt; with space</span>
+{
+<span class="kw">gsub</span>(<span class="st">&#39;-&#39;</span>, <span class="st">&#39;&#39;</span>, .)
+} <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># remove hyphen</span>
+{
+<span class="kw">gsub</span>(<span class="st">&#39;[[:punct:] ]+&#39;</span>, <span class="st">&#39; &#39;</span>, .)
+} <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># replace punctuation with space</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">b[IVXLCDM]+</span><span class="ch">\\</span><span class="st">b&quot;</span>, <span class="st">&quot; &quot;</span>, .)
+} <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#replace roman numbers with space</span>
+<span class="kw">tolower</span>()
+
+<span class="cf">if</span> (lang <span class="op">==</span><span class="st"> &quot;english&quot;</span>)
+clean_content &lt;-
+<span class="kw">lemmatize_strings</span>(clean_content) <span class="co">#lemmatize_strings only works for &quot;English&quot; text</span>
+<span class="cf">else</span>{
+<span class="co"># For german text udpipe package has been used.</span>
+clean_content &lt;-
+<span class="kw">stri_trans_general</span>(clean_content, <span class="st">&quot;Latin-ASCII&quot;</span>)
+lemmata &lt;-<span class="st"> </span><span class="kw">c</span>()
+<span class="cf">for</span> (index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(clean_content)) {
+lemmata[index] &lt;-
+<span class="kw">mclapply</span>(clean_content[[index]], <span class="cf">function</span>(x)
+<span class="kw">generate_lemma_per_document</span>(x, index))
+}
+clean_content &lt;-<span class="st"> </span><span class="kw">sapply</span>(lemmata, paste0, <span class="dt">collapse =</span> <span class="st">&quot; &quot;</span>)
+}
+
+clean_content &lt;-<span class="st"> </span>clean_content <span class="op">%&gt;%</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">w*[0-9]+</span><span class="ch">\\</span><span class="st">w*</span><span class="ch">\\</span><span class="st">s*&quot;</span>, <span class="st">&quot;&quot;</span>, .)
+} <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># remove words containing numbers</span>
+<span class="kw">removeWords</span>(<span class="dt">words =</span> stopwords)  <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># stopword removal</span>
+<span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>)  <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># remova of non-ascii characters</span>
+<span class="kw">trimws</span>() <span class="co"># removal of extra space</span>
+
+clean_content
+}
+
+<span class="co"># Utility method to generate lemma for non-english text</span>
+generate_lemma_per_document &lt;-<span class="st"> </span><span class="cf">function</span>(content, doc_id) {
+x &lt;-
+<span class="kw">as.data.table</span>(
+<span class="kw">udpipe_annotate</span>(
+model,
+<span class="dt">x =</span> content,
+<span class="dt">doc_id =</span> doc_id,
+<span class="dt">tagger =</span> <span class="st">&quot;default&quot;</span>,
+<span class="dt">parser =</span> <span class="st">&quot;none&quot;</span>
+)
+)
+lemma &lt;-
+<span class="kw">sapply</span>(x<span class="op">$</span>lemma, paste, <span class="dt">collapse =</span> <span class="st">&quot; &quot;</span>) <span class="co">#extract lemma and concatenate lemmata by space</span>
+lemma
+}
+
+<span class="co">#Method returns unique words</span>
+<span class="co">#input: The cat sits on the table</span>
+<span class="co">#output: The cat sits on table</span>
+uniqueWords &lt;-<span class="st"> </span><span class="cf">function</span>(text) {
+<span class="kw">return</span>(<span class="kw">paste</span>(<span class="kw">unique</span>(<span class="kw">strsplit</span>(text, <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]]), <span class="dt">collapse =</span> <span class="st">&#39; &#39;</span>))
+}
+
+
+<span class="co"># Utility method to generte ARFF from dtm</span>
+generate_ARFF &lt;-<span class="st"> </span><span class="cf">function</span>(dtm, arff_name) {
+<span class="kw">write.arff</span>(temp_dtm, <span class="dt">file =</span> arff_name , <span class="dt">eol =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+conn &lt;-<span class="st"> </span><span class="kw">file</span>(arff_name, <span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
+<span class="kw">readLines</span>(conn)  <span class="op">%&gt;%</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;_tag&#39; numeric&quot;</span>, <span class="st">&quot;_tag&#39; {0,1}&quot;</span>, .)
+}  <span class="op">%&gt;%</span>
+<span class="kw">write</span>(<span class="dt">file =</span> arff_name)
+<span class="kw">close.connection</span>(conn)
+}</code></pre></div>
+<p>The following steps are executed for preprocessing and generating the dataset (ARFFs and xml)</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lang &lt;-<span class="st"> &quot;english&quot;</span>
+connection &lt;-<span class="st"> &quot;data/english/acquis.cf&quot;</span>  <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">file</span>(<span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
+raw_text_char &lt;-<span class="st"> </span>connection <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">readLines</span>()
+<span class="kw">close.connection</span>(connection)
+
+<span class="co"># every even line contains content</span>
+text_content_list &lt;-<span class="st"> </span>raw_text_char[<span class="kw">seq</span>(<span class="dv">2</span>, <span class="kw">length</span>(raw_text_char), <span class="dv">2</span>)]
+
+<span class="co">#every odd line contains label-id</span>
+class_labels_list &lt;-
+<span class="st">  </span>raw_text_char[<span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">length</span>(raw_text_char), <span class="dv">2</span>)] <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="co"># extract the label-ids</span>
+<span class="st">  </span><span class="kw">strsplit</span>(<span class="st">&quot;#&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">trimws</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">get_label_name_list</span>()
+
+<span class="co">#</span>
+corpus &lt;-<span class="st"> </span>text_content_list <span class="op">%&gt;%</span>
+<span class="kw">get_clean_content</span>()  <span class="op">%&gt;%</span>
+<span class="kw">VectorSource</span>()  <span class="op">%&gt;%</span>
+<span class="kw">VCorpus</span>()
+
+<span class="co"># create document term matrix containing tf-idf values</span>
+tfidf_dtm &lt;-<span class="st"> </span>corpus <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">DocumentTermMatrix</span>(<span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">wordLengths =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="ot">Inf</span>), <span class="dt">weighting =</span> <span class="cf">function</span>(x) <span class="kw">weightTfIdf</span>(x, <span class="dt">normalize =</span> <span class="ot">FALSE</span>) ,<span class="dt">stopwords =</span> <span class="ot">TRUE</span>))  <span class="op">%&gt;%</span>
+<span class="kw">removeSparseTerms</span>(<span class="fl">0.99</span>) <span class="co">#Remove sparse terms from document-term matrix</span>
+
+<span class="co"># create document term matrix containing term-incidence values</span>
+dtm_tfidf &lt;-<span class="st">  </span>corpus <span class="op">%&gt;%</span>
+<span class="kw">tm_map</span>( <span class="kw">content_transformer</span>(uniqueWords)) <span class="op">%&gt;%</span>
+<span class="kw">DocumentTermMatrix</span>(<span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">wordLengths =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="ot">Inf</span>), <span class="dt">weight =</span> weightBin ,<span class="dt">stopwords =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span>
+<span class="kw">removeSparseTerms</span>(<span class="fl">0.99</span>) <span class="co">#Remove sparse terms from document-term matrix</span>
+
+<span class="co">#creating a corpus from labels, as it needs to be appended with features (tf-idf / incidence)</span>
+dtm_labels &lt;-<span class="st"> </span>class_labels_list <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">VCorpus</span>(<span class="kw">VectorSource</span>())  <span class="op">%&gt;%</span>
+<span class="kw">DocumentTermMatrix</span>(<span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">weight =</span> weightTfIdf))
+
+<span class="co"># combine the features corpus with labels corpus</span>
+dtm_tfidf &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_tfidf,dtm_labels)
+dtm_incidence &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_incidence,dtm_labels)
+
+<span class="co">#generate ARFF files from the DTMs</span>
+<span class="kw">generate_ARFF</span>(dtm_incidence, <span class="st">&quot;output/inc_EN.arff&quot;</span>)
+<span class="kw">generate_ARFF</span>(dtm_tfidf, <span class="st">&quot;output/tfidf_EN.arff&quot;</span>)</code></pre></div>
 </div>
 <div id="data-exploration" class="section level2">
 <h2>Data exploration</h2>

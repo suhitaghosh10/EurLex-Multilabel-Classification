@@ -276,7 +276,7 @@ div.tocify {
   <a href="multilabel_classification_intro.html">Multi-label classification</a>
 </li>
 <li>
-  <a href="process_notebook.html">Exploratory Analysis</a>
+  <a href="exploratory_analysis.html">Exploratory Analysis</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -297,7 +297,9 @@ div.tocify {
 </div>
 
 
-<p>      # Overview and motivation</p>
+<p>     </p>
+<div id="overview-and-motivation" class="section level1">
+<h1>Overview and motivation</h1>
 <p>Most of the classification algorithms deal with datasets which have a set of input features and only <em>one</em> output class. However, in reality the problem might be different from a typical binary or multiclass classification. A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. Therefore, often a document needs to be tagged to multiple labels/categories, instead of a single category. An introduction of enormous amount of documents belonging to multiple categories in the legal domain, makes it an attractive area for employing automated solutions.<br />
 In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the <strong>EUR-Lex</strong> dataset containing about twenty thousand documents, around seven thousand labels and in several European languages. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this dataset an interesting proposition. Few publications have used an older version of the dataset which had around four thousand labels. The ones that have used this have reported relatively poor values in the range of 50% (which may be fair, given the high number of labels). To the best of our knowledge there has been no publications for the new dataset having around 7000 labels.</p>
 <blockquote>
@@ -308,8 +310,26 @@ In multi-label classification, each instance in the training set is associated w
 <img src="Figs/multiclass-label.png" alt="Multilable v/s Multiclass classification" />
 <p class="caption">Multilable v/s Multiclass classification</p>
 </div>
-<div id="references" class="section level4">
-<h4>References</h4>
+</div>
+<div id="project-objectives" class="section level1">
+<h1>Project objectives</h1>
+<p>In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario. In the process, we try to answer the following research questions:</p>
+<ul>
+<li>How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).<br />
+</li>
+<li><p>How the classifiers’ performance changes with different features- one with term frequencyâ€“inverse document frequency(tf-idf), another with term incidence.</p></li>
+<li><p>Which flavour of multilabel classifiers perform best among all.</p></li>
+<li><p>How the classifiers’ performance changes when the number of labels is reduced</p></li>
+</ul>
+</div>
+<div id="name-of-dataset" class="section level1">
+<h1>Name of dataset:</h1>
+<p>European Union law documents (EUR-Lex). The <a href="https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX">data</a> is located inside the software distributed by European Union.</p>
+</div>
+<div id="r-packages" class="section level1">
+<h1>R packages</h1>
+<p>The following packages must be installed in R-Studio:<br />
+- textstem - stringi - dplyr - data.table - tm - textclean - XML - RWeka - tidyr - parallel - mldr - utiml - ggplot2 - RColorBrewer - udpipe - xgboost - randomForest - matrixStats #### References</p>
 </div>
 
 

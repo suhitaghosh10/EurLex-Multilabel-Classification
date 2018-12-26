@@ -35,6 +35,7 @@ knitr::opts_chunk$set(echo = TRUE)
 &nbsp;
 &nbsp;
 &nbsp;
+
 # Overview and motivation
 
 Most of the classification algorithms deal with datasets which have a set of input features and only *one* output class. However, in reality the problem might be different from a typical binary or multiclass classification. A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. Therefore, often a document needs to be tagged to multiple labels/categories, instead of a single category. An introduction of enormous amount of documents belonging to multiple categories in the legal domain, makes it an attractive area for employing automated solutions.  
@@ -46,6 +47,41 @@ In multi-label classification, each instance in the training set is associated w
 
 ![Multilable v/s Multiclass classification](Figs/multiclass-label.png)
 
+# Project objectives
+In this project we first perform a statistical exploratory analysis of the dataset. Secondly, we experiment the performance of various state-of-the-art classifiers on this dataset. For a better understanding of this classification task, we study the evaluation measures for the multilabel scenario.
+In the process, we try to answer the following research questions:  
+  
+* How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).  
+* How the classifiers' performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.  
+
+* Which flavour of multilabel classifiers perform best among all.
+
+* How the classifiers' performance changes when the number of labels is reduced
 
 
+# Name of dataset:
+European Union law documents (EUR-Lex).
+The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX) is located inside the software distributed by European Union.
+
+# R packages
+
+The following packages must be installed in R-Studio:  
+-   textstem
+-   stringi
+-   dplyr
+-   data.table
+-   tm
+-   textclean
+-   XML
+-   RWeka
+-   tidyr
+-   parallel
+-   mldr
+-   utiml
+-   ggplot2
+-   RColorBrewer
+-   udpipe
+-   xgboost
+-   randomForest
+-   matrixStats
 #### References
