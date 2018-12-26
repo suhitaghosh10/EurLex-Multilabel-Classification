@@ -34,7 +34,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 &nbsp;
 &nbsp;
-&nbsp;
+&nbsp;  
+
 
 # Overview and motivation
 
@@ -66,8 +67,8 @@ The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer
 # R packages
 
 The following packages must be installed in R-Studio:  
--   textstem
--   stringi
+- textstem  
+- stringi  
 -   dplyr
 -   data.table
 -   tm
@@ -84,4 +85,5 @@ The following packages must be installed in R-Studio:
 -   xgboost
 -   randomForest
 -   matrixStats
+
 #### References

@@ -5,42 +5,61 @@ connection <- fileName  %>% file(open="r")
 raw_text_char <- connection %>% readLines()
 close.connection(connection)
 
-#text_content_list <- raw_text_char[seq (2, 100,2)]
-text_content_list <- raw_text_char[seq (2, length(raw_text_char),2)]
-#class_labels_list <- raw_text_char[seq (1, 100,2)] %>%
-class_labels_list <- raw_text_char[seq (1, length(raw_text_char),2)] %>%
+sample_size <- 200
+offset <- 0
+iteration_no <- 24000/sample_size
+
+for(index in 1 :5) {
+
+start_text <- offset +2
+start_label <- offset +1
+end <- index * sample_size
+text_content_list <- raw_text_char[seq (start_text, end,2)]
+#text_content_list <- raw_text_char[seq (2, length(raw_text_char),2)]
+class_labels_list <- raw_text_char[seq (start_label, end,2)] %>%
+#class_labels_list <- raw_text_char[seq (1, length(raw_text_char),2)] %>%
 strsplit("#") %>%
 sapply("[[", 1) %>%
 trimws() %>%
 get_label_name_list()
 
-corpus <- text_content_list %>%
+offset <- offset+sample_size
+
+text_corpus <- text_content_list %>%
 get_clean_content()  %>%
 VectorSource()  %>%
 VCorpus()
 
-dtm_tfidf <- corpus %>% DocumentTermMatrix(control = list(wordLengths = c(3, Inf), weighting = function(x) weightTfIdf(x, normalize = FALSE) ,stopwords = TRUE))  %>%
+label_corpus <- class_labels_list %>%
+ VectorSource()  %>%
+ VCorpus()
+
+
+dtm_tfidf <- text_corpus %>%
+ DocumentTermMatrix(control = list(wordLengths = c(3, Inf), weighting = function(x) weightTfIdf(x, normalize = FALSE) ,stopwords = TRUE))  %>%
 removeSparseTerms(0.99)
 
-dtm_incidence <-  corpus %>%
+dtm_incidence <-  text_corpus %>%
 tm_map( content_transformer(uniqueWords)) %>%
 DocumentTermMatrix(control=list(wordLengths = c(3, Inf), weight=weightBin ,stopwords = TRUE)) %>%
 removeSparseTerms(0.99)
 
-dtm_labels <- class_labels_list %>% VCorpus(VectorSource())  %>%
-DocumentTermMatrix(control=list(weight=weightTfIdf))
+dtm_labels <- DocumentTermMatrix(label_corpus, control=list(weight=weightTfIdf))
+
 
 dtm_tfidf <- cbind(dtm_tfidf,dtm_labels)
 dtm_incidence <- cbind(dtm_incidence,dtm_labels)
 
-generate_ARFF(dtm_incidence, incArffFileName)
-generate_ARFF(dtm_tfidf, tfidfArffFileName)
+generate_ARFF(dtm_incidence, paste(incArffFileName,index,arff, sep = ""))
+generate_ARFF(dtm_tfidf, paste(tfidfArffFileName,index,arff, sep = ""))
 
-label_names <- getCleanLabel(xpathApply(desc_xml, "//LIBELLE", xmlValue) )
+}
 
+
+label_names <- xmlParse(labelFile) %>% xpathApply( "//LIBELLE", xmlValue) %>% get_clean_label()
 xml_root = newXMLNode("labels")
 for ( i in 1:length(label_names) ){
   newXMLNode("label", attrs=c(name=label_names[i]), parent=xml_root)
 }
-saveXML(xml_root,file="output/EN.xml")
+saveXML(xml_root,file=XMLFileName)
 

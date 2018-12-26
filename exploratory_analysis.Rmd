@@ -31,255 +31,341 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Preparing the data
 
-The legal text is available in several European languages, but we will experiment with two languages - English and German. The text content (laws/treaties) for each of them is available in a file (acquis.cf), where every odd line consists of identifier of categories/labels and the document-id the document is associated with. The labels and document-id is separted by a *#*. Every even line consists of the actual text. An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *# 31958d1006(01)*, and the actual text is on 2nd line.
+The legal text is available in several European languages, but we will experiment with two languages - **English** and **German**.  
 
-![Data](Figs/acquis.png)
+The text content (laws/treaties) for each language is available in a file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:  
+- Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*.
+- Every **even** line consists of the actual text.  
 
-Binary and multiclass datasets can be handled in R by using dataframes and usually the last attribute is the output class, whether it contains only TRUE/FALSE values or a value belonging to a finite set/factor. *R data.frame* can also be utilised for the Multilabel datasets (MLDs), but an additional structure is required to understand which attributes are labels. For the same reason *mldr* package is used, which provides the user with the functions needed to perform exploratory analysis over MLDs, as well brings the data in the format suitable for use by the classification algorithms.  
-The *mldr* package needs two files - an *ARFF* file containing the attributes and labelsets information and the *xml* file (has to be same name as ARFF file)  which contains the mapping between the label-id and label names.  
+An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *# 31958d1006(01)*, and the actual text is on 2nd line.
 
-We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - *"How the classifiers' performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence"* 
+<center> ![[Fig1. Data format]](Figs/acquis.png) </center>
+&nbsp;
+&nbsp;
+  
+<span class="sub-header"> How can we handle Multilabel datasets? </span>
 
-Therefore we will have two ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features. Preprocessing will be same for both language - English and German, except for the following:
+<span class="sub-sub-header"> Can we use data.frame for Multilabel datasets? </span>
+Unfortunately we can't!  
+Binary and multiclass datasets can be handled in R by using dataframes and usually the last attribute is the output class, whether it contains only TRUE/FALSE values or a value belonging to a factor. *R data.frame* can also be utilised for the Multilabel datasets (MLD), but an additional structure is required to understand which attributes are labels.  
+<span class="sub-sub-header"> Then how do we handle it? </span>  
+To mitigate the issue the first R package introduced for the task is *mldr*. It provides the user with the functions needed to perform exploratory analysis over MLDs, as well brings the data in the format suitable for use by the classification algorithms.  
+The *mldr* needs two files:  
+
+- An [*ARFF*](https://www.cs.waikato.ac.nz/ml/weka/arff.html) file containing the attributes and labelsets information  
+- A *xml* file (has to be same name as ARFF file)  which contains the mapping between the label-id and label names.  
+  
+<span class="sub-sub-header">Features used for the task </span>  
+We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - *How the classifiers' performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence* 
+Therefore we will have two datasets/ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features.
+<span class="sub-sub-header"> How much the preprocessing varies across languages? </span>  
+Preprocessing will be same for both languages - English and German, except for the following:
 
 - list of stopwords
 - lemmatization
 
-The below preprocessing is being portrayed for english. 
-Some utility methods needs to be run before the actual preprocessing. Please execute them before the actual preprocessing code
+
+Since the pre-processing is little different for different languages, we need to execute the following code, to perform the pre-processing for a particular language.
+
+```{r language_selection, include=TRUE, eval=FALSE}
+
+init <- function(language) {
+  if (language == "english") {
+  print("english chosen")
+    lang <<- "english"
+    fileName <<- "data/english/acquis.cf"
+    tfidfArffFileName <<- "output/tfidf_EN.arff"
+    incArffFileName <<- "output/inc_EN.arff"
+    XMLFileName <<- "output/EN.xml"
+    labelFile <<- "data/english/desc_en.xml"
+  }
+  else if (language == "german") {
+  print("german chosen")
+    lang <<- "german"
+    fileName <<- "data/german/acquis_german.cf"
+    tfidfArffFileName <<- "output/tfidf_DE.arff"
+    incArffFileName <<- "output/inc_DE.arff"
+    tfidfXMLFileName <<- "output/tfidf_DE.xml"
+    XMLFileName <<- "output/DE.xml"
+    labelFile <<- "data/german/desc_de.xml"
+    model_file <<- "output/german-gsd-ud-2.3-181115.udpipe"
+    if (!file.exists(model_file))
+    {
+      model <<- udpipe_download_model(language = "german", model_dir = "output/")
+    } else {
+      model <<- udpipe_load_model(model_file)
+    }
+  }
+}
+
+#Choosing english for preprocessing
+init("english")
+```
+
+Some utility methods have to be defined, which will be needed for the preprocessing and generation of dataset (ARFF and label xml).
 
 ```{r utility_methods, include=TRUE, eval=FALSE}
 
-
-
-# Utility method to get label names without special characters
-get_clean_label <- function(label) {
-clean_label <- label %>%
-{
-gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .)
-} %>%
-{
-gsub("'", "", .)
-} %>%
-replace_non_ascii(replacement = " ") %>%
-tolower()  %>%
-paste("tag", sep = "_")
-
-clean_label
+# Utility method to perform preprocessing over content - removal of special characters and stopwords and lemmatization
+get_clean_content <- function(content) {
+  if (lang == "english") {
+    stopwords <-
+      c(
+        'gt',
+        'notext',
+        'p',
+        'lt',
+        'aka',
+        'oj',
+        'n',
+        'a',
+        'eec',
+        'article',
+        'directive',
+        'shall',
+        'follow'
+      )  %>%
+      append(stopwords(lang))
+  }
+  else if (lang == "german") {
+    stopwords <-
+      c(
+        'gt',
+        'notext',
+        'p',
+        'lt',
+        'aka',
+        'oj',
+        'n',
+        'a',
+        'eec',
+        'article',
+        'directive',
+        'soll',
+        'folgen'
+      )  %>%
+      append(stopwords(lang))
+  }
+  clean_content <- content  %>%
+    replace_html(replacement = " ") %>% # replace html tags like <p> with space
+    {
+      gsub('-', '', .)
+    } %>% # remove hyphen
+    {
+      gsub('[[:punct:] ]+', ' ', .)
+    } %>% # replace punctuation with space
+    {
+      gsub("\\b[IVXLCDM]+\\b", " ", .)
+    } %>% #replace roman numbers with space
+    tolower()
+  
+  if (lang == "english")
+    clean_content <-
+    lemmatize_strings(clean_content) #lemmatize_strings only works for "English" text
+  else{
+    # For german text udpipe package has been used.
+    clean_content <-
+      stri_trans_general(clean_content, "Latin-ASCII")
+    lemmata <- c()
+    for (index in 1:length(clean_content)) {
+      lemmata[index] <-
+        mclapply(clean_content[[index]], function(x)
+          generate_lemma_per_document(x, index))
+    }
+    clean_content <- sapply(lemmata, paste0, collapse = " ")
+  }
+  
+  clean_content <- clean_content %>%
+  {
+    gsub("\\w*[0-9]+\\w*\\s*", "", .)
+  } %>% # remove words containing numbers
+    removeWords(words = stopwords)  %>% # stopword removal
+    replace_non_ascii(replacement = " ")  %>% # remova of non-ascii characters
+    trimws() # removal of extra space
+  
+  clean_content
 }
 
 # Utility method to retrieve list of label-names from list of label-ids
 #input: label-ids # doc-id [3032 525 # 31958d1006(01)]
 #output: labelnames separated by space[class1 class2]
 get_label_name_list <- function(label_id_list) {
-desc_xml <- xmlParse("data/english/desc_en.xml")
-#create a datframe having label id and label name
-xm_df <-
-data.frame(did = sapply(desc_xml["//DESCRIPTEUR_ID"], xmlValue),
-dname = sapply(desc_xml["//LIBELLE"], xmlValue))
-#remove special characters from label names
-xm_df$dname <- get_clean_label(xm_df$dname)
-
-label_name_list <- label_id_list %>%
-lapply(function(labelsets)
-strsplit(labelsets, " ")) %>% # split each member of the list, containg the labels for the document
-sapply("[[", 1) %>% #retrieving the label-list for each document
-lapply(function(label_id_array)
-lapply(label_id_array, function(label_id)
-get_label_name(label_id, xm_df))) %>% # retrieve the label name for the corresponding label-id
-lapply(function(label)
-paste(label, sep = " ")) # appending the label-names with space
-
-label_name_list
+  desc_xml <- xmlParse("data/english/desc_en.xml")
+  #create a datframe having label id and label name
+  xm_df <-
+    data.frame(did = sapply(desc_xml["//DESCRIPTEUR_ID"], xmlValue),
+               dname = sapply(desc_xml["//LIBELLE"], xmlValue))
+  xm_df$dname <- get_clean_label(xm_df$dname) #remove special characters from label names
+  
+  label_name_list <- label_id_list %>%
+    lapply(function(labelsets)
+      strsplit(labelsets, " ")) %>% # split each member of the list, containg the labels for the document
+    sapply("[[", 1) %>% #retrieving the label-list for each document
+    lapply(function(label_id_array)
+      lapply(label_id_array, function(label_id)
+        get_label_name(label_id, xm_df))) %>% # retrieve the label name for the corresponding label-id
+    lapply(function(label)
+      paste(label, sep = " ")) # appending the label-names with space
+  
+  label_name_list
 }
+
+# Utility method to get clean label names without special characters
+get_clean_label <- function(label) {
+  clean_label <- label %>%
+  {
+    gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .) #replace special characters with underscore
+  } %>%
+  {
+    gsub("'", "", .) #remove quotes
+  } %>%
+    replace_non_ascii(replacement = " ") %>% #remove non-ascii characters
+    tolower()  %>%
+    paste("tag", sep = "_") #append _tag to the label name at the end 
+  
+  clean_label
+}
+
 
 #Utility method to get labelname for corresponding label-id
 get_label_name <- function(label_id, label_id_name_df) {
-label_name = label_id_name_df[label_id_name_df$did == label_id, 2]
-if (length(label_name) > 0)
-return(as.character(label_name))
-else
-return(paste(label_id, "tag" , sep = "_"))
+  label_name = label_id_name_df[label_id_name_df$did == label_id, 2]
+  if (length(label_name) > 0)
+    return(as.character(label_name))
+  else
+    return(paste(label_id, "tag" , sep = "_"))
 }
 
-# Utility method to perform preprocessing over content - removal of special characters and stopwords and lemmatization
-get_clean_content <- function(content) {
-if (lang == "english") {
-stopwords <-
-c(
-'gt',
-'notext',
-'p',
-'lt',
-'aka',
-'oj',
-'n',
-'a',
-'eec',
-'article',
-'directive',
-'shall',
-'follow'
-)  %>%
-append(stopwords(lang))
-}
-else if (lang == "german") {
-stopwords <-
-c(
-'gt',
-'notext',
-'p',
-'lt',
-'aka',
-'oj',
-'n',
-'a',
-'eec',
-'article',
-'directive',
-'soll',
-'folgen'
-)  %>%
-append(stopwords(lang))
-}
-clean_content <- content  %>%
-replace_html(replacement = " ") %>% # replace html tags like <p> with space
-{
-gsub('-', '', .)
-} %>% # remove hyphen
-{
-gsub('[[:punct:] ]+', ' ', .)
-} %>% # replace punctuation with space
-{
-gsub("\\b[IVXLCDM]+\\b", " ", .)
-} %>% #replace roman numbers with space
-tolower()
 
-if (lang == "english")
-clean_content <-
-lemmatize_strings(clean_content) #lemmatize_strings only works for "English" text
-else{
-# For german text udpipe package has been used.
-clean_content <-
-stri_trans_general(clean_content, "Latin-ASCII")
-lemmata <- c()
-for (index in 1:length(clean_content)) {
-lemmata[index] <-
-mclapply(clean_content[[index]], function(x)
-generate_lemma_per_document(x, index))
-}
-clean_content <- sapply(lemmata, paste0, collapse = " ")
-}
-
-clean_content <- clean_content %>%
-{
-gsub("\\w*[0-9]+\\w*\\s*", "", .)
-} %>% # remove words containing numbers
-removeWords(words = stopwords)  %>% # stopword removal
-replace_non_ascii(replacement = " ")  %>% # remova of non-ascii characters
-trimws() # removal of extra space
-
-clean_content
-}
 
 # Utility method to generate lemma for non-english text
 generate_lemma_per_document <- function(content, doc_id) {
-x <-
-as.data.table(
-udpipe_annotate(
-model,
-x = content,
-doc_id = doc_id,
-tagger = "default",
-parser = "none"
-)
-)
-lemma <-
-sapply(x$lemma, paste, collapse = " ") #extract lemma and concatenate lemmata by space
-lemma
+  x <-
+    as.data.table(
+      udpipe_annotate(
+        model,
+        x = content,
+        doc_id = doc_id,
+        tagger = "default",
+        parser = "none"
+      )
+    )
+  lemma <-
+    sapply(x$lemma, paste, collapse = " ") #extract lemma and concatenate lemmata by space
+  lemma
 }
 
 #Method returns unique words
 #input: The cat sits on the table
 #output: The cat sits on table
 uniqueWords <- function(text) {
-return(paste(unique(strsplit(text, " ")[[1]]), collapse = ' '))
+  return(paste(unique(strsplit(text, " ")[[1]]), collapse = ' '))
 }
 
 
 # Utility method to generte ARFF from dtm
 generate_ARFF <- function(dtm, arff_name) {
-write.arff(temp_dtm, file = arff_name , eol = "\n")
-conn <- file(arff_name, open = "r")
-readLines(conn)  %>%
-{
-gsub("_tag' numeric", "_tag' {0,1}", .)
-}  %>%
-write(file = arff_name)
-close.connection(conn)
+  write.arff(dtm, file = arff_name , eol = "\n")
+  conn <- file(arff_name, open = "r")
+  readLines(conn)  %>%
+  {
+    gsub("_tag' numeric", "_tag' {0,1}", .)
+  }  %>%
+    write(file = arff_name)
+  close.connection(conn)
 }
 
 ```
-The following steps are executed for preprocessing and generating the dataset (ARFFs and xml)
+
+After executing the utility methods, the following steps are executed for preprocessing and generating the dataset (ARFFs and xml). Since the number of documents is quite large (approx 24,000 documents), we will generate batches of ARFF files, so that it is convenient and faster when we apply classification algorithms. As loading the entire dataset (1 big ARFF) and then creating samples takes longer time than applying the classification algorithms on smaller ARFF files. We will be creating 24 ARFF files each for incidence and tf-idf features. Therefore after running the code we will have 
 
 ```{r dataload, include=TRUE, eval=FALSE}
 
-lang <- "english"
-connection <- "data/english/acquis.cf"  %>% file(open = "r")
+connection <- fileName  %>% file(open = "r")
 raw_text_char <- connection %>% readLines()
 close.connection(connection)
 
-# every even line contains content
-text_content_list <- raw_text_char[seq(2, length(raw_text_char), 2)]
+sample_size <- 200
+offset <- 0
+iteration_no <- 24000/sample_size
 
-#every odd line contains label-id
-class_labels_list <-
-  raw_text_char[seq(1, length(raw_text_char), 2)] %>%
-  # extract the label-ids
+for(index in 1:5) {
+  start_text <- offset + 2
+  start_label <- offset + 1
+  end <- index * sample_size
+  
+  # every even line contains content
+  text_content_list <- raw_text_char[seq (start_text, end, 2)]
+  
+  #every odd line contains label-id and doc-id
+  class_labels_list <-
+  [seq (start_label, end, 2)] %>%
   strsplit("#") %>%
-  sapply("[[", 1) %>%
+  sapply("[[", 1) %>% # extract only the label-ids
   trimws() %>%
   get_label_name_list()
-
-#
-corpus <- text_content_list %>%
-get_clean_content()  %>%
-VectorSource()  %>%
-VCorpus()
-
-# create document term matrix containing tf-idf values
-tfidf_dtm <- corpus %>% DocumentTermMatrix(control = list(wordLengths = c(3, Inf), weighting = function(x) weightTfIdf(x, normalize = FALSE) ,stopwords = TRUE))  %>%
-removeSparseTerms(0.99) #Remove sparse terms from document-term matrix
-
-# create document term matrix containing term-incidence values
-dtm_tfidf <-  corpus %>%
-tm_map( content_transformer(uniqueWords)) %>%
-DocumentTermMatrix(control = list(wordLengths = c(3, Inf), weight = weightBin ,stopwords = TRUE)) %>%
-removeSparseTerms(0.99) #Remove sparse terms from document-term matrix
-
-#creating a corpus from labels, as it needs to be appended with features (tf-idf / incidence)
-dtm_labels <- class_labels_list %>% VCorpus(VectorSource())  %>%
-DocumentTermMatrix(control = list(weight = weightTfIdf))
-
-# combine the features corpus with labels corpus
-dtm_tfidf <- cbind(dtm_tfidf,dtm_labels)
-dtm_incidence <- cbind(dtm_incidence,dtm_labels)
-
-#generate ARFF files from the DTMs
-generate_ARFF(dtm_incidence, "output/inc_EN.arff")
-generate_ARFF(dtm_tfidf, "output/tfidf_EN.arff")
-
-#generate clean xml
+  
+  offset <- offset + sample_size
+  
+  
+  # creation of text corpus
+  text_corpus <- text_content_list %>%
+  get_clean_content()  %>%
+  VectorSource()  %>%
+  VCorpus()
+  
+  # creation of labels corpus
+  label_corpus <- class_labels_list %>%
+  VectorSource()  %>%
+  VCorpus()
+  
+  # create document term matrix containing tf-idf values
+  dtm_tfidf <- text_corpus %>%
+  DocumentTermMatrix(control = list(
+  wordLengths = c(3, Inf),
+  weighting = function(x)
+  weightTfIdf(x, normalize = FALSE) ,
+  stopwords = TRUE
+  ))  %>%
+  removeSparseTerms(0.99) ##Remove sparse terms from document-term matrix. This makes a matrix that is 99% empty space, maximum
+  
+  # create document term matrix containing term-incidence values
+  dtm_incidence <-  text_corpus %>%
+  tm_map(content_transformer(uniqueWords)) %>%
+  DocumentTermMatrix(control = list(
+  wordLengths = c(3, Inf),
+  weight = weightBin ,
+  stopwords = TRUE
+  )) %>%
+  removeSparseTerms(0.99)
+  
+  # create document term matrix from labels, containing the incidence of labels for each documet
+  dtm_labels <-
+  DocumentTermMatrix(label_corpus, control = list(weight = weightTfIdf))
+  
+  #creating a corpus from labels, as it needs to be appended with features (tf-idf / incidence)
+  dtm_labels <- class_labels_list %>% VCorpus(VectorSource())  %>%
+  DocumentTermMatrix(control = list(weight = weightTfIdf))
+  
+  # combine the features corpus with labels corpus
+  dtm_tfidf <- cbind(dtm_tfidf, dtm_labels)
+  dtm_incidence <- cbind(dtm_incidence, dtm_labels)
+  
+  #generate ARFF files from the DTMs, needed for mldr
+  generate_ARFF(dtm_incidence, paste(incArffFileName, index, arff, sep = ""))
+  generate_ARFF(dtm_tfidf, paste(tfidfArffFileName, index, arff, sep = ""))
+  
+}
+#generate xml, needed for mldr
 label_names <-
-  xmlParse("data/english/desc_en.xml") %>% xpathApply("//LIBELLE", xmlValue) %>% get_clean_label()
+  xmlParse(labelFile) %>% xpathApply("//LIBELLE", xmlValue) %>% get_clean_label()
   xml_root = newXMLNode("labels")
   for (i in 1:length(label_names)) {
   newXMLNode("label",
   attrs = c(name = label_names[i]),
   parent = xml_root)
   }
-  saveXML(xml_root, file = "output/EN.xml")
-
+  saveXML(xml_root, file = XMLFileName)
 
 ```
 

@@ -68,7 +68,7 @@ get_label_name <- function(label_id, label_id_name_df) {
 }
 
 generate_ARFF <- function(dtm, arff_name) {
-  write.arff(temp_dtm, file = arff_name , eol = "\n")
+  write.arff(dtm, file = arff_name , eol = "\n")
   conn <- file(arff_name, open = "r")
   readLines(conn)  %>%
   {
@@ -79,12 +79,13 @@ generate_ARFF <- function(dtm, arff_name) {
 }
 
 init <- function(language) {
+  arff<<- ".arff"
   if (language == "english") {
   print("english chosen")
     lang <<- "english"
     fileName <<- "data/english/acquis.cf"
-    tfidfArffFileName <<- "output/tfidf_EN.arff"
-    incArffFileName <<- "output/inc_EN.arff"
+    tfidfArffFileName <<- "output/tfidf_EN"
+    incArffFileName <<- "output/inc_EN"
     XMLFileName <<- "output/EN.xml"
     labelFile <<- "data/english/desc_en.xml"
   }
@@ -92,8 +93,8 @@ init <- function(language) {
   print("german chosen")
     lang <<- "german"
     fileName <<- "data/german/acquis_german.cf"
-    tfidfArffFileName <<- "output/tfidf_DE.arff"
-    incArffFileName <<- "output/inc_DE.arff"
+    tfidfArffFileName <<- "output/tfidf_DE"
+    incArffFileName <<- "output/inc_DE"
     tfidfXMLFileName <<- "output/tfidf_DE.xml"
     XMLFileName <<- "output/DE.xml"
     labelFile <<- "data/german/desc_de.xml"
