@@ -17,7 +17,8 @@ packages <- c(
   "udpipe",
   "xgboost",
   "randomForest",
-  "matrixStats"
+  "matrixStats",
+  "rmarkdown"
 )
 
 

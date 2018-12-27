@@ -2,12 +2,12 @@ init("english")
 #init("german")
 
 connection <- fileName  %>% file(open="r")
-raw_text_char <- connection %>% readLines()
+raw_text_char <- connection %>% readLines(encoding = "UTF-8")
 close.connection(connection)
 
 #for a single batch change sample_size to length(raw_text_char)
 #batch of 1000 documents
-sample_size <- 1000 
+sample_size <- 1000
 offset <- 0
 iteration_no <- 24000/sample_size
 

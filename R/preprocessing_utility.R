@@ -102,13 +102,16 @@ init <- function(language) {
     if (!file.exists(model_file))
     {
       model <<- udpipe_download_model(language = "german", model_dir = "output/")
+	  print("german udpipe model downloaded and loaded")
     } else {
       model <<- udpipe_load_model(model_file)
+	  print("german udpipe model loaded")
     }
   }
 }
 
 generate_lemma_per_document <- function(content, doc_id) {
+  print(doc_id)
   annotated_data_table <-  udpipe_annotate(model, x = content, doc_id = doc_id,  tagger = "default",
                                      parser = "none") %>% as.data.table()
   lemma <- sapply(annotated_data_table$lemma, paste, collapse = " ")
