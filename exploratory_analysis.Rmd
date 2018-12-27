@@ -34,10 +34,11 @@ knitr::opts_chunk$set(echo = TRUE)
 The legal text is available in several European languages, but we will experiment with two languages - **English** and **German**.  
 
 The text content (laws/treaties) for each language is available in a file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:  
-- Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*.
+
+- Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*.  
 - Every **even** line consists of the actual text.  
 
-An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *# 31958d1006(01)*, and the actual text is on 2nd line.
+An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line.
 
 <center> ![[Fig1. Data format]](Figs/acquis.png) </center>
 &nbsp;
@@ -45,19 +46,20 @@ An example has been shown below in the diagram. On the 1st line there are two la
   
 <span class="sub-header"> How can we handle Multilabel datasets? </span>
 
-<span class="sub-sub-header"> Can we use data.frame for Multilabel datasets? </span>
+<span class="sub-sub-header"> Can we use data.frame for Multilabel datasets? </span>  
 Unfortunately we can't!  
 Binary and multiclass datasets can be handled in R by using dataframes and usually the last attribute is the output class, whether it contains only TRUE/FALSE values or a value belonging to a factor. *R data.frame* can also be utilised for the Multilabel datasets (MLD), but an additional structure is required to understand which attributes are labels.  
 <span class="sub-sub-header"> Then how do we handle it? </span>  
-To mitigate the issue the first R package introduced for the task is *mldr*. It provides the user with the functions needed to perform exploratory analysis over MLDs, as well brings the data in the format suitable for use by the classification algorithms.  
+To mitigate the issue the first R package introduced for the task is [mldr](https://cran.r-project.org/web/packages/mldr/mldr.pdf). It provides the user with the functions needed to perform exploratory analysis over MLDs, as well brings the data in the format suitable for use by the classification algorithms.  
 The *mldr* needs two files:  
 
 - An [*ARFF*](https://www.cs.waikato.ac.nz/ml/weka/arff.html) file containing the attributes and labelsets information  
 - A *xml* file (has to be same name as ARFF file)  which contains the mapping between the label-id and label names.  
   
 <span class="sub-sub-header">Features used for the task </span>  
-We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - *How the classifiers' performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence* 
-Therefore we will have two datasets/ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features.
+We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - <span class="emphasize">"How the classifiers' performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence"</span> 
+Therefore we will have two datasets for each language- one containing term-incidence as features and the other containing tf-idf as features.  
+
 <span class="sub-sub-header"> How much the preprocessing varies across languages? </span>  
 Preprocessing will be same for both languages - English and German, except for the following:
 
@@ -277,7 +279,7 @@ generate_ARFF <- function(dtm, arff_name) {
 
 ```
 
-After executing the utility methods, the following steps are executed for preprocessing and generating the dataset (ARFFs and xml). Since the number of documents is quite large (approx 24,000 documents), we will generate batches of ARFF files, so that it is convenient and faster when we apply classification algorithms. As loading the entire dataset (1 big ARFF) and then creating samples takes longer time than applying the classification algorithms on smaller ARFF files. We will be creating 24 ARFF files each for incidence and tf-idf features. Therefore after running the code we will have 
+After executing the utility methods, the following steps are executed for preprocessing and generating the dataset (ARFFs and xml). Since the number of documents is quite large (approx 24,000 documents), we will generate batches of ARFF files, so that it is convenient and faster when we apply classification algorithms. Loading the entire dataset (1 big ARFF) and then creating samples takes longer time than applying the classification algorithms on smaller ARFF files. Therefore, we will create multiple smaller ARFF files each for incidence and tf-idf features. Therefore after running the code we will have 
 
 ```{r dataload, include=TRUE, eval=FALSE}
 
@@ -285,14 +287,14 @@ connection <- fileName  %>% file(open = "r")
 raw_text_char <- connection %>% readLines()
 close.connection(connection)
 
-sample_size <- 200
+sample_size <- 1000
 offset <- 0
-iteration_no <- 24000/sample_size
+max_batch <- 24000/sample_size #number of documents for all languages is 24,000
 
-for(index in 1:5) {
+for(index in 1:max_batch) {
   start_text <- offset + 2
   start_label <- offset + 1
-  end <- index * sample_size
+  end <- index * (sample_size *2)
   
   # every even line contains content
   text_content_list <- raw_text_char[seq (start_text, end, 2)]
@@ -305,7 +307,7 @@ for(index in 1:5) {
   trimws() %>%
   get_label_name_list()
   
-  offset <- offset + sample_size
+  offset <- offset + (sample_size *2)
   
   
   # creation of text corpus
@@ -327,7 +329,7 @@ for(index in 1:5) {
   weightTfIdf(x, normalize = FALSE) ,
   stopwords = TRUE
   ))  %>%
-  removeSparseTerms(0.99) ##Remove sparse terms from document-term matrix. This makes a matrix that is 99% empty space, maximum
+  removeSparseTerms(0.99) #Remove sparse terms from document-term matrix. This makes a matrix that is 99% empty space (maximum)
   
   # create document term matrix containing term-incidence values
   dtm_incidence <-  text_corpus %>%

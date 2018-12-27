@@ -36,10 +36,10 @@ In multi-label classification, each instance in the training set is associated w
  
 ### Multilabel dataset traits
 
-Multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances. The figure below outlines the measures. Some of the important measures have been explained below.
+The figure below outlines the measures. Some of the important measures have been explained below.
   
 
-![measures for MLD](Figs/measures.png)
+<center>![measures for MLD](Figs/measures.png)</center>
 
 <span class="sub-header">Basic measures :</span>  
 
@@ -86,31 +86,33 @@ Introduced in [15] , this method comprises a chain of binary classifiers \(C_0, 
 
 Evaluation measures for a multi-label classification problem needs discussion as it is different from multiclass/binary class problem. In single label classification the commonly used metrics are - accuracy, precision, recall, F1-measure, among others. In multi-label classification we cannot define misclassification as a hard correct or incorrect, but a prediction comprising subset of actual classes is deemed better than containg none of them. Multilabel evaluation metrics are grouped into two main categories: example based and label based metrics. Example based metrics are computed individually for each instance, then averaged to obtain the final value. Label based metrics are computed per label, instead of per instance.
 
-<span class="sub-header"> Hamming Loss (Example based)</span>
+<span class="sub-header"> Hamming Loss (Example based)</span>  
 Hamming Loss is is an example based measure. It is defined as the fraction of labels that are incorrectly predicted.
 
 \(HL = \frac{1}{N . L} \sum_{l=1}^L\sum_{i=1}^N Y_{i,l} \oplus X_{i,l}\)  
   
   where \oplus denotes exlusive-or, \(X_{i,l} (Y_{i,l})\) stands for boolean that the i-th prediction contains the l-th label. For binary scenario (L=1) equals to (1 - accuracy).
   
-<span class="sub-header"> Micro-average and Macro-average (Label based)</span>
+<span class="sub-header"> Micro-average and Macro-average (Label based)</span>  
 In order to measure the performance of a multi-class classifier we have to consider the average performance over all classes. There are two different ways of doing this called micro-averaging and macro-averaging. A macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), whereas a micro-average will aggregate the contributions of all classes to compute the average metric. In a multi-class classification setup, micro-average is preferable if is class imbalance, like our dataset.
   
-<span class="sub-header"> Micro Average</span>
+<span class="sub-sub-header"> Micro Average</span>  
 In micro all TPs, TNs, FPs and FNs for each class are summed up and then the average is taken. The micro-average F1 is the harmonic mean of the below two equations.  
   
 \(Microaverage Precision Prc^{micro}(D) = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FP_c} \)  
   
 \(Microaverage Recall Rcl^{micro}(D) =  = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FN_c} \) 
   
-<span class="sub-header"> Macro Average</span>
+<span class="sub-sub-header"> Macro Average</span>  
 In macro average we take the average of precision and recall of the system on different sets. It is used when we want to know how the algorithm performs overall across different subset of data.  
 
 \(Macrooaverage Precision Prc^{macro}(D) = \frac{\sum_c Prc(D,c)}{|C|} \)  
   
 \(Microaverage Recall Rcl^{macro}(D) = \frac{\sum_c Rcl(D,c)}{|C|} \) 
 
-<span class="sub-header"> Subset accuracy (Example based)</span>
+<span class="sub-header"> Subset accuracy (Example based)</span>  
 It is also called subset accuracy, is the most strict evaluation metric. It indicates the percentage of samples that have all their labels classified correctly. The downside of this measure is that it is too strcit to be true, i.e - it ignores the partially correct matches. In a dataset having huge number of labels it is very challenging to get a good score for this measure.
-References
+
+
+####References
  

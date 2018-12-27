@@ -17,3 +17,9 @@
    font-weight: 900;
    font-size: 1em;
 }
+
+.emphasize {
+   color: #3cba54;
+   font-size: 1em;
+   font-style: italic;
+}
