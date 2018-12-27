@@ -109,10 +109,9 @@ init <- function(language) {
 }
 
 generate_lemma_per_document <- function(content, doc_id) {
-print(doc_id)
-  x <- as.data.table(udpipe_annotate(model, x = content, doc_id = doc_id,  tagger = "default",
-                                     parser = "none"))
-        lemma <- sapply(x$lemma, paste, collapse = " ")
+  annotated_data_table <-  udpipe_annotate(model, x = content, doc_id = doc_id,  tagger = "default",
+                                     parser = "none") %>% as.data.table()
+  lemma <- sapply(annotated_data_table$lemma, paste, collapse = " ")
   return(lemma)
 }
 
