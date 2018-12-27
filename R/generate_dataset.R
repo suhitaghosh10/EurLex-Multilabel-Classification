@@ -5,7 +5,9 @@ connection <- fileName  %>% file(open="r")
 raw_text_char <- connection %>% readLines()
 close.connection(connection)
 
-sample_size <- 200
+#for a single batch change sample_size to length(raw_text_char)
+#batch of 1000 documents
+sample_size <- 1000 
 offset <- 0
 iteration_no <- 24000/sample_size
 
@@ -13,7 +15,7 @@ for(index in 1 :5) {
 
 start_text <- offset +2
 start_label <- offset +1
-end <- index * sample_size
+end <- index * sample_size *2
 text_content_list <- raw_text_char[seq (start_text, end,2)]
 #text_content_list <- raw_text_char[seq (2, length(raw_text_char),2)]
 class_labels_list <- raw_text_char[seq (start_label, end,2)] %>%
@@ -23,7 +25,7 @@ sapply("[[", 1) %>%
 trimws() %>%
 get_label_name_list()
 
-offset <- offset+sample_size
+offset <- offset+(sample_size *2)
 
 text_corpus <- text_content_list %>%
 get_clean_content()  %>%
