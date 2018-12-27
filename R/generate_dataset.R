@@ -11,7 +11,7 @@ sample_size <- 1000
 offset <- 0
 iteration_no <- 24000/sample_size
 
-for(index in 1 :5) {
+for(index in 1 :iteration_no) {
 
 start_text <- offset +2
 start_label <- offset +1
