@@ -9,6 +9,7 @@ packages <- c(
   "XML",
   "RWeka",
   "tidyr",
+  "tidytext",
   "parallel",
   "mldr",
   "utiml",
