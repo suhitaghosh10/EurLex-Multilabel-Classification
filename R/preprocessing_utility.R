@@ -72,7 +72,7 @@ generate_ARFF <- function(dtm, arff_name) {
   conn <- file(arff_name, open = "r")
   readLines(conn)  %>%
   {
-    gsub("_tag' numeric", "_tag' {0,1}", .)
+    gsub("_tag' numeric", "_' {0,1}", .)
   }  %>%
     write(file = arff_name)
   close.connection(conn)

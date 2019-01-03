@@ -13,13 +13,18 @@ packages <- c(
   "parallel",
   "mldr",
   "utiml",
+  "tidytext",
   "ggplot2",
   "RColorBrewer",
   "udpipe",
   "xgboost",
   "randomForest",
   "matrixStats",
-  "rmarkdown"
+  "rmarkdown",
+  "wordcloud",
+  "ggraph",
+  "igraph",
+  "tidyverse"
 )
 
 
