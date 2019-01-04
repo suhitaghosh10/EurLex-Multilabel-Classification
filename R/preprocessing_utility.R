@@ -2,12 +2,12 @@ get_clean_content <- function(content) {
 
 if(lang == "english"){
   stopwords <-
-    c('gt','notext','p','lt','aka','oj','n','a','eec','article','directive','shall','follow')  %>%
+    c("gt","notext","p","lt","aka","oj","n","a","eec","article","directive","shall","follow", "accordance","chairman","necessary","comply","reference","commission","opinion","decision","annex","refer","member","european","treaty","throughout","regulation","particular","thereof","community","committee","measure","parliament","regard","amend","procedure","administrative","procedure","publication","month","date","year","enter","force","ensure","authority","take","council","act","within","national","law","main","provision","mention","approve","certain","whereas","eea","also","apply","may","can","will","require","paragraph","subparagraph","official","journal","ec","b","s","c","e")  %>%
     append(stopwords(lang))
   }
   else if(lang == "german"){
   stopwords <-
-    c('gt','notext','p','lt','aka','oj','n','a','eec','article','directive','soll','folgen')  %>%
+    c("gt","keintext","p","lt","aka","oj","n","a","eec","article","directive","soll","folgen", "übereinstimmung", "vorsitzender", "notwendig", "einhalten", "bezug", "kommission", "stellungnahme", "entscheidung", "anlage", "bezug", "mitglied", "europäer", "vertrag","regulierung","insbesondere","davon","gemeinschaft","ausschuss","maßnahme","parlament","betrachten","ändern","verfahren","administrativ","verfahren","veröffentlichung","monat", "datum", "jahr", "eingeben", "erzwingen", "gewähren", "autorität", "nehmen", "rat", "handeln", "innerhalb","national","recht","haupt","vorschrift","erwähnen","genehmigen","sicher","wobei","eea","auch","bewerben","kann","wird", "erfordern", "absatz", "unterabsatz", "offiziell", "journal","ec","b","s","c","e")  %>%
     append(stopwords(lang))
   }
   clean_content <- content  %>%
@@ -44,8 +44,8 @@ if(lang == "english"){
   clean_content
 }
 
-get_clean_label <- function(content) {
-  content <- content %>%
+get_clean_label <- function(labels) {
+  labels <- labels %>%
   {
     gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .)
   } %>%
@@ -56,7 +56,7 @@ get_clean_label <- function(content) {
     tolower()  %>%
     paste("tag", sep = "_")
   
-  content
+  labels
 }
 
 get_label_name <- function(label_id, label_id_name_df) {

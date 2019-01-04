@@ -17,6 +17,7 @@ packages <- c(
   "ggplot2",
   "RColorBrewer",
   "udpipe",
+  "kknn",
   "xgboost",
   "randomForest",
   "matrixStats",
