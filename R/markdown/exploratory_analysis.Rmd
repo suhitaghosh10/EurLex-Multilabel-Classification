@@ -24,10 +24,10 @@ bookdown::html_document2: default
     
 #Exploratory analysis
 
-The legal text is available in several European languages, but we will experiment with two languages - **English** and **German**.  
+Eurlex dataset is available in several European languages, but we have done exploratory analysis for **English** language.  
 
 #### <span class="header">Dataset</span>
-The text content (laws/treaties) for each language is available in a file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:  
+The Eurlex dataset for every language comprises two files. The text content (laws/treaties) for each language is available in a file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:  
 
 - Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*.  
 - Every **even** line consists of the actual text.  
@@ -35,6 +35,24 @@ The text content (laws/treaties) for each language is available in a file (acqui
 An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line.
 
 <center> ![[Fig1. Data format]](Figs/acquis.png) </center>
+
+&nbsp;
+&nbsp;
+The mapping between label-id and label-name has been provided in a XML. A small snippet of the xml has been provided below.
+&nbsp;
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE DESCRIPTEUR SYSTEM "descripteur.dtd">
+<DESCRIPTEUR LNG="EN" VERSION="4_3">
+  <RECORD>
+    <DESCRIPTEUR_ID>4444</DESCRIPTEUR_ID>
+    <LIBELLE>abandoned land</LIBELLE>
+  </RECORD>
+</DESCRIPTEUR>
+```
+
+The tag *DESCRIPTEUR_ID* contains the label-id and *LIBELLE* contains the label name.
 &nbsp;
 &nbsp;
 
@@ -98,7 +116,7 @@ init("english")
 We need to preprocess two things - the actual text and the labels.
 
 Preprocessing of actual text primarily involves- removal of language dependant stopwords, html tags, punctuations, roman numerals and lemmatization.
-The lemmatization for English language could be done using <span class="emphasize">lemmatize_strings</span>, but for German language we had to use <span class="emphasize">udpipe</span> model. Lemmatization using udpipe model needs to be done batches, else we get a weird exception, therefore we need to define the following function:  
+The lemmatization for English language could be done using the method<span class="emphasize">lemmatize_strings</span> from package *textstem*, but for German language we had to use <span class="emphasize">udpipe</span> model. Lemmatization using udpipe model needs to be done in small batches of documents, else we get a weird exception when the document size exceeds a limit, therefore we need to define the following function:  
 
 ```{r udpipe, include=TRUE, eval=FALSE}
 generate_lemma_per_document <- function(content, doc_id) {
@@ -112,48 +130,43 @@ generate_lemma_per_document <- function(content, doc_id) {
 The following method performs the preprocessing for the actual text.
 ```{r preprocess_text, include=TRUE, eval=FALSE}
 
-get_clean_content <- function(content) {
 
-if(lang == "english"){
-  stopwords <-
-    c("gt","notext","p","lt","aka","oj","n","a","eec","article","directive","shall","follow")  %>%
-    append(stopwords(lang))
-  }
-  else if(lang == "german"){
-  stopwords <-
-    c("gt","keintext","p","lt","aka","oj","n","a","eec","article","directive","soll","folgen")  %>%
-    append(stopwords(lang))
-  }
-  clean_content <- content  %>%
-    replace_html(replacement = " ") %>%
-	{
-      gsub('-', '', .)
-    } %>%
-    {
-      gsub('[[:punct:] ]+', ' ', .)
-    } %>%
-    {
-      gsub("\\b[IVXLCDM]+\\b", " ", .)
-    } %>%
-    tolower()  
-	if(lang == "english")
-    clean_content <- lemmatize_strings(clean_content)
-	else{
-	clean_content <- stri_trans_general(clean_content, "Latin-ASCII")
-	lemmata <- c()
-    for(index in 1: length(clean_content)){
-		lemmata[index] <- mclapply(clean_content[[index]], FUN = function(x) generate_lemma_per_document(x, index))
-        }
-    clean_content <- sapply( lemmata, paste0, collapse=" ")
-	}
-	
-	clean_content <- clean_content %>%
-    removeNumbers() %>%
-    removeWords(words = stopwords)  %>%
-    replace_non_ascii(replacement = " ")  %>%
-    trimws()
-  
-  clean_content
+get_clean_content <- function(content) {
+clean_content <- content  %>%
+replace_html(replacement = " ") %>%
+{
+gsub('-', '', .)
+} %>%
+{
+gsub('[[:punct:] ]+', ' ', .)
+} %>%
+{
+gsub("\\b[IVXLCDM]+\\b", " ", .)
+} %>%
+tolower()
+if (lang == "english")
+clean_content <- lemmatize_strings(clean_content)
+else{
+clean_content <- stri_trans_general(clean_content, "Latin-ASCII")
+lemmata <- c()
+for (index in 1:length(clean_content)) {
+lemmata[index] <-
+mclapply(
+clean_content[[index]],
+FUN = function(x)
+generate_lemma_per_document(x, index)
+)
+}
+clean_content <- sapply(lemmata, paste0, collapse = " ")
+}
+
+clean_content <- clean_content %>%
+removeNumbers() %>%
+removeWords(words = stopwords(lang))  %>%
+replace_non_ascii(replacement = " ")  %>%
+trimws()
+
+clean_content
 }
 ```
 
@@ -273,10 +286,12 @@ total_words <- tokens_by_label %>%
   summarize(total = sum(n))
   
 tokens_by_label <- left_join(tokens_by_label, total_words)
+
+tokens_by_label 
 ```
 ![](Figs/freq_tibble.png)  
 
-There is one row in this data frame for each word-category combination; n is the number of times that word is used in that legal text category and total is the total words in that category. Let’s look at the distribution of n/total for each document category, the number of times a word appears in a novel divided by the total number of terms (words) in that category. We will consider randomly 5 categories, as it is diffucult to analyse over 7000 categories!
+There is one row in the data frame *tokens_by_label* for each word-category combination. *n* is the number of times that word is used in that legal text category and *total* is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a novel divided by the total number of terms in that category. Our dataset has around 8000 categories/labels , and it will be difficult to analyse over 7000 categories!Therfore, we will consider randomly 5 categories.
 
 ```{r tf_graph, include=TRUE, eval=FALSE}
 tokens_by_label %>% filter(label == "water_treatment_tag" | label=="wastewater_tag" | label=="pollution_control_tag" | label=="atmospheric_pollution_tag" | label=="fight_against_unemployment_tag") %>%
@@ -289,9 +304,7 @@ tokens_by_label %>% filter(label == "water_treatment_tag" | label=="wastewater_t
 
 ![](Figs/tf.png) 
 
-There are very long tails to the right for these categories. These plots exhibit similar distributions for all the categories chosen-  many words that occur rarely and fewer words that occur frequently.  
-
-Distributions like those shown in Figure above are very common in any given corpus of natural language -website, books, etc. Since we have the data frame we used to plot term frequency, we can examine Zipf’s law.
+We observe there are very long tails to the right for the categories prtrayed above in the picture. Distributions like those shown in Figure above are very common in any given corpus of natural language -website, books, etc, and portrays that there are many words that occur rarely and fewer words that occur frequently. We can use the term frequency dataframe to plot term frequency and examine Zipf’s law.
 
 >> Zipf’s law states that the frequency that a word appears is inversely proportional to its rank.
 
@@ -312,11 +325,11 @@ freq_by_rank %>%
 
 ![](Figs/zipflaw.png) 
 
-The above plot is in log-log coordinates. We can see that text in all the categories in the corpus are similar to each other, and that the relationship between rank and frequency does have negative slope, implying they follow Zipf Law.
+The above plot is in log-log coordinates. We can see that text in all the categories in the corpus are almost similar to each other, and that the relationship between rank and frequency does have negative slope, implying they follow Zipf Law.
 
 ##### <span class="header">Top k words </span>
 
-Let us see the top 10 words for certain categories of the corpus. To find the most importants words it would make sense to use tf-idf rather than term frequency, as tf-idf finds the important words for the content of each document by decreasing the weight for commonly used words and increasing the weight for words that are not used very much in a collection or corpus of documents. 
+It would be interesting to find out top 10 words for each category, which will give us an idea what each category of law document deals with. To find the most importants words it would make sense to use tf-idf rather than term frequency, as tf-idf finds the important words for the content of each document category by decreasing the weight for commonly used words and increasing the weight for words that are not used very much in a collection or corpus of documents.  
 
 ```{r topk_mono, include=TRUE, eval=FALSE}
 
@@ -324,7 +337,11 @@ tokens_by_label <- bind_tf_idf(book_words_eurlex,word, label, n)
 tokens_by_label
 ```
 
+
+
 ![](Figs/tfidf_tibble.png)
+
+&nbsp;
 
 ```{r topk_plot, include=TRUE, eval=FALSE}
 
@@ -343,13 +360,15 @@ tokens_by_label %>%
 ```
 ![](Figs/top10_monogram.png)
 
-We can see the word "water" appears in categories/labels - atmospheric_pollution_tag, pollution_control_tag and wastewater_tag, which means a lot of pollution related documents are dealing with water pollution. There are many common terms among documents atmospheric_pollution_tag and pollution_control_tag as expected. The category fight_against_unemployment_tag does not share any common terms with the other categories. Actually it would have been interesting if it would have happened! - which could have implied that unemployment might have resulted from pollution or water related cause.  
+&nbsp;
 
-Sometimes bigrams are more meaningful than single words, and it would be inteersting to see how the top 15 words changes for bigrams.
+We can see from the Fig the word "water" appears in categories/labels - *atmospheric_pollution_tag*, *pollution_control_tag* and *wastewater_tag*, which means a lot of pollution related documents are dealing with water pollution. There are many common terms among documents *atmospheric_pollution_tag* and *pollution_control_tag* as expected. The category *fight_against_unemployment_tag* does not share any common terms with the other categories. Actually it would have been interesting if it would have happened! - which could have implied that unemployment might have resulted from pollution or water related cause.  
+
+Sometimes bigrams are more meaningful than single words, and it would be inteersting to see how the top 10 words changes for bigrams.
 
 ##### <span class="header">Top k bigrams </span>
 
-As generating bigrams is an expensive operation, we will consider only those labels/cvategories having words- water or pollution or employment. We generate the tokens in similar way, except we use we used token = "ngrams"" and n=2.
+As generating bigrams is an expensive operation, we will consider only those labels/categories having words- water or pollution or employment. We generate the tokens in similar way, except we use we used *token = "ngrams"* and* n=2* in the method *unnest_tokens.*
 
 ```{r topk_b_plot, include=TRUE, eval=FALSE}
 
@@ -382,13 +401,13 @@ As generating bigrams is an expensive operation, we will consider only those lab
 ![](Figs/top10_bigram.png)
 
   
-Now we see the categories pollution_control_tag and atmospheric_pollution_tag share most of the terms. Strangely water_treatment_tag category does not share any common bigrams with pollution_control_tag, which means most of the pollution control documents might not be dealing with water, rather they deal woth air pollution. fight_against_unemployment_tag catgory as expected is sitting alone and dos not share any common terms with other catgories in the plot.
+Now, we see the categories *pollution_control_tag* and *atmospheric_pollution_tag* share most of the terms. Strangely *water_treatment_tag* category does not share any common bigrams with *pollution_control_tag*, which means most of the pollution control documents might not be dealing with water. Rather the pollution control documents deal more with air pollution, as they share many bigrams. *fight_against_unemployment_tag* catgory as expected stands alone and dos not share any common bigrams with other catgories in the plot.
 
 ##### <span class="header">Word association </span>
 
-Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion.
-Though these visuals can become very dense and hard to interpret visually.In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. As considering entire corpus would not make sense, considering only categories related to water and employment and plot them separately.
+Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion. In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. As considering entire corpus would not make sense and also makes the visuals very dense and hard to interpret visually, considering only categories related to water and employment and plot them separately.  
 
+The code generates word association for water related category law documents.  
 
 ```{r worda, include=TRUE, eval=FALSE}
 
@@ -413,28 +432,103 @@ ggraph(bigram_graph, layout = "fr") +
 ```
 ![](Figs/water_wa.png)
 
-```{r worda_emp, include=TRUE, eval=FALSE}
+We can see one cluster on the right which comprises words related to improving the quality of water and human health, and another cluster on the left related to programmes/specification/standards.
 
- (bigram_graph <- bigram_tokens %>%
-        separate(bigram, c("word1", "word2"), sep = " ") %>%
-		 filter(!word1 %in% law_stopwrds,
-               !word2 %in% law_stopwrds) %>%
-		filter(grepl('water', label)) %>%
-        dplyr::count(word1, word2, sort = TRUE) %>%
-        unite("bigram", c(word1, word2), sep = " ") %>%
-        top_n(100) %>%
-        graph_from_data_frame()
-)
 
-a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
+#### <span class="header">Preprocessing for mldr </span>
 
-ggraph(bigram_graph, layout = "fr") +
-    geom_edge_link() +
-    geom_node_point(color = "lightblue", size = 5) +
-    geom_node_text(aes(label = name), vjust = 1, hjust = 1, repel=TRUE) +
-    theme_void() 
+Until now we have taken a deep dive into text analysis, but exploratory analysis for multilabel classification problems is incomplete until we study the typical MLD datasets traits - label distribution, relationship among labels and label imbalance.
+
+
+To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in section [link]. First we generate the corpus and then document term matrix each for tf-idf and incidence.
+
+```{r dtms, include=TRUE, eval=FALSE}
+#corpus of text
+text_corpus <- text_corpus %>%
+VectorSource()  %>%
+VCorpus()
+
+#corpus of labels just like text corpus
+label_corpus <- class_labels_list %>%
+ VectorSource()  %>%
+ VCorpus()
+
+
+# dtm matrix for tf-idf. considering words having atleast 3 letters
+dtm_tfidf <- text_corpus %>%
+ DocumentTermMatrix(control = list(wordLengths = c(3, Inf), weighting = function(x) weightTfIdf(x, normalize = FALSE) ,stopwords = TRUE))  %>%
+removeSparseTerms(0.99) # remove sparse terms, so that sparsity is maximum 99%
+dtm_tfidf <- cbind(dtm_tfidf,dtm_labels) #column bind text and labels to generate ARFF file
+
+# gets unique words- needed for incidence matrix
+uniqueWords <- function(text) {
+return(paste(unique(strsplit(text, " ")[[1]]), collapse = ' '))
+}
+
+dtm_incidence <-  text_corpus %>%
+tm_map( content_transformer(uniqueWords)) %>%
+DocumentTermMatrix(control=list(wordLengths = c(3, Inf), weight=weightBin ,stopwords = TRUE)) %>%
+removeSparseTerms(0.99)
+
+dtm_labels <- DocumentTermMatrix(label_corpus, control=list(weight=weightTfIdf))
+dtm_incidence <- cbind(dtm_incidence,dtm_labels)
 ```
 
+After the document term matrices have been generated we need to generate the ARFFs and the xmls
+
+```{r arff_gen, include=TRUE, eval=FALSE}
+
+#generate ARFF for mldr
+generate_ARFF <- function(dtm, arff_name) {
+  write.arff(dtm, file = arff_name , eol = "\n")
+  conn <- file(arff_name, open = "r")
+  readLines(conn)  %>%
+  {
+    gsub("_tag' numeric", "_' {0,1}", .) # workaround to declare the labels as categorical data having value 0 or 1, in the ARFF
+  }  %>%
+    write(file = arff_name)
+  close.connection(conn)
+}
 
 
-![](Figs/employment_wa.png")
+generate_ARFF(dtm_incidence, paste(incArffFileName,index,arff, sep = "")) #generate arff for incidence
+generate_ARFF(dtm_tfidf, paste(tfidfArffFileName,index,arff, sep = "")) #generate arff for tfidf
+
+#generate XML for mldr
+label_names <- xmlParse(labelFile) %>% xpathApply( "//LIBELLE", xmlValue) %>% get_clean_label()
+xml_root = newXMLNode("labels")
+for ( i in 1:length(label_names) ){
+  newXMLNode("label", attrs=c(name=label_names[i]), parent=xml_root)
+}
+
+saveXML(xml_root,file=paste(incArffFileName,".xml", sep="")) #xml for incidence
+saveXML(xml_root,file=paste(tfidfArffFileName,".xml", sep="")) #xml for tfidf
+```
+After mldr compliant datasets are generated, they are loaded. Inspection of one of them (incidence) will be fine for further analysis, as they have same features and labels, but different values. tf-idf features will have a positive continuos value and incidence feature values will be 0 or 1 (incidence of terms).
+
+```{r load_mldr, include=TRUE, cached=TRUE }
+library(mldr)
+
+eurlex <- mldr("../../output/EN")
+```
+#### <span class="header">Preprocessing for mldr </span>
+
+After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual summary() function.
+
+```{r mldr_summ, include=TRUE, cached=TRUE }
+
+summary(eurlex)
+
+```
+As we know the value of scumble lies in the range [0,1], and A low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value is also quite high indicating a good amount of imbalance.  
+
+Labels' information in the MLD, including the number of times they appear, their IRLbl
+and SCUMBLE measures, can be retrieved by using the labels member of the "mldr" class.
+
+```{r mldr_label, include=TRUE, cached=TRUE }
+#inspect first 20 labels
+head(eurlex$labels, 20) 
+
+```
+Exploratory analysis of MLDs can be tedious, since most of them have thousands of attributes and hundreds of labels. The mldr package provides a plot() function specific for dealing with "mldr" objects, allowing the generation of several specific types of plots.
+
