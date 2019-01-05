@@ -506,7 +506,7 @@ saveXML(xml_root,file=paste(tfidfArffFileName,".xml", sep="")) #xml for tfidf
 ```
 After mldr compliant datasets are generated, they are loaded. Inspection of one of them (incidence) will be fine for further analysis, as they have same features and labels, but different values. tf-idf features will have a positive continuos value and incidence feature values will be 0 or 1 (incidence of terms).
 
-```{r load_mldr, include=TRUE, cached=TRUE }
+```{r load_mldr, include=TRUE, cached=TRUE, cache.path='cache/'}
 library(mldr)
 
 eurlex <- mldr("../../output/EN")
@@ -515,7 +515,7 @@ eurlex <- mldr("../../output/EN")
 
 After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual summary() function.
 
-```{r mldr_summ, include=TRUE, cached=TRUE }
+```{r mldr_summ, include=TRUE, cached=TRUE}
 
 summary(eurlex)
 
@@ -525,10 +525,30 @@ As we know the value of scumble lies in the range [0,1], and A low score would d
 Labels' information in the MLD, including the number of times they appear, their IRLbl
 and SCUMBLE measures, can be retrieved by using the labels member of the "mldr" class.
 
-```{r mldr_label, include=TRUE, cached=TRUE }
+```{r mldr_label, include=TRUE, cached=TRUE}
 #inspect first 20 labels
 head(eurlex$labels, 20) 
 
 ```
-Exploratory analysis of MLDs can be tedious, since most of them have thousands of attributes and hundreds of labels. The mldr package provides a plot() function specific for dealing with "mldr" objects, allowing the generation of several specific types of plots.
+The *mldr* package provides a plot() function specific for dealing with "mldr" objects, allowing the generation of several specific types of plots. Otherwise the exploratory analysis of MLDs would have been tedious, as most of them have thousands of attributes and labels. 
+
+#### <span class="header">Concurrence Plot </span>
+
+The concurrence plot caters  to the need of exploring interactions among labels, and specifically between majority and minority ones. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for labels containing terms - water, pollution and employment.  
+We can choose the labels from the mldr attribute eurlex$attributes.  
+
+```{r mldr_sub_label, include=TRUE, cached=TRUE }
+plot_labels <- grep('water|equality|employment|pollution',names(eurlex$attributes))
+names(eurlex$attributes)[plot_labels]
+
+```
+We can plot the concurrence plot using the plot() using type "LC"
+
+```{r plot_lc, include=TRUE, eval=FALSE}
+plot(eurlex, type="LC", labelIndices=arr)
+```
+
+<center>![](Figs/concurrence_plot.png)</center>
+
+
 
