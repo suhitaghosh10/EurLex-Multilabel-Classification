@@ -83,14 +83,20 @@ Modify existing algorithms taking into account the multilabel nature of the samp
 <span class="sub-header"> Problem transformation:</span>  
 Transforming the original data to make it suitable to existing traditional classification algorithms and combining the obtained predictions to build the labelsets given as output result. There are several transformation methods in literature. Three have been defined and used for our case study.  
 
--   Binary Relevance (BR):</span>  
-Introduced by [8] as an adaptation of OVA (one-vs-all ) to the multilabel scenario, this method transforms the original multilabel dataset into several binary datasets. Here an ensemble of binary classifiers is trained, one for each class. Each classifier predicts either the membership or the non-membership of one class. A union of all predicted classes is taken as the multi-label output. The approach is popular because it is easy to implement, but it ignores the possible correlations between class labels.  
+- <span class="sub-sub-header">  Binary Relevance (BR):</span>  
+     + It is an adaptation of OVA (one-vs-all ) to the multilabel scenario and transforms the original multilabel dataset into several binary datasets.
+     + Here an ensemble of binary classifiers is trained, one for each class. Each classifier predicts either the membership or the non-membership of one class. A union of all predicted classes is taken as the multi-label output.
+     + The approach is popular because it is easy to implement, but *ignores the possible correlations between class labels*.  
 
 - <span class="sub-sub-header">  Label Powerset (LP):</span>  
-Introduced by [1], this method transforms the multilabel dataset into a multiclass dataset by using the labelset of each instance as class identifier. This approach does take possible correlations between class labels into account. The downside of the method is it has a high computational complexity and when the number of classes increases the number of distinct label combinations can grow exponentially. This easily leads to combinatorial explosion and thus computational infeasibility. The method is called *Label Powerset* because it considers each member of the power set of labels in the training set as a single label.
+     + This method transforms the multilabel dataset into a multiclass dataset by using the labelset of each instance as class identifier.
+     + This approach takes possible correlations between class labels into account unlike the BR.
+     + The downside of the method is it has a high computational complexity and when the number of classes increases the number of distinct label combinations can grow exponentially.
 
 - <span class="sub-sub-header">  Classifier Chains (CC):</span>   
-Introduced in [15] , this method comprises a chain of binary classifiers \(C_0, C_1, . . . , C_m \) is constructed, where a classifier \(C_i\) uses the predictions of all the classifier \(C_j\) , where j < i. This way the method can take into account label correlations. The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved. 
+     + This method comprises a chain of binary classifiers \(C_0, C_1, . . . , C_m \) is constructed, where a classifier \(C_i\) uses the predictions of all the classifier \(C_j\) , where j < i.
+     + The method can takes into account label correlations.
+     + The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved. 
 
 ### Evaluation metric
 
@@ -101,6 +107,8 @@ Multilabel evaluation metrics are grouped into two main categories: example base
 - **Example based metrics** are computed individually for each instance, then averaged to obtain the final value.
 - **Label based metrics** are computed per label, instead of per instance.
 
+Some of the measures have been described below.
+
 <span class="sub-header"> Hamming Loss (Example based)</span>  
 Hamming Loss is is an example based measure. It is defined as the fraction of labels that are incorrectly predicted.
 
@@ -109,10 +117,14 @@ Hamming Loss is is an example based measure. It is defined as the fraction of la
   where \oplus denotes exlusive-or, \(X_{i,l} (Y_{i,l})\) stands for boolean that the i-th prediction contains the l-th label. For binary scenario (L=1) equals to (1 - accuracy).
   
 <span class="sub-header"> Micro-average and Macro-average (Label based)</span>  
-In order to measure the performance of a multi-class classifier we have to consider the average performance over all classes. There are two different ways of doing this called micro-averaging and macro-averaging. A macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), whereas a micro-average will aggregate the contributions of all classes to compute the average metric. In a multi-class classification setup, micro-average is preferable if is class imbalance, like our dataset.
+In order to measure the performance of a multi-class classifier we have to consider the average performance over all classes. There are two different ways of doing this called micro-averaging and macro-averaging.
+     + A **macro-average** will compute the metric independently for each class and then take the average (hence treating all classes equally)
+     + A **micro-average** will aggregate the contributions of all classes to compute the average metric.
+     
+In a multi-class classification setup, micro-average is *preferable* if is class imbalance.
   
 <span class="sub-sub-header"> Micro Average</span>  
-In micro all TPs, TNs, FPs and FNs for each class are summed up and then the average is taken. The micro-average F1 is the harmonic mean of the below two equations.  
+In micro, all TPs, TNs, FPs and FNs for each class are summed up and then the average is taken. The micro-average F1 is the harmonic mean of the below two equations.  
   
 \(Microaverage Precision Prc^{micro}(D) = \frac{\sum_c TP_c}{\sum_c TP_c + \sum_c FP_c} \)  
   
@@ -129,5 +141,5 @@ In macro average we take the average of precision and recall of the system on di
 It is also called subset accuracy, is the most strict evaluation metric. It indicates the percentage of samples that have all their labels classified correctly. The downside of this measure is that it is too strcit to be true, i.e - it ignores the partially correct matches. In a dataset having huge number of labels it is very challenging to get a good score for this measure.
 
 
-####References
+#### References
  
