@@ -1,0 +1,365 @@
+
+---
+header-includes:
+   - \usepackage{bbm}
+always_allow_html: yes
+output:
+  html_document: 
+    toc: true
+    toc_depth: 6
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+    theme: united
+    highlight: haddock
+    css: "style.css"
+    
+bookdown::html_document2: default
+link-citations: yes
+csl: biomed-central.csl
+bibliography: bibliography.bib
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+```{r global_options, R.options=knitr::opts_chunk$set(warning=FALSE, message=FALSE)}
+
+```
+
+
+###Classification task
+ 
+
+ The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We divided the dataset into 24 subsets, each subset contains the same number of documents, we trained the classifiers over the subsets. The final evaluations results will be the average seperatly reported results for each subset. The dataset has around 7000 labels, an older version had only 4000 labels.
+ To observe the effect of including a large number of labels on the classification task in general, we compared the predective performance of the models when trained on a dataset with 7000 labels and when trained on a dataset with a reduced number of labels.
+
+####Classification Models
+
+ We use three methods to transform the problem of multi-label classification task into a conventional multi-class classification task: binary relevance, Label Powerset, classifier chain.
+ After transforming the classification problem, We trained three different classification models: Random Forest, k nearest neighbors, XGboosted trees. 
+ 
+```{r echo=FALSE}
+
+library(knitr)
+library(kableExtra)
+mytable4=matrix(NA,nrow=3,ncol=1)
+colnames(mytable4)<-"classifier Models"
+mytable4[1]<-"K nearest neighbours"
+mytable4[2]<-"Random Forest"
+mytable4[3]<-"XGboost"
+
+mytable5=matrix(NA,nrow=3,ncol=1)
+colnames(mytable5)<-"Transformation methods"
+mytable5[1]<-"Binary relevance"
+mytable5[2]<-"Classifier chain"
+mytable5[3]<-"Label powerset"
+
+kable(list(mytable4,mytable5),booktabs = TRUE) %>%
+kable_styling(full_width = F)
+
+```
+
+ We trained nine classifaction models and compared the performance of the classifiers to produce the model that best fits the dataset and to choose the type of features to yield the best predictive performance. The following table shows the nine classifier models :
+```{r echo=FALSE}
+#install.packages("kableExtra")
+library(knitr)
+library(kableExtra)
+mytable6=matrix(NA,nrow=1,ncol=1)
+#mytable6[1,1]<-"Classifiers architectures"
+colnames(mytable6)<-"Classifiers architectures"
+
+mytable7=matrix(NA,nrow=1,ncol=3)
+#colnames(mytable7)<-"F
+mytable7[1,1]<-"KNN-Label Powerset"
+mytable7[1,2]<-"RF-Label Powerset"
+mytable7[1,3]<-"XGboost-Label Powerset"
+#colnames(mytable7)<-list("KNN-Label Powerset","RF-Label Powerset","XGboost-Label Powerset")
+
+
+mytable8=matrix(NA,nrow=1,ncol=3)
+#colnames(mytable7)<-"Features"
+mytable8[1,1]<-"KNN-Binary Relevance"
+mytable8[1,2]<-"RF-Binary Relevance"
+mytable8[1,3]<-"XGboost-Binary Relevance"
+#colnames(mytable8)<-list("KNN-Binary Relevance","RF-Binary Relevance","XGboost-Binary Relevance")
+
+mytable9=matrix(NA,nrow=1,ncol=3)
+#colnames(mytable7)<-"Features"
+mytable9[1,1]<-"KNN-Classifier Chain"
+mytable9[1,2]<-"RF-Classifier Chain"
+mytable9[1,3]<-"XGboost-Classifier Chain"
+#colnames(mytable9)<-list("KNN-Classifier Chain","RF-Classifier Chain","XGboost-Classifier Chain")
+
+
+#kable(mytable6) %>%
+#kable_styling(full_width = F)
+
+x = kable(mytable7, format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x)
+
+#kable(mytable7) %>%
+#kable_styling(full_width = F)
+
+
+x = kable(mytable8, format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x)
+x = kable(mytable9, format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x)
+
+
+```
+
+####Experimental settings 
+ As mentioned earlier, the 25K documents dataset was split into 24 subsets, and the previously mentioned classification models were trained separately in order to compare the performance of these different classifiers.Each subset was split randomly into two disjointly subsets one for training and the other for testing, with the following proportions ( 65%  used for training and 35% used for testing).
+ We reported the results of the different models under different settings, we wanted to explore the performance of the classifiers with two types of features, with two languages and with a different number of labels.
+The following table demonstrates the experimental settings:
+```{r echo=FALSE}
+#install.packages("kableExtra")
+library(knitr)
+library(kableExtra)
+mytable1=matrix(NA,nrow=2,ncol=1)
+colnames(mytable1)<-"Language"
+mytable1[1]<-"English"
+mytable1[2]<-"German"
+
+mytable2=matrix(NA,nrow=2,ncol=1)
+colnames(mytable2)<-"Features"
+mytable2[1]<-"TFIDF"
+mytable2[2]<-"incidence"
+
+
+mytable3=matrix(NA,nrow=2,ncol=1)
+colnames(mytable3)<-"Number of Labels"
+mytable3[1]<-"7000"
+mytable3[2]<-"4000"
+
+kable(list(mytable1,mytable2,mytable3),booktabs = TRUE) %>%
+kable_styling(full_width = F)
+
+
+```
+
+ The following code shows the funcitons used for classification, we use [*utiml*](https://cran.r-project.org/web/packages/utiml/index.html) package.
+To split the dataset into training and testing dataset we use the function [create_holdout_partition()](https://www.rdocumentation.org/packages/utiml/versions/0.1.4/topics/create_holdout_partition).The example code is showen for __binary relevace__ method. We simply change the method used into one of the following methods:
+[lp()](https://rdrr.io/cran/utiml/man/lp.html) Label Powerset, [br()](https://rdrr.io/cran/utiml/man/br.html) Binary Relevance, [cc()](https://rdrr.io/cran/utiml/man/cc.html) Classifier Chain
+ we had to destroy the model after exporting the performance results to avoid any problematics with memory capacity using the function __rm()__
+``` {r language_selection, include=TRUE, eval=FALSE}
+
+library(mldr)
+library(utiml)
+
+train_ratio <- 0.65
+test_ratio <- 0.35
+iteration <- 24
+
+for(index in 1:iteration){
+
+  ds <- mldr(paste(generic_name,index,sep = "")) %>%
+  remove_skewness_labels(1) %>%
+  remove_attributes("...") %>%
+  remove_unique_attributes() %>%
+  remove_unlabeled_instances() %>%
+  create_holdout_partition(c(train=train_ratio, test=test_ratio))
+  
+  ## KNN - K nearest neighbour
+  brmodel1 <- br(ds$train, "KNN")
+  prediction1 <- predict(brmodel1, ds$test)
+  temp_knn <- multilabel_evaluate(ds$test, prediction1, "bipartition")
+
+  ##remove model of memory
+  rm(brmodel1)
+  rm(prediction1)
+  
+  ## RF - Random Forest
+  brmodel2 <- br(ds$train, "RF")
+  prediction2 <- predict(brmodel2, ds$test)
+  temp_rf <- multilabel_evaluate(ds$test, prediction2, "bipartition")
+
+  rm(brmodel2)
+  rm(prediction2)
+
+  ## XGB - eXtreme Gradient Boosting
+  brmodel3 <- br(ds$train, "XGB")
+  prediction3 <- predict(brmodel3, ds$test)
+  temp_xgb <- multilabel_evaluate(ds$test, prediction3, "bipartition")
+
+  rm(brmodel3)
+  rm(prediction3)
+  if(index==1){
+  knn <- temp_knn
+  rf <- temp_rf
+  xgb <- temp_xgb
+  }else{
+  knn <- cbind(knn,temp_knn)
+  rf <- cbind(rf,temp_rf)
+  xgb <- cbind(xgb, temp_xgb)
+  }
+  
+  
+```
+
+####Plotting Graphs Functions
+ we used the **ggplot2** package to display the evaluation metrics graphs. The following function **ggplot()** for plotting the graphs and **ggsave()** to save the last plotted graph.
+
+``` {r  include=TRUE, eval=FALSE}
+
+ggplot(performance)+ylab("value")+xlab("model")+scale_y_continuous(breaks=c(0, 0.25, 0.5,0.75, 1.0))+geom_point(aes(x=performance$model,y=performance$value,color=metric),size=5,alpha=0.7)+facet_grid(performance$metric~.)+coord_flip()+theme_bw()
+ggsave("/multilabelclassification/graphs/cc_EN_tfidf1.png",width = 8, height = 7, dpi = 400)
+ggplot(performance)+geom_tile(aes(x=model,y=metric,fill=value),color="black")+geom_text(aes(x=model,y=metric,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+ggsave("/multilabelclassification/graphs/cc_EN_tfidf2.png",width = 6, height = 4, dpi = 400)
+
+``` 
+
+###Experimental Resutls
+ We tested the nine models over two languages (English and German) and with two types of features (TF-IDF and the terms incidence).  Across all the experiments, we inferred that combining the label powerset transformation method with the random forest classifier produced the highest accuracy around (30%), however, combining the label power set with the XGBoost classifier resulted in the lowest accuracy about (5%).
+ We observed higher accuracy rates over all the nine trained classifiers when we used TF-IDFs as the instances features. TF-IDFs are more powerful representative features than simply using the terms incidence.
+ Despite the deteriorated performance of the XGBoost-Label powerset classifier, applying each of the Binary Relevance and the classifier chain methods with the XGBoost classifier produced the second best accuracy.
+ 
+####<span class="sub-sub-header">{Language:English, Feature:TF-IDF,Nr of Labels:7000 Labels}</span> {.tabset  .tabset-fade}
+
+#####Label Powerset
+we compared the three models where the label sets considered as classes.
+Random Forest achieved the highest accuracy compared to the XGBoost model which significantly achieved the lowest accuracy.
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_tfidf1.png) 
+
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_tfidf2.png)
+
+#####Binary Relevance
+ We compared the three models where the labels are assumed to be independent. The three models performed almost similiarly.
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_tfidf1.png) 
+
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_tfidf2.png) 
+
+#####Classifier Chains
+we compared the three models where we applied a chain of classifiers for each label.XGBoost and Random Forest produced comparable performance.
+
+![Classifer Chain-English-TFIDF](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_EN_tfidf1.png) 
+
+![Classifier Chain-English-TFIDF](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_EN_tfidf2.png) 
+
+
+#### {Language:English, Feature:Incidence, Nr of Labels:7000 Labels}{.tabset  .tabset-fade}
+#####Label Powerset
+![Label Powerset-English-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_inc1.png)
+
+![Label Powerset-English-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_inc2.png) 
+
+
+#####Binary Relevance
+
+![Binary Relevance-English-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_inc1.png)
+
+![Binary Relevance-English-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_inc2.png) 
+
+#####Classifier Chains
+
+![Classifier Chain-English-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_EN_inc1.png)
+
+![Classifier Chain-English-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_EN_inc2.png) 
+
+
+#### {Language:German, Feature:TF-IDF, Nr of Labels:7000 Labels}{.tabset  .tabset-fade}
+
+#####Label Powerset
+#####Binary Relevance
+#####Classifier Chains
+
+#### {Language:German, Feature:Incidence, Nr of Labels:7000 Labels}{.tabset  .tabset-fade}
+
+#####Label Powerset
+
+![Label Powerset-German-Indcidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_DE_inc1.png)
+
+![Label Powerset-German-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_DE_inc2.png)
+
+#####Binary Relevance
+
+![Binary Relevance-German-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_DE_inc1.png) 
+
+
+
+![Binary Relevance-German-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_DE_inc2.png)
+
+
+
+#####Classifier Chains
+
+
+![Classifier Chain-German-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_DE_inc1.png)
+
+
+![Classifier Chain-German-Incidence](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_DE_inc2.png)
+
+
+####Dataset with reduced number of labels
+Training our classification models on a dataset with such a large number of labels(7000 labels) is a challenging task.
+we expected that educing the number of labels would improve the predective capacity of the classifiers.
+To reduce the large number of labels, we take advangtage of the "scumble" measure provided with the **mldr** package. Scumble measure indicates the concurrence level among frequent and infrequent labels.
+We removed highly imabalanced label sets by keeping only labelsets with lower level of scumble values than the mean scumble value of the dataset with the following command line:
+
+``` {r  include=TRUE, eval=FALSE}
+datasetWithReducedNrLabels <- dataset[.SCUMBLE <= dataset$measures$scumble]
+
+``` 
+
+
+
+#### {Language:English, Feature:Incidence, Nr of Labels:Reduced number of labels}{.tabset .tabset-fade}
+
+ 
+ Removing imabalanced labels sets was expected to imporve the performance of the classifiers. However, The classification models maintained similar levels of accuracy rates. Accordingly, we can conclude that the dataset have homogenous label sets, thus the step of removing imbalanced label sets did not have a major impact on  the performance.
+
+#####Label Powerset 
+
+ ![](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_inc1_red.png)
+ 
+ 
+ ![](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_inc2_red.png)
+ 
+
+#####Binary Relevance
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_inc1_red.png)
+ 
+
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_inc2_red.png)
+
+#####Classifier Chain
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_EN_inc1_red.png)
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/cc_EN_inc2_red.png)
+
+
+
+#### {Language:English, Feature:TF-IDF, Nr of Labels:Reduced number of labels}{.tabset  .tabset-fade}
+
+#####Binary Relevance
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_tfidf1_red.png)
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/br_EN_tfidf2_red.png)
+
+
+#####Label Powerset
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_tfidf1_red.png)
+
+![](C:/Users/ASUS/Documents/EurLexClassification/Figs/lp_EN_tfidf2_red.png)
+
+
+###conclusion
+Label powerset method produced generaly the best accuracy compared to the binary relevance methos. Binary relevance method assumes the independecy of labels, on the other hand Label Powerset assumes that coocurring labels in the same instance are correlated, in addition, we have seen that removing the imabalanced label sets did not improve the performance. According to the previous discussion, we present a strong argument that the label sets of the Eur-Lex data set are homogenously distributed.
+
+
+
