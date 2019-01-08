@@ -666,7 +666,11 @@ ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7
 
 ```
 
-In all the plots for incidence also we observe Random Forest is the winner. Let's see which flavour of MLD classification performs best.  Here also we only consider Random Forest.
+In all the plots for incidence also we observe Random Forest is the winner. Let's see which flavour of MLD classification performs best.
+
+### Comparison of MLD Classification Algorithm over incidence dataset
+
+Here also we only consider Random Forest, as it has performed for all - LP, BR, CC.
 
 ```{r mld_inc_plot, message=TRUE, include=TRUE,eval=TRUE }
 rm(performance)
