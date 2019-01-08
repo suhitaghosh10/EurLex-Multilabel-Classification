@@ -1,0 +1,627 @@
+---
+title: "Multilabel Classification of Legal Text (EurLex)"
+output: html_notebook
+link-citations: yes
+csl: ../markdown/biomed-central.csl
+bibliography: ../markdown/bibliography.bib
+---
+
+We will perform preprocessing and Data exploratory analysis over German text similar to English.
+### Preprocessing - German Data
+
+We first start with text preprocessing and some exploratory analysis over English text.
+
+```{r init_de, message=FALSE, warning=FALSE, include=TRUE}
+source("../configuration/de.R")
+
+## Required packages
+source("../scripts/requirements.R")
+
+## Functions needed
+source("../scripts/preprocessing_utility.R")
+
+```
+
+
+The following code will load and preprocess the text.
+
+```{r load_text, include=TRUE, eval=TRUE}
+connection <- fileName  %>% file(open = "r")
+raw_text_char <- connection %>% readLines(encoding = "UTF-8")
+close.connection(connection)
+
+sample_no <- ifelse((exists("doc_number") && doc_number>1 && doc_number>batch_number), doc_number, length(raw_text_char))
+text_content_list <- raw_text_char[seq (2, sample_no*2, 2)] #every even line contains text
+text_content_list[[1]]
+```
+
+```{r preprocess_text, include=TRUE, eval=TRUE}
+text_content_list <- get_clean_content(text_content_list) #get preprocessed text
+
+text_content_list[[1]]
+```
+
+We need to preprocess labels, as label names are in different file. The dataset- *acquis.cf* file just contains label-ids. Also the label names contains certain characters like space which is inconvenient to generate MLD datasets. The following code generates clean label name for all documents.
+
+```{r get_clean_label_lst, include=TRUE, eval=TRUE}
+library(XML)
+
+class_labels_list <-
+  raw_text_char[seq (1, sample_no*2, 2)] %>%
+  strsplit("#") %>%
+  sapply("[[", 1) %>%
+  trimws() %>%
+  get_label_name_list()
+
+raw_text_char[[1]] # first row containing label-ids for 1st document
+
+class_labels_list[[1]] # corresponding label-names for 1st document
+```
+
+After generating a cleaner version of text and labels we can take a deep dive into the first part of our data exploration.
+
+We generate a dataframe such that each row contains one document's text and one label.
+
+```{r exploration_df, include=TRUE, eval=TRUE}
+text <- character()
+label <- character()
+for (index in 1:length(text_content_list)) {
+  temp_labelset <- unlist(class_labels_list[[index]])
+  for (label_index in 1:length(temp_labelset))
+  {
+    text <- append(text, text_content_list[[index]])
+  label <- append(label, temp_labelset[[label_index]])
+  }
+}
+
+text_df <- as.data.frame(cbind(text, label), stringsAsFactors = FALSE)
+
+text_df[1:4,]
+```
+
+### Exploratory data analysis
+
+We start exploration with wordcloud as we did for english text, and investigate whether we see similar terms as in English.
+
+```{r wordcloud_all, include=TRUE, eval=TRUE}
+library(tidytext)
+
+#generate tokens and count of each word from text 
+tokens <- text_df %>%
+  unnest_tokens(word, text) %>%
+  dplyr::count( word, sort = TRUE) %>%
+  ungroup()
+
+library(wordcloud)
+
+wordcloud(words = tokens$word, freq = tokens$n, min.freq = 1, max.words=50, random.order=FALSE, rot.per=0.35,colors=brewer.pal(8, "Dark2"), scale = c(3, 0.2))
+```
+
+The stopwords added in English has been added to german text preprocessing, but we get different prominent words. The words- *mussen, verordnung* stands out among others.Similar to english text analysis it will be interesting to see which terms are common for different category of the german legal text. To get that, we need to count words for each category.
+
+```{r tf, include=TRUE, eval=TRUE}
+tokens_by_label <- text_df %>%
+  unnest_tokens(word, text) %>% #generate tokens
+  dplyr::count(label, word, sort = TRUE) %>% #counts words for each category
+  ungroup()
+  
+  total_words <- tokens_by_label %>%
+    group_by(label) %>%
+    summarize(total = sum(n))
+  
+  tokens_by_label <- left_join(tokens_by_label, total_words)
+  
+  tokens_by_label 
+```
+
+Let us have a look at the distribution of (n/total) for some of the document categories.
+
+```{r tf_graph, include=TRUE, eval=TRUE, warning=FALSE}
+library(ggplot2)
+
+selected_labels <- unique(tokens_by_label$label)[1:8]
+
+tokens_by_label %>% filter(
+  label %in% selected_labels) %>%
+  ggplot(aes(n / total, fill = label)) +
+  geom_histogram(show.legend = FALSE) +
+  xlim(NA, 0.0009) +
+  facet_wrap( ~ label, ncol = 2, scales = "free_y")
+```
+
+For German text also the plots portray long tails on the right, and we can similarly use the term frequency dataframe to plot term frequency and examine Zipf's law.
+```{r zipf, include=TRUE, eval=TRUE}
+
+
+freq_by_rank <- tokens_by_label %>%
+  group_by(label) %>%
+  mutate(rank = row_number(),
+  `term frequency` = n / total)
+
+freq_by_rank %>%
+  ggplot(aes(rank, `term frequency`, color = label)) +
+  geom_line(size = 1.1,
+  alpha = 0.8,
+  show.legend = FALSE) +
+  scale_x_log10() +
+  scale_y_log10()
+
+```
+
+The above plot is in log-log coordinates. We can see that text in all the categories in the German corpus are almost similar to each other, and that the relationship between rank and frequency does have negative slope, implying that they follow Zipf's Law.
+
+Similar to the English text analysis we would find out top 10 words for each category, which will give us an idea what each category of law document deals with. We use tf-idf as before to find the important words for the content of each document category.  
+
+```{r topk_mono, include=TRUE, eval=TRUE}
+
+tokens_by_label <- bind_tf_idf(tokens_by_label, word, label, n) #enerates tf-idf and binds to dataframe
+tokens_by_label
+```
+
+```{r topk_plot, include=TRUE, eval=TRUE}
+
+tokens_by_label %>%
+  filter(
+  label %in% selected_labels[1:4] ) %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(bigram = factor(word, levels = rev(unique(word)))) %>%
+  group_by(label) %>%
+  top_n(10) %>%
+  ungroup %>%
+  ggplot(aes(word, tf_idf, fill = label)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = NULL) +
+  facet_wrap( ~ label, ncol = 2, scales = "free") +
+  coord_flip()
+```
+
+We can see common terms appearing for labels *industrieinvestition_* ,*industriestatistik_* and *wirtschaftsstatistische_erhebung_*. These documents share terms like - *papier, holz, herstellung, fleisch*, which implies many industry investment oriented documents are focussed on paper, wood, manufacturing and meat. 
+We try to see if these categories share bigrams as well.
+
+```{r topk_b_plot, include=TRUE, eval=TRUE}
+
+bigram_tokens <- text_df %>%
+  unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
+  dplyr::count(label, bigram, sort = TRUE) %>%
+  ungroup()
+  
+  total_words <- bigram_tokens %>%
+  group_by(label) %>%
+  summarize(total = sum(n))
+  
+  bigram_tokens <- left_join(bigram_tokens, total_words)
+  bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
+  
+  bigram_tokens %>%
+  filter(
+  label %in% selected_labels[1:4]) %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(bigram = factor(bigram, levels = rev(unique(bigram)))) %>%
+  group_by(label) %>%
+  top_n(10) %>%
+  ungroup %>%
+  ggplot(aes(bigram, tf_idf, fill = label)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = NULL) +
+  facet_wrap( ~ label, ncol = 2, scales = "free") +
+  coord_flip()
+```
+
+We can see similar observation as seen in top-10 words. After the above analysis, we surmise tf-idf or incidence of mongrams/bigrams can be used as our feature, as similar/connected categories share common words/bigrams.
+
+### Preprocessing for mldr - German corpus
+
+Similar to English dataset, we generate the dataset for German corpus
+
+```{r dtms, include=TRUE, eval=TRUE}
+#corpus of text
+text_corpus <- VCorpus(VectorSource(text_content_list))
+
+#corpus of labels just like text corpus
+label_corpus <- VCorpus(VectorSource(class_labels_list))
+#dtm of labels
+dtm_labels <- DocumentTermMatrix(label_corpus, control=list(weight=weightTfIdf))
+
+# dtm matrix for tf-idf. considering words having atleast 3 letters
+dtm_tfidf <- text_corpus %>%
+  DocumentTermMatrix(control = list(
+  wordLengths = c(3, Inf),
+  weighting = function(x)
+  weightTfIdf(x, normalize = FALSE) ,
+  stopwords = TRUE
+  ))  %>%
+  removeSparseTerms(0.99) # remove sparse terms, so that sparsity is maximum 99%
+  
+# column bind text and labels to generate tfidf ARFF file
+dtm_tfidf <- cbind(dtm_tfidf, dtm_labels)
+
+# gets unique words- needed for incidence matrix
+  uniqueWords <- function(text) {
+    return(paste(unique(strsplit(text, " ")[[1]]), collapse = ' '))
+  }
+
+# dtm matrix for incidence. considering words having atleast 3 letters
+dtm_incidence <-  text_corpus %>%
+    tm_map(content_transformer(uniqueWords)) %>%
+    DocumentTermMatrix(control = list(
+    wordLengths = c(3, Inf),
+    weight = weightBin ,
+    stopwords = TRUE
+    )) %>%
+    removeSparseTerms(0.99)
+
+# column bind text and labels to generate incidence ARFF file
+dtm_incidence <- cbind(dtm_incidence,dtm_labels)
+```
+
+After the document term matrices have been generated we need to generate the ARFFs and the xmls
+
+```{r arff_gen, include=TRUE, eval=TRUE}
+
+#generate ARFF for mldr
+generate_ARFF(dtm_incidence, paste(incFileName,".arff",sep="")) #generate arff for incidence
+generate_ARFF(dtm_tfidf, paste(tfidfFileName,".arff",sep="")) #generate arff for tfidf
+
+#generate XML for mldr
+label_names <-
+xmlParse(labelFile) %>% xpathApply("//LIBELLE", xmlValue) %>% get_clean_label()
+xml_root = newXMLNode("labels")
+
+for (i in 1:length(label_names)) {
+  newXMLNode("label", attrs = c(name = label_names[i]), parent = xml_root)
+}
+
+saveXML(xml_root,file=paste(incFileName,".xml", sep="")) #xml for incidence
+saveXML(xml_root,file=paste(tfidfFileName,".xml", sep="")) #xml for tfidf
+```
+
+### Exploratory multilabel dataset analysis
+After mldr compliant datasets are generated, they are loaded. We perform exploratory analysis over the German MLD dataset is to inspect the multi-label dataset traits (label distribution, relationship among labels and label imbalance), and we perform the analysis over one of the datasets (tf-idf or incidence) for the same reason mentioned before.
+
+```{r load_mldr, include=TRUE, cached=TRUE}
+eurlex <- mldr(paste(tfidfFileName))
+
+summary(eurlex)
+```
+Similar to English dataset, the scumble value of the German dataset is also high, implying there is a good amount of concurrence among imbalanced labels.The mean IRLbl value (meanIR) is also quite high indicating a good amount of imbalance.  
+
+#### labels' information
+Labels' information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the *labels* member of the *mldr* class.
+
+```{r mldr_label, include=TRUE, cached=TRUE}
+#inspect first 20 labels
+head(eurlex$labels, 20)
+
+```
+#### Concurrence Plot (CH)
+We will now explore the interactions among labels using the concurrence plot. Similar to the English mldr analysis we will choose some labels for the plot.
+
+```{r mldr_attrib, include=TRUE, cached=TRUE }
+head(eurlex$attributes)
+
+tail(eurlex$attributes)
+
+#selecting first 20 labels/categories
+plot_labels <- eurlex$labels$index[1:30]
+names(eurlex$attributes)[plot_labels]
+```
+
+```{r plot_lc, include=TRUE, eval=TRUE }
+par(mar=c(0.5,0.5,0.5,0.5))
+plot(eurlex, type="LC", labelIndices=plot_labels)
+
+```
+
+We can see the related labels share instances, as we observed in the CH plot over English dataset.
+
+#### Relationship among labels and instances
+We can observe in German dataset also a great number of labels/labelset are appearing in very few instances in both LH and LSH plots. In CH plot also we see over all instances have very less number of labels.
+
+```{r plot_lh_lsh, include=TRUE, eval=TRUE }
+par(mfrow=c(1,3))
+plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex')
+plot(eurlex, type='LSH',col = brewer.pal(11, 'Spectral'), title='Eurlex', ylim=c(0,100))
+plot(eurlex, type='CH',col = brewer.pal(11, 'Spectral'), title='Eurlex')
+```
+
+
+## Multilabel Classification - German Dataset
+
+We have used BR, LP and CC for similarly as the English dataset, and we will try to answer the research question: *Which flavour of multilabel classification method performs the best for German text*.
+
+We generate the batches for German text as well.
+
+```{r generate_dataset_clsf, message=TRUE, include=TRUE,eval=TRUE }
+
+## Generate dataset for classification
+source("../scripts/generate_dataset.R")
+```
+
+### Classification for tf-idf dataset using Binary Relevance Transform (BR)
+
+The method *classify* performs classification over the specified dataset, for one of the multilabel flavour (Binary relevance -*br*, Labelpowerset- *lp* or Classifier Chain-*cc*), and for one of the classifiers (Nearest Neighbour-*KNN*, Random Forest-*RF*, XGBoost-*XGB*). The last input to method classify is a flag which determines whether to consider reduced labels or not. The method returns the average of all the metrics' value over the batches of datasets.
+```{r br_tf, message=TRUE, include=TRUE,eval=TRUE }
+source("../scripts/classification_utility.R")
+set.seed(123) #insures to reproduce results.
+
+knn_tfidf_br_results_mean <- classify(tfidfFileName,"br","KNN", FALSE)
+rf_tfidf_br_results_mean <- classify(tfidfFileName,"br","RF", FALSE)
+xgb_tfidf_br_results_mean <- classify(tfidfFileName,"br","XGB", FALSE)
+```
+
+
+```{r br_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE }
+if(exists("performance")) rm(performance)
+
+performance=as.data.frame(rbind( knn_tfidf_br_results_mean, rf_tfidf_br_results_mean, xgb_tfidf_br_results_mean))
+performance[["model"]] <- c("knn",'rf','xgb')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0)) 
+```
+
+We can observe Random Forest has performed better for the BR flavour, with respect to all metrics as in English tf-idf dataset.
+
+Classification for tf-idf dataset using LabelPowerset Transform (LP)
+
+```{r lp_tf, message=TRUE, include=TRUE,eval=TRUE }
+knn_tfidf_lp_results_mean <- classify(tfidfFileName,"lp","KNN", FALSE)
+rf_tfidf_lp_results_mean <- classify(tfidfFileName,"lp","RF", FALSE)
+xgb_tfidf_lp_results_mean <- classify(tfidfFileName,"lp","XGB", FALSE)
+```
+We similarly plot for LP
+
+```{r lp_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+
+performance=as.data.frame(rbind( knn_tfidf_lp_results_mean, rf_tfidf_lp_results_mean, xgb_tfidf_lp_results_mean))
+performance[["model"]] <- c("knn",'rf','xgb')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+```
+
+Here also we observe Random Forest performs best among all and XGB worst, with respect to most of the metrics.
+
+Classification for tf-idf dataset using Classifier Chain Transform (CC)
+
+```{r cc_tfidf, message=TRUE, include=TRUE,eval=TRUE }
+knn_tfidf_cc_results_mean <- classify(tfidfFileName,"cc","KNN", FALSE)
+rf_tfidf_cc_results_mean <- classify(tfidfFileName,"cc","RF", FALSE)
+xgb_tfidf_cc_results_mean <- classify(tfidfFileName,"cc","XGB", FALSE)
+
+```
+
+We also plot for CC
+
+```{r cc_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+
+performance <- as.data.frame(rbind( knn_tfidf_cc_results_mean, rf_tfidf_cc_results_mean, xgb_tfidf_cc_results_mean))
+performance[["model"]] <- c("knn",'rf','xgb')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+```
+Here we observe XGB perfoms best among alln for most of the metrics.
+
+Now let's see which flavour of MLD algorithms performs best. Considering only XGB for BR, LP and CC, as it performed best for most of the scenarios
+
+
+```{r mld_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance <- as.data.frame(rbind( xgb_tfidf_br_results_mean, xgb_tfidf_lp_results_mean, xgb_tfidf_cc_results_mean))
+performance[["model"]] <- c("br",'lp','cc')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+library(gridExtra)
+
+g1 <- ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+g2 <- ggplot(perf_metric)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+
+grid.arrange(g1, g2, nrow = 1)
+
+```
+
+We observe LP is the clear winner with respect to all metrics except micro-precision. Since LP is the winner it implies 
+
+Classification for incidence dataset done similarly by using BR, LP and CC
+
+```{r inc_all , message=TRUE, include=TRUE,eval=TRUE }
+knn_inc_br_results_mean <- classify(incFileName,"br","KNN", FALSE)
+rf_inc_br_results_mean <- classify(incFileName,"br","RF", FALSE)
+xgb_inc_br_results_mean <- classify(incFileName,"br","XGB", FALSE)
+
+knn_inc_lp_results_mean <- classify(incFileName,"lp","KNN", FALSE)
+rf_inc_lp_results_mean <- classify(incFileName,"lp","RF", FALSE)
+xgb_inc_lp_results_mean <- classify(incFileName,"lp","XGB", FALSE)
+
+knn_inc_cc_results_mean <- classify(incFileName,"cc","KNN", FALSE)
+rf_inc_cc_results_mean <- classify(incFileName,"cc","RF", FALSE)
+xgb_inc_cc_results_mean <- classify(incFileName,"cc","XGB", FALSE)
+```
+
+```{r br_inc_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance <- as.data.frame(rbind( knn_inc_br_results_mean, rf_inc_br_results_mean, xgb_inc_br_results_mean))
+performance[["model"]] <- c("knn",'rf','xgb')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+```
+
+```{r br_lp_inc_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance <- as.data.frame(rbind( knn_inc_lp_results_mean, rf_inc_lp_results_mean, xgb_inc_lp_results_mean))
+performance[["model"]] <- c("knn",'rf','xgb')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+```
+
+ 
+```{r cc_inc_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance=as.data.frame(rbind( knn_inc_cc_results_mean, rf_inc_cc_results_mean, xgb_inc_cc_results_mean))
+performance[["model"]] <- c("knn",'rf','xgb')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+```
+
+In all the plots for incidence also we observe Random Forest is the winner. Let's see which flavour of MLD classification performs best.  Here also we only consider Random Forest.
+
+```{r mld_inc_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance <- as.data.frame(rbind( rf_inc_br_results_mean, rf_inc_lp_results_mean, rf_inc_cc_results_mean))
+performance[["model"]] <- c("br",'lp','cc')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+library(gridExtra)
+
+g1 <- ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+g2 <- ggplot(perf_metric)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+
+grid.arrange(g1, g2, nrow = 1, ncol=2)
+
+```
+
+Here also LP performs the best, except for *Micro-Precision*.
+
+Now let us see which features proved to be better. We consider only Random Forest here also for the same before mentioned reason.
+```{r mld_inc_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance <- as.data.frame(rbind( rf_tfidf_lp_results_mean, rf_inc_lp_results_mean))
+performance[["model"]] <- c('tf-idf','incidence')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+library(gridExtra)
+
+g1 <- ggplot(perf_metric)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+scale_color_manual(values=mycolors)+theme(strip.text.y = element_text(angle=0))
+
+g2 <- ggplot(perf_metric)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+
+grid.arrange(g1, g2, nrow = 1, ncol=2)
+
+```
+
+Both of them performed similar and it is difficult to say which one is better than the other.
+
+
+Classification for tf-idf and incidence dataset done similarly by using BR and LP, but using reduced labels. By reducing labels we mean the majority labels are disabled on instances with highly imbalanced labels. We will try to answer the research question whether classification accuracy improves with reduced labels. We are considering only tf-idf dataset as performance of the classifiers was comparable.
+
+```{r cls_red_labels , message=TRUE, include=TRUE,eval=TRUE }
+knn_tfidf_br_red_results_mean <- classify(tfidfFileName,"br","KNN", TRUE)
+rf_tfidf_br_red_results_mean <- classify(tfidfFileName,"br","RF", TRUE)
+xgb_tfidf_br_red_results_mean <- classify(tfidfFileName,"br","XGB", TRUE)
+
+knn_tfidf_lp_red_results_mean <- classify(tfidfFileName,"lp","KNN", TRUE)
+rf_tfidf_lp_red_results_mean <- classify(tfidfFileName,"lp","RF", TRUE)
+xgb_tfidf_lp_red_results_mean <- classify(tfidfFileName,"lp","XGB", TRUE)
+
+knn_tfidf_cc_red_results_mean <- classify(tfidfFileName,"cc","KNN", TRUE)
+rf_tfidf_cc_red_results_mean <- classify(tfidfFileName,"cc","RF", TRUE)
+xgb_tfidf_cc_red_results_mean <- classify(tfidfFileName,"cc","XGB", TRUE)
+```
+
+```{r mld_red_label_plot, message=TRUE, include=TRUE,eval=TRUE }
+if(exists("performance_br"))rm(performance_br)
+
+performance_br <- as.data.frame(rbind( knn_tfidf_br_red_results_mean, rf_tfidf_br_red_results_mean,xgb_tfidf_br_red_results_mean))
+performance_br[["model"]] <- c('knn','rf','xgb')
+performance_br <- performance_br[names(performance_br) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+if(exists("performance_lp"))rm(performance_lp)
+
+performance_lp <- as.data.frame(rbind( knn_tfidf_lp_red_results_mean, rf_tfidf_lp_red_results_mean,xgb_tfidf_lp_red_results_mean))
+performance_lp[["model"]] <- c('knn','rf','xgb')
+performance_lp <- performance_lp[names(performance_lp) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+if(exists("performance_cc"))rm(performance_cc)
+
+performance_cc <- as.data.frame(rbind( knn_tfidf_cc_red_results_mean, rf_tfidf_cc_red_results_mean,xgb_tfidf_cc_red_results_mean))
+performance_cc[["model"]] <- c('knn','rf','xgb')
+performance_cc <- performance_cc[names(performance_cc) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric_br <- gather(performance_br,metrics,value,-model)
+perf_metric_lp <- gather(performance_lp,metrics,value,-model)
+perf_metric_cc <- gather(performance_cc,metrics,value,-model)
+
+library(gridExtra)
+
+
+g_br <- ggplot(perf_metric_br)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("BR")
+
+g_lp <- ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP")
+
+g_cc <- ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC")
+
+grid.arrange(g_br, g_lp, g_cc, nrow = 2, ncol=2)
+
+```
+
+We can see from the above Fig LP and Random Forest stands as the clear winner. Therefore, let's compare the LP and Random-Forest classifier transoform methods with the non-reduced label models, ans try to ansere rhe research Q-
+
+
+
+```{r mld_red_comp_plot, message=TRUE, include=TRUE,eval=TRUE }
+rm(performance)
+performance <- as.data.frame(rbind( rf_tfidf_lp_results_mean, rf_tfidf_lp_red_results_mean))
+performance[["model"]] <- c("Original",'Reduced-label')
+performance <- performance[names(performance) %in% c('accuracy', 'hamming-loss', 'subset-accuracy','macro-F1', 'macro-precision', 'macro-recall','micro-F1', 'micro-precision', 'micro-recall','model')]
+
+mycolors=c("#db0229","#026bdb","#48039e","#0d7502","#c97c02","#c40c09","#ff003f","#0094ff", "#ae00ff" , "#94ff00", "#ffc700","#fc1814","#f00814","#fc1874")
+
+perf_metric <- gather(performance,metrics,value,-model)
+
+ggplot(perf_metric)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+
+
+
+```
+It seems the original models (without reduced labels) performed better with respect to all metrics. Therefore it is not always true that we might get better performance by reducing labels as mentioned in [mldr].
