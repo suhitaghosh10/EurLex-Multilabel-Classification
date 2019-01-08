@@ -84,7 +84,7 @@ Modify existing algorithms taking into account the multilabel nature of the samp
 Transforming the original data to make it suitable to existing traditional classification algorithms and combining the obtained predictions to build the labelsets given as output result. There are several transformation methods in literature. Three have been defined and used for our case study.  
 
 - <span class="sub-sub-header">  Binary Relevance (BR):</span>  
-     + It is an adaptation of OVA (one-vs-all ) to the multilabel scenario and transforms the original multilabel dataset into several binary datasets.
+     + It is an adaptation of OVA (one-vs-all) to the multilabel scenario and transforms the original multilabel dataset into several binary datasets.
      + Here an ensemble of binary classifiers is trained, one for each class. Each classifier predicts either the membership or the non-membership of one class. A union of all predicted classes is taken as the multi-label output.
      + The approach is popular because it is easy to implement, but *ignores the possible correlations between class labels*.  
 

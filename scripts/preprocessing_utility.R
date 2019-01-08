@@ -7,7 +7,7 @@ if(lang == "english"){
   }
   else if(lang == "german"){
   stopwords <-
-    c("gt","keintext","p","lt","aka","oj","n","a","eec","artikel","directive","folgen", "übereinstimmung", "vorsitzender", "notwendig", "einhalten", "bezug", "kommission", "stellungnahme", "entscheidung", "anlage", "bezug", "mitglied", "europäer", "vertrag","regulierung","insbesondere","davon","gemeinschaft","ausschuss","maßnahme","parlament","betrachten","ändern","verfahren","administrativ","verfahren","veröffentlichung","monat", "datum", "jahr", "eingeben", "erzwingen", "gewähren", "autorität", "nehmen", "rat", "handeln", "innerhalb","national","recht","haupt","vorschrift","erwähnen","genehmigen","sicher","wobei","eea","auch","bewerben","kann","wird", "soll","erfordern", "absatz", "unterabsatz", "offiziell", "journal","ec","b","s","c","e","NA","ev","fur","mitgliedstaat","agentur","europaisch","evs","beirat","generaldirektor","verodnung","jed","mussen")  %>%
+    c("gt","keintext","p","lt","aka","oj","n","a","eec","artikel","artikels","directive","folgend", "übereinstimmung", "vorsitzender", "notwendig", "einhalten", "bezug", "kommission", "stellungnahme", "entscheidung", "anlage", "bezug", "mitglied", "europäer", "vertrag","regulierung","insbesondere","davon","gemeinschaft","ausschuss","maßnahme","parlament","betrachten","ändern","verfahren","administrativ","verfahren","veröffentlichung","monat", "datum", "jahr", "eingeben", "erzwingen", "gewähren", "autorität", "nehmen", "rat", "handeln", "innerhalb","national","recht","haupt","vorschrift","erwähnen","genehmigen","sicher","wobei","eea","auch","bewerben","kann","wird", "sollen","erfordern", "absatz", "unterabsatz", "offiziell", "journal","ec","b","s","c","e","NA","ev","fur","mitgliedstaat","agentur","europaisch","evs","beirat","verordnung","jed","mussen")  %>%
     append(stopwords(lang))
   }
   clean_content <- content  %>%
@@ -25,7 +25,6 @@ if(lang == "english"){
 	if(lang == "english")
     clean_content <- lemmatize_strings(clean_content)
 	else{
-	#clean_content <- stri_trans_general(clean_content, "Latin-ASCII")
 	lemmata <- c()
 	 if (!file.exists(model_file))
     {

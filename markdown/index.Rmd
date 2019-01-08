@@ -73,12 +73,12 @@ In the process, we try to answer the following research questions:
 * The following evaluation measures cab be used to assess the multilabel predictive performance:
      + Accuracy
      + Hamming Loss
-     + Average Precision and Recall
-     + Coverage
-     + Ranking Loss
+     + Micro Precision and Recall
+     + Macro Precision and Recall
      
 * Compare the accuracies of the state-of-the-art classifiers on this dataset, for:
   + Two languages (English and German)
+  + Two kinds of features (tf-idf and incidence)
   + Different flavours of multilable classification
   + Reduced labels
 

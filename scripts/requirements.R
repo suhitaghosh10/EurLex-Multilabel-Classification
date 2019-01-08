@@ -25,7 +25,8 @@ packages <- c(
   "wordcloud",
   "ggraph",
   "igraph",
-  "tidyverse"
+  "tidyverse",
+  "gridExtra"
 )
 
 

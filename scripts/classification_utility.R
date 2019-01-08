@@ -36,6 +36,7 @@ classify <- function(mldrfilename, mode, classifier, reduceLabels) {
   }
   
   rm(temp)
+  prediction_mean <- rowMeans(cls_pred, na.rm = TRUE)
   
-  cls_pred
+  prediction_mean
 }

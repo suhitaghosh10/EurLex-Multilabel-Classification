@@ -1,9 +1,10 @@
-doc_number <<- 100
-lang <<- "german"
-fileName <<- "../data/german/acquis_german.cf"
-tfidfArffFileName <<- "../output/tfidf_DE"
-incArffFileName <<- "../output/inc_DE"
-tfidfXMLFileName <<- "../output/tfidf_DE.xml"
-XMLFileName <<- "../output/DE.xml"
-labelFile <<- "../data/german/desc_de.xml"
-model_file <<- "../output/german-gsd-ud-2.3-181115.udpipe"
+doc_number <- 200
+
+lang <- "german"
+fileName <- "../data/german/acquis_german.cf"
+tfidfFileName <- "../output/tfidf_DE"
+incFileName <- "../output/inc_DE"
+labelFile <- "../data/german/desc_de.xml"
+model_file <- "../output/german-gsd-ud-2.3-181115.udpipe"
+
+batch_number <- 5
