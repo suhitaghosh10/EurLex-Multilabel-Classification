@@ -692,7 +692,7 @@ grid.arrange(g1, g2, nrow = 1, ncol=2)
 
 ```
 
-Here also LP performs the best, except for *Micro-Precision*.
+Here also LP performs the best, except for *Micro-Precision*. 
 
 Now let us see which features proved to be better. We consider only Random Forest here also for the same before mentioned reason.
 ```{r mld_inc_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE }
