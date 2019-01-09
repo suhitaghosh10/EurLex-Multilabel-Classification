@@ -302,7 +302,7 @@ div.tocify {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">My Website</a>
+      <a class="navbar-brand" href="index.html">EurLex classification</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -314,6 +314,9 @@ div.tocify {
 </li>
 <li>
   <a href="exploratory_analysis.html">Exploratory Analysis</a>
+</li>
+<li>
+  <a href="experimentalResults.html">Classification</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -334,10 +337,11 @@ div.tocify {
 <p>     </p>
 <div id="exploratory-analysis" class="section level1">
 <h1>Exploratory analysis</h1>
-<p>The legal text is available in several European languages, but we will experiment with two languages - <strong>English</strong> and <strong>German</strong>.</p>
+<p>Eurlex dataset is available in several European languages, but we have done exploratory analysis for <strong>English</strong> language.</p>
 <div id="dataset" class="section level4">
 <h4><span class="header">Dataset</span></h4>
-<p>The text content (laws/treaties) for each language is available in a file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:</p>
+<p>The Eurlex dataset for every language comprises two files- a <span class="emphasize>“<em>cf</em></span> file and a <span class="emphasize&gt;*XML*&lt;/span&gt; file. The documents(laws/treaties) and the document categories/labels is available in the cf file (acquis.cf). The content and the labels for each document has been stored in the file in the following way: - Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*. - Every **even** line consists of the actual text. An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line. &lt;center&gt; ![[Fig1. Data format]](Figs/acquis.png) &lt;/center&gt; The mapping between label-id and label-name has been provided in a XML. A small snippet of the xml has been provided below. ```xml &lt;?xml version=" 1.0"="" encoding="UTF-8" ?=""><em>XML</em></span> file.<br />
+The documents(laws/treaties) and the document categories/labels is available in the cf file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:</p>
 <ul>
 <li>Every <strong>odd</strong> line consists of <em>label-ids</em> and the <em>document-id</em> of a document. The labels and document-id is separted by a <em>#</em>.<br />
 </li>
@@ -348,272 +352,332 @@ div.tocify {
 <img src="Figs/acquis.png" alt="[Fig1. Data format]" />
 </center>
 <p>   </p>
+<p>The mapping between label-id and label-name has been provided in a XML. A small snippet of the xml has been provided below.</p>
+<div class="sourceCode"><pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;?xml</span> version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; <span class="kw">?&gt;</span>
+<span class="dt">&lt;!DOCTYPE </span>DESCRIPTEUR SYSTEM &quot;descripteur.dtd&quot;<span class="dt">&gt;</span>
+<span class="kw">&lt;DESCRIPTEUR</span><span class="ot"> LNG=</span><span class="st">&quot;EN&quot;</span><span class="ot"> VERSION=</span><span class="st">&quot;4_3&quot;</span><span class="kw">&gt;</span>
+  <span class="kw">&lt;RECORD&gt;</span>
+    <span class="kw">&lt;DESCRIPTEUR_ID&gt;</span>4444<span class="kw">&lt;/DESCRIPTEUR_ID&gt;</span>
+    <span class="kw">&lt;LIBELLE&gt;</span>abandoned land<span class="kw">&lt;/LIBELLE&gt;</span>
+  <span class="kw">&lt;/RECORD&gt;</span>
+<span class="kw">&lt;/DESCRIPTEUR&gt;</span></code></pre></div>
+<p>The tag <em>DESCRIPTEUR_ID</em> contains the label-id and <em>LIBELLE</em> contains the label name.    </p>
 </div>
-<div id="features-used-for-the-task" class="section level4">
-<h4><span class="header">Features used for the task </span></h4>
-<p>We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - <span class="emphasize">“How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?” </span><br />
-Therefore we will have two datasets for each language- one containing term-incidence as features and the other containing tf-idf as features.</p>
-</div>
-<div id="preprocessing" class="section level4">
-<h4><span class="header">Preprocessing </span></h4>
-<p>Before we start with analyzing text, we need to preprocess it. Text data contains many characters which do not convey much information, like punctuations, white spaces, stop words, etc. In English, certain words like â€œisâ€, â€œtheâ€ is present in every document and does not help to discriminate two documents. But again, depending on the language and the task at hand, we need to deal with such characters differently.</p>
+<div id="text-preprocessing" class="section level4">
+<h4><span class="header">Text Preprocessing </span></h4>
+<p>For our task two kinds of preprocessing is needed:</p>
+<ul>
+<li><p><span class="sub-sub-header">Text preprocessing</span><br />
+Text data contains many characters which do not convey much information, like punctuations, white spaces, stop words, etc. In English, certain words like â€œisâ€, â€œtheâ€ is present in every document and does not help to discriminate two documents. But again, depending on the language and the task at hand, we need to deal with such characters differently.</p></li>
+<li><p><span class="sub-sub-header">Preprocessing to generate the data expected by <em>mldr</em></span><br />
+To study the MLD datasets traits (label distribution, relationship among labels and label imbalance) and perform classification over MLD datasets we need to transform the available dataset into mldr format - a sparse ARFF file containing features and labels , and a XML file containing the label information.</p></li>
+</ul>
 <p><span class="sub-sub-header"> How much the preprocessing varies across languages for our task? </span><br />
 Preprocessing will be almost same for both languages - English and German, except for the following:</p>
 <ul>
 <li>list of stopwords</li>
-<li>lemmatization</li>
+<li>lemmatization - The lemmatization for English language could be done using the method <span class="emphasize">lemmatize_strings</span> from package <em>textstem</em>, but for German language we had to use <span class="emphasize">udpipe</span> model.</li>
 </ul>
+<p><span class="sub-sub-header"> Features used for the task </span><br />
+We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - <span class="emphasize">“How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?” </span><br />
+Therefore we will have two datasets/ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features.</p>
 <p>Since the pre-processing is little different for different languages, we need to execute the following code, to perform the pre-processing for a particular language.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">init &lt;-<span class="st"> </span><span class="cf">function</span>(language) {
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(udpipe)
+
+init &lt;-<span class="st"> </span><span class="cf">function</span>(language) {
   <span class="cf">if</span> (language <span class="op">==</span><span class="st"> &quot;english&quot;</span>) {
   <span class="kw">print</span>(<span class="st">&quot;english chosen&quot;</span>)
-    lang &lt;&lt;-<span class="st"> &quot;english&quot;</span>
-    fileName &lt;&lt;-<span class="st"> &quot;data/english/acquis.cf&quot;</span>
-    tfidfArffFileName &lt;&lt;-<span class="st"> &quot;output/tfidf_EN.arff&quot;</span>
-    incArffFileName &lt;&lt;-<span class="st"> &quot;output/inc_EN.arff&quot;</span>
-    XMLFileName &lt;&lt;-<span class="st"> &quot;output/EN.xml&quot;</span>
-    labelFile &lt;&lt;-<span class="st"> &quot;data/english/desc_en.xml&quot;</span>
+    lang &lt;&lt;-<span class="st"> &quot;english&quot;</span> <span class="co"># language chosen - english</span>
+    fileName &lt;&lt;-<span class="st"> &quot;../data/english/acquis.cf&quot;</span> <span class="co"># name of the file containing data (english)</span>
+    tfidfFileName &lt;&lt;-<span class="st"> &quot;../output/tfidf_EN&quot;</span> <span class="co"># name of tf-idf arff file (english)</span>
+    incFileName &lt;&lt;-<span class="st"> &quot;../output/inc_EN&quot;</span> <span class="co"># name of term incidence arff file (english)</span>
+    labelFile &lt;&lt;-<span class="st"> &quot;../data/english/desc_en.xml&quot;</span> <span class="co"># name of the label xml file (english)</span>
   }
   <span class="cf">else</span> <span class="cf">if</span> (language <span class="op">==</span><span class="st"> &quot;german&quot;</span>) {
   <span class="kw">print</span>(<span class="st">&quot;german chosen&quot;</span>)
-    lang &lt;&lt;-<span class="st"> &quot;german&quot;</span>
-    fileName &lt;&lt;-<span class="st"> &quot;data/german/acquis_german.cf&quot;</span>
-    tfidfArffFileName &lt;&lt;-<span class="st"> &quot;output/tfidf_DE.arff&quot;</span>
-    incArffFileName &lt;&lt;-<span class="st"> &quot;output/inc_DE.arff&quot;</span>
-    tfidfXMLFileName &lt;&lt;-<span class="st"> &quot;output/tfidf_DE.xml&quot;</span>
-    XMLFileName &lt;&lt;-<span class="st"> &quot;output/DE.xml&quot;</span>
-    labelFile &lt;&lt;-<span class="st"> &quot;data/german/desc_de.xml&quot;</span>
-    model_file &lt;&lt;-<span class="st"> &quot;output/german-gsd-ud-2.3-181115.udpipe&quot;</span>
+    lang &lt;&lt;-<span class="st"> &quot;german&quot;</span> <span class="co"># language chosen - german  </span>
+    fileName &lt;&lt;-<span class="st"> &quot;../data/german/acquis_german.cf&quot;</span> <span class="co"># name of the file containing data (german)</span>
+    tfidfFileName &lt;&lt;-<span class="st"> &quot;../output/tfidf_DE&quot;</span> <span class="co"># name of tf-idf arff file (german)</span>
+    incFileName &lt;&lt;-<span class="st"> &quot;../output/inc_DE&quot;</span> <span class="co"># name of term incidence arff file (german)</span>
+    labelFile &lt;&lt;-<span class="st"> &quot;../data/german/desc_de.xml&quot;</span> <span class="co"># name of the label xml file (german)</span>
+    model_file &lt;&lt;-<span class="st"> &quot;../output/german-gsd-ud-2.3-181115.udpipe&quot;</span> <span class="co"># udpipe german model for lemmatization</span>
     <span class="cf">if</span> (<span class="op">!</span><span class="kw">file.exists</span>(model_file))
     {
-      model &lt;&lt;-<span class="st"> </span><span class="kw">udpipe_download_model</span>(<span class="dt">language =</span> <span class="st">&quot;german&quot;</span>, <span class="dt">model_dir =</span> <span class="st">&quot;output/&quot;</span>)
+      model &lt;&lt;-<span class="st"> </span><span class="kw">udpipe_download_model</span>(<span class="dt">language =</span> <span class="st">&quot;german&quot;</span>, <span class="dt">model_dir =</span> <span class="st">&quot;../../output/&quot;</span>)
     } <span class="cf">else</span> {
       model &lt;&lt;-<span class="st"> </span><span class="kw">udpipe_load_model</span>(model_file)
     }
   }
 }</code></pre></div>
-<p>To choose the language we need to preprocess, we need to pass “english” for English text and “german” for German text in the method <span class="emphasize">init()</span>.</p>
+<p>We need to pass “english” for English text and “german” for German text in the method <span class="emphasize">init()</span>. We will be performing exploratory analysis for English legal text, therefore passing <em>english</em>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Choosing english for preprocessing</span>
 <span class="kw">init</span>(<span class="st">&quot;english&quot;</span>)</code></pre></div>
-<p>We need to preprocess two things - the actual text and the labels.</p>
-<p>Preprocessing of actual text primarily involves- removal of language dependant stopwords, html tags, punctuations, roman numerals and lemmatization. The lemmatization for English language could be done using <span class="emphasize">lemmatize_strings</span>, but for German language we had to use <span class="emphasize">udpipe</span> model. Lemmatization using udpipe model needs to be done batches, else we get a weird exception, therefore we need to define the following function:</p>
+<pre><code>## [1] &quot;english chosen&quot;</code></pre>
+<p>In the text preprocessing we need to preprocess two things - the actual text and the labels.</p>
+<p>Lemmatization using udpipe model needs to be done in small batches of documents, else we get a weird exception when the document size exceeds a limit, therefore we need to define the following function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">generate_lemma_per_document &lt;-<span class="st"> </span><span class="cf">function</span>(content, doc_id) {
-  annotated_data_table &lt;-<span class="st">  </span><span class="kw">udpipe_annotate</span>(model, <span class="dt">x =</span> content, <span class="dt">doc_id =</span> doc_id,  <span class="dt">tagger =</span> <span class="st">&quot;default&quot;</span>, <span class="dt">parser =</span> <span class="st">&quot;none&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.table</span>()
+  annotated_data_table &lt;-
+<span class="st">  </span><span class="kw">udpipe_annotate</span>( model, <span class="dt">x =</span> content, <span class="dt">doc_id =</span> doc_id, <span class="dt">tagger =</span> <span class="st">&quot;default&quot;</span>, <span class="dt">parser =</span> <span class="st">&quot;none&quot;</span>
+  ) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.table</span>()
+  
   lemma &lt;-<span class="st"> </span><span class="kw">sapply</span>(annotated_data_table<span class="op">$</span>lemma, paste, <span class="dt">collapse =</span> <span class="st">&quot; &quot;</span>)
   <span class="kw">return</span>(lemma)
 }</code></pre></div>
 <p>The following method performs the preprocessing for the actual text.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_clean_content &lt;-<span class="st"> </span><span class="cf">function</span>(content) {
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(textclean)
+<span class="kw">library</span>(tm)
 
-<span class="cf">if</span>(lang <span class="op">==</span><span class="st"> &quot;english&quot;</span>){
-  stopwords &lt;-
-<span class="st">    </span><span class="kw">c</span>(<span class="st">&quot;gt&quot;</span>,<span class="st">&quot;notext&quot;</span>,<span class="st">&quot;p&quot;</span>,<span class="st">&quot;lt&quot;</span>,<span class="st">&quot;aka&quot;</span>,<span class="st">&quot;oj&quot;</span>,<span class="st">&quot;n&quot;</span>,<span class="st">&quot;a&quot;</span>,<span class="st">&quot;eec&quot;</span>,<span class="st">&quot;article&quot;</span>,<span class="st">&quot;directive&quot;</span>,<span class="st">&quot;shall&quot;</span>,<span class="st">&quot;follow&quot;</span>)  <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">append</span>(<span class="kw">stopwords</span>(lang))
-  }
-  <span class="cf">else</span> <span class="cf">if</span>(lang <span class="op">==</span><span class="st"> &quot;german&quot;</span>){
-  stopwords &lt;-
-<span class="st">    </span><span class="kw">c</span>(<span class="st">&quot;gt&quot;</span>,<span class="st">&quot;keintext&quot;</span>,<span class="st">&quot;p&quot;</span>,<span class="st">&quot;lt&quot;</span>,<span class="st">&quot;aka&quot;</span>,<span class="st">&quot;oj&quot;</span>,<span class="st">&quot;n&quot;</span>,<span class="st">&quot;a&quot;</span>,<span class="st">&quot;eec&quot;</span>,<span class="st">&quot;article&quot;</span>,<span class="st">&quot;directive&quot;</span>,<span class="st">&quot;soll&quot;</span>,<span class="st">&quot;folgen&quot;</span>)  <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">append</span>(<span class="kw">stopwords</span>(lang))
-  }
+get_clean_content &lt;-<span class="st"> </span><span class="cf">function</span>(content) {
   clean_content &lt;-<span class="st"> </span>content  <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">replace_html</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span>{
-      <span class="kw">gsub</span>(<span class="st">&#39;-&#39;</span>, <span class="st">&#39;&#39;</span>, .)
-    } <span class="op">%&gt;%</span>
-<span class="st">    </span>{
-      <span class="kw">gsub</span>(<span class="st">&#39;[[:punct:] ]+&#39;</span>, <span class="st">&#39; &#39;</span>, .)
-    } <span class="op">%&gt;%</span>
-<span class="st">    </span>{
-      <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">b[IVXLCDM]+</span><span class="ch">\\</span><span class="st">b&quot;</span>, <span class="st">&quot; &quot;</span>, .)
-    } <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">tolower</span>()  
-    <span class="cf">if</span>(lang <span class="op">==</span><span class="st"> &quot;english&quot;</span>)
+<span class="st">    </span><span class="kw">replace_html</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span><span class="st">       </span><span class="co">#replace html tags with space</span>
+<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&#39;-&#39;</span>, <span class="st">&#39;&#39;</span>, .) } <span class="op">%&gt;%</span><span class="st">                  </span><span class="co">#removes hyphen between words</span>
+<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&#39;[[:punct:] ]+&#39;</span>, <span class="st">&#39; &#39;</span>, .) } <span class="op">%&gt;%</span><span class="st">     </span><span class="co">#removes punctuations</span>
+<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">b[IVXLCDM]+</span><span class="ch">\\</span><span class="st">b&quot;</span>, <span class="st">&quot; &quot;</span>, .) } <span class="op">%&gt;%</span><span class="st">  </span><span class="co">#removes roman numerals</span>
+<span class="st">    </span><span class="kw">tolower</span>()                                 <span class="co">#to lower case</span>
+  
+  <span class="cf">if</span> (lang <span class="op">==</span><span class="st"> &quot;english&quot;</span>) <span class="co"># lemmatization for english</span>
     clean_content &lt;-<span class="st"> </span><span class="kw">lemmatize_strings</span>(clean_content)
-    <span class="cf">else</span>{
-    clean_content &lt;-<span class="st"> </span><span class="kw">stri_trans_general</span>(clean_content, <span class="st">&quot;Latin-ASCII&quot;</span>)
+  <span class="cf">else</span>{  <span class="co"># lemmatization for german</span>
     lemmata &lt;-<span class="st"> </span><span class="kw">c</span>()
-    <span class="cf">for</span>(index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="st"> </span><span class="kw">length</span>(clean_content)){
-        lemmata[index] &lt;-<span class="st"> </span><span class="kw">mclapply</span>(clean_content[[index]], <span class="dt">FUN =</span> <span class="cf">function</span>(x) <span class="kw">generate_lemma_per_document</span>(x, index))
-        }
-    clean_content &lt;-<span class="st"> </span><span class="kw">sapply</span>( lemmata, paste0, <span class="dt">collapse=</span><span class="st">&quot; &quot;</span>)
+    <span class="cf">for</span> (index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(clean_content)) {
+      lemmata[index] &lt;-
+<span class="st">        </span><span class="kw">mclapply</span>(
+          clean_content[[index]], <span class="dt">FUN =</span> <span class="cf">function</span>(x)
+            <span class="kw">generate_lemma_per_document</span>(x, index) <span class="co">#generate lemma for each document</span>
+        )
     }
-    
-    clean_content &lt;-<span class="st"> </span>clean_content <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">removeNumbers</span>() <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">removeWords</span>(<span class="dt">words =</span> stopwords)  <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>)  <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">trimws</span>()
+    clean_content &lt;-<span class="st"> </span><span class="kw">sapply</span>(lemmata, paste0, <span class="dt">collapse =</span> <span class="st">&quot; &quot;</span>) <span class="co">#append generated lemmata for each document</span>
+  }
+  
+  clean_content &lt;-<span class="st"> </span>clean_content <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">removeNumbers</span>() <span class="op">%&gt;%</span><span class="st">                       </span><span class="co">#removes numbers</span>
+<span class="st">    </span><span class="kw">removeWords</span>(<span class="dt">words =</span> <span class="kw">stopwords</span>(lang))  <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#removes stopwords</span>
+<span class="st">    </span><span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>)  <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#removes non-ascii terms</span>
+<span class="st">    </span><span class="kw">trimws</span>()                                  <span class="co">#removes extra space</span>
   
   clean_content
 }</code></pre></div>
-<p>Since we have already selected the language using <span class="emphasize">init()</span>. The following code will load and preprocess the text.</p>
+<p>The following code will load and preprocess the text for the selected language by <em>init()</em>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">connection &lt;-<span class="st"> </span>fileName  <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">file</span>(<span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
 raw_text_char &lt;-<span class="st"> </span>connection <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">readLines</span>(<span class="dt">encoding =</span> <span class="st">&quot;UTF-8&quot;</span>)
 <span class="kw">close.connection</span>(connection)
 
-text_content_list &lt;-
-raw_text_char[<span class="kw">seq</span> (<span class="dv">2</span>, <span class="kw">length</span>(raw_text_char), <span class="dv">2</span>)] <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">get_clean_content</span>()</code></pre></div>
-<p>We need to preprocess labels, as label names are in different file. The dataset- “acquis.cf” file just contains label-ids. Also the label names contains certain characters like space which is inconvenient to generate MLD datasets. The following code generates clean label name.</p>
+text_content_list &lt;-<span class="st"> </span>raw_text_char[<span class="kw">seq</span> (<span class="dv">2</span>, <span class="kw">length</span>(raw_text_char), <span class="dv">2</span>)] <span class="co">#every even line contains text</span>
+
+text_content_list[[<span class="dv">1</span>]]</code></pre></div>
+<pre><code>## [1] &quot;&lt;P&gt;DECISION creating the \&quot;Official Journal of the European Communities\&quot;&lt;/P&gt; &lt;P&gt;THE COUNCIL OF THE EUROPEAN ECONOMIC COMMUNITY,&lt;/P&gt; &lt;P&gt;Having regard to Article 191 of the Treaty establishing the European Economic Community; Having regard to the proposals from the President of the European Parliament and the Presidents of the High Authority, the Commission of the European Economic Community and the Commission of the European Atomic Energy Community; &lt;/P&gt; &lt;P&gt;Whereas the European Economic Community, the European Coal and Steel Community and the European Atomic Energy Community should have a joint official journal; &lt;/P&gt; &lt;P&gt;&lt;/P&gt; &lt;P&gt;HAS DECIDED:&lt;/P&gt; &lt;P&gt;&lt;/P&gt; &lt;P&gt;to create, as the official journal of the Community within the meaning of Article 191 of the Treaty establishing the European Economic Community, the Official Journal of the European Communities.&lt;/P&gt; &quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">text_content_list &lt;-<span class="st"> </span><span class="kw">get_clean_content</span>(text_content_list) <span class="co">#get preprocessed text</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">text_content_list[[<span class="dv">1</span>]]</code></pre></div>
+<pre><code>## [1] &quot;decision create official journal european community council european economic community regard treaty establish european economic community regard proposal president european parliament president high authority commission european economic community commission european atomic energy community whereas european economic community european coal steel community european atomic energy community joint official journal decide create official journal community within mean treaty establish european economic community official journal european community&quot;</code></pre>
+<p>We need to preprocess labels, as label names are in different file. The dataset- <em>acquis.cf</em> file just contains label-ids. Also the label names contains certain characters like space which is inconvenient to generate MLD datasets. The following code generates clean label name for all documents.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># get clean labels</span>
 get_clean_label &lt;-<span class="st"> </span><span class="cf">function</span>(labels) {
   labels &lt;-<span class="st"> </span>labels <span class="op">%&gt;%</span>
-<span class="st">  </span>{ <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s|</span><span class="ch">\\</span><span class="st">.|</span><span class="ch">\\</span><span class="st">[|</span><span class="ch">\\</span><span class="st">]|-|</span><span class="ch">\\</span><span class="st">(|</span><span class="ch">\\</span><span class="st">)&quot;</span>, <span class="st">&quot;_&quot;</span>, .) } <span class="op">%&gt;%</span>
-<span class="st">  </span>{ <span class="kw">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, .) } <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">tolower</span>()  <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">paste</span>(<span class="st">&quot;tag&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;_&quot;</span>)
+<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s|</span><span class="ch">\\</span><span class="st">.|</span><span class="ch">\\</span><span class="st">[|</span><span class="ch">\\</span><span class="st">]|-|</span><span class="ch">\\</span><span class="st">(|</span><span class="ch">\\</span><span class="st">)&quot;</span>, <span class="st">&quot;_&quot;</span>, .) } <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#replace certain characters with hyphen</span>
+<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, .) } <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove quotes</span>
+<span class="st">    </span><span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove non-ascii characters</span>
+<span class="st">    </span><span class="kw">tolower</span>()  <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#to lower case</span>
+<span class="st">    </span><span class="kw">paste</span>(<span class="st">&quot;_&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>) <span class="co">#append hypehn at the end</span>
   
   labels
 }
 
-<span class="co"># gets label name from label-id using xml</span>
+<span class="co">#get lable name from label-id</span>
+get_label_name &lt;-<span class="st"> </span><span class="cf">function</span>(label_id, label_id_name_df) {
+  label_name =<span class="st"> </span>label_id_name_df[label_id_name_df<span class="op">$</span>did <span class="op">==</span><span class="st"> </span>label_id, <span class="dv">2</span>]
+    <span class="cf">if</span> (<span class="kw">length</span>(label_name) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)
+      <span class="kw">return</span>(<span class="kw">as.character</span>(label_name))
+    <span class="cf">else</span>
+      <span class="kw">return</span>(<span class="kw">paste</span>(label_id, <span class="st">&quot;_&quot;</span> , <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)) <span class="co">#some label-ids don&#39;t have mapping in xml</span>
+}
+
+<span class="co"># gets label name from label-id using xml, [594 4444] -&gt; [AAMS countries abandoned land]</span>
 get_label_name_list &lt;-<span class="st"> </span><span class="cf">function</span>(label_id_list) {
   desc_xml &lt;-<span class="st"> </span><span class="kw">xmlParse</span>(labelFile)
   
-  xm_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">did =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//DESCRIPTEUR_ID&quot;</span>], xmlValue),
-  <span class="dt">dname =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//LIBELLE&quot;</span>], xmlValue))
+  <span class="co"># a dataframe containing label-id and label-name</span>
+  xm_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">did =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//DESCRIPTEUR_ID&quot;</span>], xmlValue), <span class="dt">dname =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//LIBELLE&quot;</span>], xmlValue))
+  
   xm_df<span class="op">$</span>dname &lt;-<span class="st"> </span><span class="kw">get_clean_label</span>(xm_df<span class="op">$</span>dname)
   
   label_name_list &lt;-<span class="st"> </span>label_id_list <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">lapply</span>(<span class="cf">function</span>(labelsets)
-  <span class="kw">strsplit</span>(labelsets, <span class="st">&quot; &quot;</span>)) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">lapply</span>(<span class="cf">function</span>(label_id_array)
-    <span class="kw">lapply</span>(label_id_array, <span class="cf">function</span>(label_id)
-      <span class="kw">get_label_name</span>(label_id, xm_df))) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">lapply</span>(<span class="cf">function</span>(label)
-  <span class="kw">paste</span>(label, <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>))
+<span class="st">                      </span><span class="kw">lapply</span>(<span class="cf">function</span>(labelsets) <span class="kw">strsplit</span>(labelsets, <span class="st">&quot; &quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># split the label-ids (594 4444)</span>
+<span class="st">                      </span><span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st">  </span><span class="co"># get each array elements- list of list of label-ids</span>
+<span class="st">                      </span><span class="kw">lapply</span>(<span class="cf">function</span>(label_id_array)                          
+                        <span class="kw">lapply</span>(label_id_array, <span class="cf">function</span>(label_id) <span class="co"># get label-name for each label-id in the list</span>
+                            <span class="kw">get_label_name</span>(label_id, xm_df))) <span class="op">%&gt;%</span>
+<span class="st">                     </span><span class="kw">lapply</span>(<span class="cf">function</span>(label) <span class="kw">paste</span>(label, <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>))  <span class="co"># append the label-names (AAMS countries abandoned land)</span>
   
-label_name_list
-}
+  label_name_list
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(XML)
 
-class_labels_list &lt;-<span class="st"> </span>raw_text_char[<span class="kw">seq</span> (<span class="dv">1</span>, <span class="kw">length</span>(raw_text_char),<span class="dv">2</span>)] <span class="op">%&gt;%</span>
-<span class="kw">strsplit</span>(<span class="st">&quot;#&quot;</span>) <span class="op">%&gt;%</span>
-<span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span>
-<span class="kw">trimws</span>() <span class="op">%&gt;%</span>
-<span class="kw">get_label_name_list</span>()</code></pre></div>
+class_labels_list &lt;-
+<span class="st">  </span>raw_text_char[<span class="kw">seq</span> (<span class="dv">1</span>, <span class="kw">length</span>(raw_text_char), <span class="dv">2</span>)] <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">strsplit</span>(<span class="st">&quot;#&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">trimws</span>() <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">get_label_name_list</span>()</code></pre></div>
+<p>After generating a cleaner version of text and labels we can take a deep dive into the first part of our data exploration.</p>
 </div>
 <div id="data-exploration" class="section level4">
 <h4><span class="header">Data Exploration </span></h4>
-<p>We generate a dataframe containing the text and the corresponding label for data exploration. Therefore each row dataframe will have the text and one label among the labelsets for the document.</p>
+<p>We generate a dataframe containing the text and the corresponding label for data exploration.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">text &lt;-<span class="st"> </span><span class="kw">character</span>()
-label &lt;-<span class="st"> </span><span class="kw">character</span>()    
-<span class="cf">for</span>(index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(text_content_list)){
-    temp_labelset &lt;-<span class="st"> </span><span class="kw">unlist</span>(class_labels_list[[index]])
-    <span class="cf">for</span>(label_index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(temp_labelset))
-    {
-        text &lt;-<span class="st"> </span><span class="kw">append</span>(text, text_content_list[[index]])
-        label &lt;-<span class="st"> </span><span class="kw">append</span>(label, temp_labelset[[label_index]])
-    }
+label &lt;-<span class="st"> </span><span class="kw">character</span>()
+<span class="cf">for</span> (index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(text_content_list)) {
+  temp_labelset &lt;-<span class="st"> </span><span class="kw">unlist</span>(class_labels_list[[index]])
+  <span class="cf">for</span> (label_index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(temp_labelset))
+  {
+    text &lt;-<span class="st"> </span><span class="kw">append</span>(text, text_content_list[[index]])
+  label &lt;-<span class="st"> </span><span class="kw">append</span>(label, temp_labelset[[label_index]])
+  }
 }
 
-text_df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">cbind</span>(text,label), <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</code></pre></div>
+text_df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">cbind</span>(text, label), <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<div class="figure">
+<img src="Figs/text_df.png" />
+
+</div>
+<p> </p>
 <div id="wordcloud" class="section level5">
-<h5><span class="header">- Wordcloud </span></h5>
+<h5><span class="header"> Wordcloud </span></h5>
 <p>We start exploration with wordcloud, whichis a simple yet informative way to understand textual data and perform analysis.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#generate tokens and count of each word from text </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidytext)
+
+<span class="co">#generate tokens and count of each word from text </span>
 tokens &lt;-<span class="st"> </span>text_df <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>( word, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ungroup</span>()
 
+<span class="kw">library</span>(wordcloud)
+
 <span class="kw">wordcloud</span>(<span class="dt">words =</span> tokens<span class="op">$</span>word, <span class="dt">freq =</span> tokens<span class="op">$</span>n, <span class="dt">min.freq =</span> <span class="dv">1</span>, <span class="dt">max.words=</span><span class="dv">50</span>, <span class="dt">random.order=</span><span class="ot">FALSE</span>, <span class="dt">rot.per=</span><span class="fl">0.35</span>,<span class="dt">colors=</span><span class="kw">brewer.pal</span>(<span class="dv">8</span>, <span class="st">&quot;Dark2&quot;</span>),<span class="dt">scale=</span><span class="kw">c</span>(<span class="fl">3.5</span>,<span class="fl">0.25</span>))</code></pre></div>
 <center>
 <img src="Figs/wordcloud_all.png" />
 </center>
-<p>The prominent words popping in the wordcloud are all law related terms like - “regulation”, “commission”, which does not give us any helpful insight. Therefore we need to incorporate certain law related stopwords in our preprocessing. We remove those stopwords from our dataframe and generate the wordcloud again.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">law_stopwrds &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;accordance&quot;</span>,<span class="st">&quot;chairman&quot;</span>,<span class="st">&quot;necessary&quot;</span>,<span class="st">&quot;comply&quot;</span>,<span class="st">&quot;reference&quot;</span>,<span class="st">&quot;commission&quot;</span>,<span class="st">&quot;opinion&quot;</span>,<span class="st">&quot;decision&quot;</span>,<span class="st">&quot;annex&quot;</span>,<span class="st">&quot;refer&quot;</span>,<span class="st">&quot;member&quot;</span>,<span class="st">&quot;european&quot;</span>,<span class="st">&quot;treaty&quot;</span>,<span class="st">&quot;throughout&quot;</span>,<span class="st">&quot;regulation&quot;</span>,<span class="st">&quot;particular&quot;</span>,<span class="st">&quot;thereof&quot;</span>,<span class="st">&quot;community&quot;</span>,<span class="st">&quot;committee&quot;</span>,<span class="st">&quot;measure&quot;</span>,<span class="st">&quot;parliament&quot;</span>,<span class="st">&quot;regard&quot;</span>,<span class="st">&quot;amend&quot;</span>,<span class="st">&quot;procedure&quot;</span>,<span class="st">&quot;administrative&quot;</span>,<span class="st">&quot;procedure&quot;</span>,<span class="st">&quot;publication&quot;</span>,<span class="st">&quot;month&quot;</span>,<span class="st">&quot;date&quot;</span>,<span class="st">&quot;year&quot;</span>,<span class="st">&quot;enter&quot;</span>,<span class="st">&quot;force&quot;</span>,<span class="st">&quot;ensure&quot;</span>,<span class="st">&quot;authority&quot;</span>,<span class="st">&quot;take&quot;</span>,<span class="st">&quot;council&quot;</span>,<span class="st">&quot;act&quot;</span>,<span class="st">&quot;within&quot;</span>,<span class="st">&quot;national&quot;</span>,<span class="st">&quot;law&quot;</span>,<span class="st">&quot;main&quot;</span>,<span class="st">&quot;provision&quot;</span>,<span class="st">&quot;mention&quot;</span>,<span class="st">&quot;approve&quot;</span>,<span class="st">&quot;certain&quot;</span>,<span class="st">&quot;whereas&quot;</span>,<span class="st">&quot;eea&quot;</span>,<span class="st">&quot;also&quot;</span>,<span class="st">&quot;apply&quot;</span>,<span class="st">&quot;may&quot;</span>,<span class="st">&quot;can&quot;</span>,<span class="st">&quot;will&quot;</span>,<span class="st">&quot;require&quot;</span>,<span class="st">&quot;paragraph&quot;</span>,<span class="st">&quot;subparagraph&quot;</span>,<span class="st">&quot;official&quot;</span>,<span class="st">&quot;journal&quot;</span>)
+<p>  The prominent words popping in the wordcloud are all law related terms like - “regulation”, “commission”, which does not give us any helpful insight. Therefore we need to incorporate certain law related stopwords in our preprocessing. We remove those stopwords from our dataframe and generate the wordcloud again.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">law_stopwrds &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;gt&quot;</span>,<span class="st">&quot;notext&quot;</span>,<span class="st">&quot;p&quot;</span>,<span class="st">&quot;lt&quot;</span>,<span class="st">&quot;aka&quot;</span>,<span class="st">&quot;oj&quot;</span>,<span class="st">&quot;n&quot;</span>,<span class="st">&quot;a&quot;</span>,<span class="st">&quot;eec&quot;</span>,<span class="st">&quot;article&quot;</span>,<span class="st">&quot;directive&quot;</span>,<span class="st">&quot;shall&quot;</span>,<span class="st">&quot;follow&quot;</span>, <span class="st">&quot;accordance&quot;</span>,<span class="st">&quot;chairman&quot;</span>,<span class="st">&quot;necessary&quot;</span>,<span class="st">&quot;comply&quot;</span>,<span class="st">&quot;reference&quot;</span>,<span class="st">&quot;commission&quot;</span>,<span class="st">&quot;opinion&quot;</span>,<span class="st">&quot;decision&quot;</span>,<span class="st">&quot;annex&quot;</span>,<span class="st">&quot;refer&quot;</span>,<span class="st">&quot;member&quot;</span>,<span class="st">&quot;european&quot;</span>,<span class="st">&quot;treaty&quot;</span>,<span class="st">&quot;throughout&quot;</span>,<span class="st">&quot;regulation&quot;</span>,<span class="st">&quot;particular&quot;</span>,<span class="st">&quot;thereof&quot;</span>,<span class="st">&quot;community&quot;</span>,<span class="st">&quot;committee&quot;</span>,<span class="st">&quot;measure&quot;</span>,<span class="st">&quot;parliament&quot;</span>,<span class="st">&quot;regard&quot;</span>,<span class="st">&quot;amend&quot;</span>,<span class="st">&quot;procedure&quot;</span>,<span class="st">&quot;administrative&quot;</span>,<span class="st">&quot;procedure&quot;</span>,<span class="st">&quot;publication&quot;</span>,<span class="st">&quot;month&quot;</span>,<span class="st">&quot;date&quot;</span>,<span class="st">&quot;year&quot;</span>,<span class="st">&quot;enter&quot;</span>,<span class="st">&quot;force&quot;</span>,<span class="st">&quot;ensure&quot;</span>,<span class="st">&quot;authority&quot;</span>,<span class="st">&quot;take&quot;</span>,<span class="st">&quot;council&quot;</span>,<span class="st">&quot;act&quot;</span>,<span class="st">&quot;within&quot;</span>,<span class="st">&quot;national&quot;</span>,<span class="st">&quot;law&quot;</span>,<span class="st">&quot;main&quot;</span>,<span class="st">&quot;provision&quot;</span>,<span class="st">&quot;mention&quot;</span>,<span class="st">&quot;approve&quot;</span>,<span class="st">&quot;certain&quot;</span>,<span class="st">&quot;whereas&quot;</span>,<span class="st">&quot;eea&quot;</span>,<span class="st">&quot;also&quot;</span>,<span class="st">&quot;apply&quot;</span>,<span class="st">&quot;may&quot;</span>,<span class="st">&quot;can&quot;</span>,<span class="st">&quot;will&quot;</span>,<span class="st">&quot;shall&quot;</span>,<span class="st">&quot;require&quot;</span>,<span class="st">&quot;paragraph&quot;</span>,<span class="st">&quot;subparagraph&quot;</span>,<span class="st">&quot;official&quot;</span>,<span class="st">&quot;journal&quot;</span>,<span class="st">&quot;article&quot;</span>,<span class="st">&quot;ec&quot;</span>,<span class="st">&quot;b&quot;</span>,<span class="st">&quot;s&quot;</span>,<span class="st">&quot;c&quot;</span>,<span class="st">&quot;e&quot;</span>)
 
-tokens &lt;-<span class="st"> </span><span class="kw">filter</span>(<span class="op">!</span>tokens<span class="op">$</span>word <span class="op">%in%</span><span class="st"> </span>law_stopwrds)
+tokens &lt;-<span class="st"> </span>tokens[<span class="op">!</span>tokens<span class="op">$</span>word <span class="op">%in%</span><span class="st"> </span>law_stopwrds, ]
 
-<span class="kw">wordcloud</span>(<span class="dt">words =</span> tokens<span class="op">$</span>word, <span class="dt">freq =</span> tokens<span class="op">$</span>n, <span class="dt">min.freq =</span> <span class="dv">1</span>, <span class="dt">max.words=</span><span class="dv">50</span>, <span class="dt">random.order=</span><span class="ot">FALSE</span>, <span class="dt">rot.per=</span><span class="fl">0.35</span>,<span class="dt">colors=</span><span class="kw">brewer.pal</span>(<span class="dv">8</span>, <span class="st">&quot;Dark2&quot;</span>),<span class="dt">scale=</span><span class="kw">c</span>(<span class="fl">3.5</span>,<span class="fl">0.25</span>))</code></pre></div>
+<span class="kw">wordcloud</span>(
+  <span class="dt">words =</span> tokens<span class="op">$</span>word,
+  <span class="dt">freq =</span> tokens<span class="op">$</span>n,
+  <span class="dt">min.freq =</span> <span class="dv">1</span>,
+  <span class="dt">max.words =</span> <span class="dv">50</span>,
+  <span class="dt">random.order =</span> <span class="ot">FALSE</span>,
+  <span class="dt">rot.per =</span> <span class="fl">0.35</span>,
+  <span class="dt">colors =</span> <span class="kw">brewer.pal</span>(<span class="dv">8</span>, <span class="st">&quot;Dark2&quot;</span>),
+  <span class="dt">scale =</span> <span class="kw">c</span>(<span class="fl">3.5</span>, <span class="fl">0.25</span>)
+  )</code></pre></div>
 <center>
 <img src="Figs/wordcloud_filter.png" />
 </center>
-<p>The wordcloud generated now gives more informative insight. It seems the documents/laws are related to state more than a country. Also appearance of certain terms like “export”, “import”, “aid”,“financial”, “grant”, makes it appear that many documents are related to import-export and financial aids/grants.</p>
+<p>  The wordcloud generated now gives more informative insight. It seems the documents/laws are related to state more than a country. Also appearance of certain terms like “export”, “import”, “aid”,“financial”, “grant”, makes it appear that many documents are related to import-export and financial aids/grants.</p>
 </div>
-<div id="term-frequency-in-the-documents" class="section level5">
-<h5><span class="header">Term frequency in the documents </span></h5>
+<div id="term-frequency" class="section level5">
+<h5><span class="header">Term frequency </span></h5>
 <p>After getting some insight from the wordcloud we examine it further. It will be interesting to see which terms are common for different category of legal text. To get that, we need to count words for each category.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tokens_by_label &lt;-<span class="st"> </span>text_df <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span>
-<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>(label, word, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">ungroup</span>() 
-
-total_words &lt;-<span class="st"> </span>tokens_by_label <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">total =</span> <span class="kw">sum</span>(n))
+<span class="st">  </span><span class="kw">unnest_tokens</span>(word, text) <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#generate tokens</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>(label, word, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#counts words for each category</span>
+<span class="st">  </span><span class="kw">ungroup</span>()
   
-tokens_by_label &lt;-<span class="st"> </span><span class="kw">left_join</span>(tokens_by_label, total_words)</code></pre></div>
+  total_words &lt;-<span class="st"> </span>tokens_by_label <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">summarize</span>(<span class="dt">total =</span> <span class="kw">sum</span>(n))
+  
+  tokens_by_label &lt;-<span class="st"> </span><span class="kw">left_join</span>(tokens_by_label, total_words)
+  
+  tokens_by_label </code></pre></div>
 <div class="figure">
-<img src="Figs/freq_tibble.png" />
+<img src="Figs/wc_tibble.png" />
 
 </div>
-<p>There is one row in this data frame for each word-category combination; n is the number of times that word is used in that legal text category and total is the total words in that category. Letâ€™s look at the distribution of n/total for each document category, the number of times a word appears in a novel divided by the total number of terms (words) in that category. We will consider randomly 5 categories, as it is diffucult to analyse over 7000 categories!</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tokens_by_label <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(label <span class="op">==</span><span class="st"> &quot;water_treatment_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;wastewater_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;pollution_control_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;atmospheric_pollution_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;fight_against_unemployment_tag&quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(n<span class="op">/</span>total, <span class="dt">fill =</span> label)) <span class="op">+</span>
+<p>There is one row in the data frame <em>tokens_by_label</em> for each word-label combination. <em>n</em> is the number of times that word is used in that legal text category/label and <em>total</em> is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 6797 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the labels for our analysis.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+
+tokens_by_label <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(
+  label <span class="op">==</span><span class="st"> &quot;water_treatment_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;wastewater_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;pollution_control_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;atmospheric_pollution_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;fight_against_unemployment_&quot;</span>
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(n <span class="op">/</span><span class="st"> </span>total, <span class="dt">fill =</span> label)) <span class="op">+</span>
 <span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">xlim</span>(<span class="ot">NA</span>, <span class="fl">0.0009</span>) <span class="op">+</span>
-<span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>label, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>)</code></pre></div>
+<span class="st">  </span><span class="kw">facet_wrap</span>( <span class="op">~</span><span class="st"> </span>label, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">scales =</span> <span class="st">&quot;free_y&quot;</span>)</code></pre></div>
 <div class="figure">
 <img src="Figs/tf.png" />
 
 </div>
-<p>There are very long tails to the right for these categories. These plots exhibit similar distributions for all the categories chosen- many words that occur rarely and fewer words that occur frequently.</p>
-<p>Distributions like those shown in Figure above are very common in any given corpus of natural language -website, books, etc. Since we have the data frame we used to plot term frequency, we can examine Zipfâ€™s law.</p>
+<p>We observe there are very long tails to the right for the categories portrayed above in the picture. Distributions like those shown in Figure above are very common in any given corpus of natural language -website, books, etc, and portrays that there are many words that occur rarely and fewer words that occur frequently. We can use the term frequency dataframe to plot term frequency and examine Zipf’s law.</p>
 <blockquote>
 <blockquote>
-<p>Zipfâ€™s law states that the frequency that a word appears is inversely proportional to its rank.</p>
+<p>Zipf’s law states that the frequency that a word appears is inversely proportional to its rank.</p>
 </blockquote>
 </blockquote>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">freq_by_rank &lt;-<span class="st"> </span>tokens_by_label <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rank =</span> <span class="kw">row_number</span>(),
-         <span class="st">`</span><span class="dt">term frequency</span><span class="st">`</span> =<span class="st"> </span>n<span class="op">/</span>total)
+  <span class="st">`</span><span class="dt">term frequency</span><span class="st">`</span> =<span class="st"> </span>n <span class="op">/</span><span class="st"> </span>total)
 
 freq_by_rank <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(rank, <span class="st">`</span><span class="dt">term frequency</span><span class="st">`</span>, <span class="dt">color =</span> label)) <span class="op">+</span>
-<span class="st">  </span><span class="kw">geom_line</span>(<span class="dt">size =</span> <span class="fl">1.1</span>, <span class="dt">alpha =</span> <span class="fl">0.8</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_line</span>(<span class="dt">size =</span> <span class="fl">1.1</span>,
+  <span class="dt">alpha =</span> <span class="fl">0.8</span>,
+  <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_x_log10</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">scale_y_log10</span>()</code></pre></div>
 <div class="figure">
 <img src="Figs/zipflaw.png" />
 
 </div>
-<p>The above plot is in log-log coordinates. We can see that text in all the categories in the corpus are similar to each other, and that the relationship between rank and frequency does have negative slope, implying they follow Zipf Law.</p>
+<p>The above plot is in log-log coordinates. We can see that text in all the categories in the corpus are almost similar to each other, and that the relationship between rank and frequency does have negative slope, implying that they follow Zipf’s Law.</p>
 </div>
 <div id="top-k-words" class="section level5">
 <h5><span class="header">Top k words </span></h5>
-<p>Let us see the top 10 words for certain categories of the corpus. To find the most importants words it would make sense to use tf-idf rather than term frequency, as tf-idf finds the important words for the content of each document by decreasing the weight for commonly used words and increasing the weight for words that are not used very much in a collection or corpus of documents.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tokens_by_label &lt;-<span class="st"> </span><span class="kw">bind_tf_idf</span>(book_words_eurlex,word, label, n)
+<p>It would be interesting to find out top 10 words for each category, which will give us an idea what each category of law document deals with. To find the most importants words it would make sense to use tf-idf rather than term frequency, as tf-idf finds the important words for the content of each document category by decreasing the weight for commonly used words and increasing the weight for words that are not used very much in a collection or corpus of documents.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tokens_by_label &lt;-<span class="st"> </span><span class="kw">bind_tf_idf</span>(tokens_by_label, word, label, n) <span class="co">#enerates tf-idf and binds to dataframe</span>
 tokens_by_label</code></pre></div>
 <div class="figure">
 <img src="Figs/tfidf_tibble.png" />
 
 </div>
+<p> </p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">tokens_by_label <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">filter</span>(label <span class="op">==</span><span class="st"> &quot;water_treatment_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;wastewater_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;pollution_control_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;atmospheric_pollution_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;fight_against_unemployment_tag&quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">arrange</span>(<span class="kw">desc</span>(tf_idf)) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">bigram =</span> <span class="kw">factor</span>(word, <span class="dt">levels =</span> <span class="kw">rev</span>(<span class="kw">unique</span>(word)))) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">top_n</span>(<span class="dv">10</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span>ungroup <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(word, tf_idf, <span class="dt">fill =</span> label)) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_col</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">facet_wrap</span>(<span class="op">~</span>label, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">coord_flip</span>()</code></pre></div>
-<div class="figure">
+<span class="st">  </span><span class="kw">filter</span>(
+  label <span class="op">==</span><span class="st"> &quot;water_treatment_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;wastewater_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;pollution_control_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;atmospheric_pollution_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;fight_against_unemployment_&quot;</span>
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(tf_idf)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">bigram =</span> <span class="kw">factor</span>(word, <span class="dt">levels =</span> <span class="kw">rev</span>(<span class="kw">unique</span>(word)))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dv">10</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>ungroup <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(word, tf_idf, <span class="dt">fill =</span> label)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_col</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">facet_wrap</span>( <span class="op">~</span><span class="st"> </span>label, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
+<center>
 <img src="Figs/top10_monogram.png" />
-
-</div>
-<p>We can see the word “water” appears in categories/labels - atmospheric_pollution_tag, pollution_control_tag and wastewater_tag, which means a lot of pollution related documents are dealing with water pollution. There are many common terms among documents atmospheric_pollution_tag and pollution_control_tag as expected. The category fight_against_unemployment_tag does not share any common terms with the other categories. Actually it would have been interesting if it would have happened! - which could have implied that unemployment might have resulted from pollution or water related cause.</p>
-<p>Sometimes bigrams are more meaningful than single words, and it would be inteersting to see how the top 15 words changes for bigrams.</p>
+</center>
+<p> </p>
+<p>We can see from the Fig the categories/labels - <em>atmospheric_pollution_</em>, <em>pollution_control_</em> share many common words which implies a lot of pollution related documents are dealing with air pollution. There are many common terms among documents <em>wastewater_</em> and <em>water_treatment_</em> as expected, as both deal with waste water. The category <em>fight_against_unemployment_tag</em> does not share any common terms with the other categories. Actually it would have been interesting if it would have happened! - which would have implied that employment/unemployment might have resulted from pollution or water related cause.</p>
+<p>Sometimes bigrams are more meaningful than single words, and it would be interesting to see how the top 10 words changes for bigrams.</p>
 </div>
 <div id="top-k-bigrams" class="section level5">
 <h5><span class="header">Top k bigrams </span></h5>
-<p>As generating bigrams is an expensive operation, we will consider only those labels/cvategories having words- water or pollution or employment. We generate the tokens in similar way, except we use we used token = “ngrams”&quot; and n=2.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> bigram_tokens &lt;-<span class="st"> </span>text_df <span class="op">%&gt;%</span>
+<p>We generate the tokens in similar way, except we use we used <em>token = “ngrams”</em> and <em>n=2</em> in the method <em>unnest_tokens.</em></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bigram_tokens &lt;-<span class="st"> </span>text_df <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">filter</span>(<span class="kw">grepl</span>(<span class="st">&#39;water|pollution|employment&#39;</span>, label)) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">unnest_tokens</span>(bigram, text, <span class="dt">token =</span> <span class="st">&quot;ngrams&quot;</span>, <span class="dt">n =</span> <span class="dv">2</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>(label, bigram, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
@@ -622,75 +686,316 @@ tokens_by_label</code></pre></div>
   total_words &lt;-<span class="st"> </span>bigram_tokens <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">total =</span> <span class="kw">sum</span>(n))
-         
+  
   bigram_tokens &lt;-<span class="st"> </span><span class="kw">left_join</span>(bigram_tokens, total_words)
-  bigram_tokens &lt;-<span class="st"> </span><span class="kw">bind_tf_idf</span>(bigram_tokens,bigram, label, n)
- 
+  bigram_tokens &lt;-<span class="st"> </span><span class="kw">bind_tf_idf</span>(bigram_tokens, bigram, label, n)
+  
   bigram_tokens <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">filter</span>(label <span class="op">==</span><span class="st"> &quot;water_treatment_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;wastewater_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;pollution_control_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;atmospheric_pollution_tag&quot;</span> <span class="op">|</span><span class="st"> </span>label<span class="op">==</span><span class="st">&quot;fight_against_unemployment_tag&quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">arrange</span>(<span class="kw">desc</span>(tf_idf)) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">bigram =</span> <span class="kw">factor</span>(bigram, <span class="dt">levels =</span> <span class="kw">rev</span>(<span class="kw">unique</span>(bigram)))) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">top_n</span>(<span class="dv">10</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span>ungroup <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(bigram, tf_idf, <span class="dt">fill =</span> label)) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_col</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">facet_wrap</span>(<span class="op">~</span>label, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">coord_flip</span>()</code></pre></div>
+<span class="st">  </span><span class="kw">filter</span>(
+  label <span class="op">==</span><span class="st"> &quot;water_treatment_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;wastewater_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;pollution_control_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;atmospheric_pollution_&quot;</span> <span class="op">|</span>
+<span class="st">  </span>label <span class="op">==</span><span class="st"> &quot;fight_against_unemployment_&quot;</span>
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(tf_idf)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">bigram =</span> <span class="kw">factor</span>(bigram, <span class="dt">levels =</span> <span class="kw">rev</span>(<span class="kw">unique</span>(bigram)))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(label) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dv">10</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>ungroup <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(bigram, tf_idf, <span class="dt">fill =</span> label)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_col</span>(<span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">x =</span> <span class="ot">NULL</span>, <span class="dt">y =</span> <span class="ot">NULL</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">facet_wrap</span>( <span class="op">~</span><span class="st"> </span>label, <span class="dt">ncol =</span> <span class="dv">2</span>, <span class="dt">scales =</span> <span class="st">&quot;free&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">coord_flip</span>()</code></pre></div>
 <div class="figure">
-<img src="Figs/top10_bigram.png" />
+<img src="Figs/top_10_bigram.png" />
 
 </div>
-<p>Now we see the categories pollution_control_tag and atmospheric_pollution_tag share most of the terms. Strangely water_treatment_tag category does not share any common bigrams with pollution_control_tag, which means most of the pollution control documents might not be dealing with water, rather they deal woth air pollution. fight_against_unemployment_tag catgory as expected is sitting alone and dos not share any common terms with other catgories in the plot.</p>
+<p>We can see again the categories <em>pollution_control_tag</em> and <em>atmospheric_pollution_tag</em> share most of the bigrams, and similarly <em>water</em> related categories share many bigrams. <em>fight_against_unemployment_tag</em> category again stands alone and does not share any common bigrams with other categories in the plot.</p>
 </div>
 <div id="word-association" class="section level5">
 <h5><span class="header">Word association </span></h5>
-<p>Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion. Though these visuals can become very dense and hard to interpret visually.In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. As considering entire corpus would not make sense, considering only categories related to water and employment and plot them separately.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> (bigram_graph &lt;-<span class="st"> </span>bigram_tokens <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">separate</span>(bigram, <span class="kw">c</span>(<span class="st">&quot;word1&quot;</span>, <span class="st">&quot;word2&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">         </span><span class="kw">filter</span>(<span class="op">!</span>word1 <span class="op">%in%</span><span class="st"> </span>law_stopwrds,
-               <span class="op">!</span>word2 <span class="op">%in%</span><span class="st"> </span>law_stopwrds) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">filter</span>(<span class="kw">grepl</span>(<span class="st">&#39;water&#39;</span>, label)) <span class="op">%&gt;%</span>
-<span class="st">        </span>dplyr<span class="op">::</span><span class="kw">count</span>(word1, word2, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">unite</span>(<span class="st">&quot;bigram&quot;</span>, <span class="kw">c</span>(word1, word2), <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">top_n</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">graph_from_data_frame</span>()
-)
+<p>Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion. In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. We can see some interesting word association in the Fig below.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyr)
+<span class="kw">library</span>(igraph)
+<span class="kw">library</span>(ggraph)
 
-a &lt;-<span class="st"> </span>grid<span class="op">::</span><span class="kw">arrow</span>(<span class="dt">type =</span> <span class="st">&quot;closed&quot;</span>, <span class="dt">length =</span> <span class="kw">unit</span>(.<span class="dv">15</span>, <span class="st">&quot;inches&quot;</span>))
-
-<span class="kw">ggraph</span>(bigram_graph, <span class="dt">layout =</span> <span class="st">&quot;fr&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_edge_link</span>() <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_node_point</span>(<span class="dt">color =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_node_text</span>(<span class="kw">aes</span>(<span class="dt">label =</span> name), <span class="dt">vjust =</span> <span class="dv">1</span>, <span class="dt">hjust =</span> <span class="dv">1</span>, <span class="dt">repel=</span><span class="ot">TRUE</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">theme_void</span>() </code></pre></div>
+(
+  bigram_graph &lt;-<span class="st"> </span>bigram_tokens <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">separate</span>(bigram, <span class="kw">c</span>(<span class="st">&quot;word1&quot;</span>, <span class="st">&quot;word2&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span>word1 <span class="op">%in%</span><span class="st"> </span>law_stopwrds,<span class="op">!</span>word2 <span class="op">%in%</span><span class="st"> </span>law_stopwrds) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>(word1, word2, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">unite</span>(<span class="st">&quot;bigram&quot;</span>, <span class="kw">c</span>(word1, word2), <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">top_n</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">graph_from_data_frame</span>()
+  )
+  
+  a &lt;-<span class="st"> </span>grid<span class="op">::</span><span class="kw">arrow</span>(<span class="dt">type =</span> <span class="st">&quot;closed&quot;</span>, <span class="dt">length =</span> <span class="kw">unit</span>(.<span class="dv">15</span>, <span class="st">&quot;inches&quot;</span>))
+  
+  <span class="kw">ggraph</span>(bigram_graph, <span class="dt">layout =</span> <span class="st">&quot;fr&quot;</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_edge_link</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_node_point</span>(<span class="dt">color =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_node_text</span>(<span class="kw">aes</span>(<span class="dt">label =</span> name), <span class="dt">vjust =</span> <span class="dv">1</span>, <span class="dt">hjust =</span> <span class="dv">1</span>, <span class="dt">repel=</span><span class="ot">TRUE</span>) <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_void</span>() </code></pre></div>
 <div class="figure">
-<img src="Figs/water_wa.png" />
+<img src="Figs/wa.png" />
 
 </div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> (bigram_graph &lt;-<span class="st"> </span>bigram_tokens <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">separate</span>(bigram, <span class="kw">c</span>(<span class="st">&quot;word1&quot;</span>, <span class="st">&quot;word2&quot;</span>), <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">         </span><span class="kw">filter</span>(<span class="op">!</span>word1 <span class="op">%in%</span><span class="st"> </span>law_stopwrds,
-               <span class="op">!</span>word2 <span class="op">%in%</span><span class="st"> </span>law_stopwrds) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">filter</span>(<span class="kw">grepl</span>(<span class="st">&#39;water&#39;</span>, label)) <span class="op">%&gt;%</span>
-<span class="st">        </span>dplyr<span class="op">::</span><span class="kw">count</span>(word1, word2, <span class="dt">sort =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">unite</span>(<span class="st">&quot;bigram&quot;</span>, <span class="kw">c</span>(word1, word2), <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">top_n</span>(<span class="dv">100</span>) <span class="op">%&gt;%</span>
-<span class="st">        </span><span class="kw">graph_from_data_frame</span>()
-)
-
-a &lt;-<span class="st"> </span>grid<span class="op">::</span><span class="kw">arrow</span>(<span class="dt">type =</span> <span class="st">&quot;closed&quot;</span>, <span class="dt">length =</span> <span class="kw">unit</span>(.<span class="dv">15</span>, <span class="st">&quot;inches&quot;</span>))
-
-<span class="kw">ggraph</span>(bigram_graph, <span class="dt">layout =</span> <span class="st">&quot;fr&quot;</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_edge_link</span>() <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_node_point</span>(<span class="dt">color =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">size =</span> <span class="dv">5</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_node_text</span>(<span class="kw">aes</span>(<span class="dt">label =</span> name), <span class="dt">vjust =</span> <span class="dv">1</span>, <span class="dt">hjust =</span> <span class="dv">1</span>, <span class="dt">repel=</span><span class="ot">TRUE</span>) <span class="op">+</span>
-<span class="st">    </span><span class="kw">theme_void</span>() </code></pre></div>
-<div class="figure">
-<embed src="Figs/employment_wa.png%22" />
-
 </div>
+</div>
+<div id="preprocessing-for-mldr" class="section level4">
+<h4><span class="header">Preprocessing for mldr </span></h4>
+<p>To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in section [link]. First we generate the corpus and then document term matrix each for tf-idf and incidence.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#corpus of text</span>
+text_corpus &lt;-<span class="st"> </span><span class="kw">VCorpus</span>(<span class="kw">VectorSource</span>(text_content_list))
+
+<span class="co">#corpus of labels just like text corpus</span>
+label_corpus &lt;-<span class="st"> </span><span class="kw">VCorpus</span>(<span class="kw">VectorSource</span>(class_labels_list))
+<span class="co">#dtm of labels</span>
+dtm_labels &lt;-<span class="st"> </span><span class="kw">DocumentTermMatrix</span>(label_corpus, <span class="dt">control=</span><span class="kw">list</span>(<span class="dt">weight=</span>weightTfIdf))
+
+<span class="co"># dtm matrix for tf-idf. considering words having atleast 3 letters</span>
+dtm_tfidf &lt;-<span class="st"> </span>text_corpus <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">DocumentTermMatrix</span>(<span class="dt">control =</span> <span class="kw">list</span>(
+  <span class="dt">wordLengths =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="ot">Inf</span>),
+  <span class="dt">weighting =</span> <span class="cf">function</span>(x)
+  <span class="kw">weightTfIdf</span>(x, <span class="dt">normalize =</span> <span class="ot">FALSE</span>) ,
+  <span class="dt">stopwords =</span> <span class="ot">TRUE</span>
+  ))  <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">removeSparseTerms</span>(<span class="fl">0.99</span>) <span class="co"># remove sparse terms, so that sparsity is maximum 99%</span>
+  
+<span class="co"># column bind text and labels to generate tfidf ARFF file</span>
+dtm_tfidf &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_tfidf, dtm_labels)
+
+<span class="co"># gets unique words- needed for incidence matrix</span>
+  uniqueWords &lt;-<span class="st"> </span><span class="cf">function</span>(text) {
+    <span class="kw">return</span>(<span class="kw">paste</span>(<span class="kw">unique</span>(<span class="kw">strsplit</span>(text, <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]]), <span class="dt">collapse =</span> <span class="st">&#39; &#39;</span>))
+  }
+
+<span class="co"># dtm matrix for incidence. considering words having atleast 3 letters</span>
+dtm_incidence &lt;-<span class="st">  </span>text_corpus <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">tm_map</span>(<span class="kw">content_transformer</span>(uniqueWords)) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">DocumentTermMatrix</span>(<span class="dt">control =</span> <span class="kw">list</span>(
+    <span class="dt">wordLengths =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="ot">Inf</span>),
+    <span class="dt">weight =</span> weightBin ,
+    <span class="dt">stopwords =</span> <span class="ot">TRUE</span>
+    )) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">removeSparseTerms</span>(<span class="fl">0.99</span>)
+
+<span class="co"># column bind text and labels to generate incidence ARFF file</span>
+dtm_incidence &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_incidence,dtm_labels)</code></pre></div>
+<p>After the document term matrices have been generated we need to generate the ARFFs and the xmls</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#generate ARFF for mldr</span>
+generate_ARFF &lt;-<span class="st"> </span><span class="cf">function</span>(dtm, arff_name) {
+  <span class="kw">write.arff</span>(dtm, <span class="dt">file =</span> arff_name , <span class="dt">eol =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+  conn &lt;-<span class="st"> </span><span class="kw">file</span>(arff_name, <span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
+  <span class="kw">readLines</span>(conn)  <span class="op">%&gt;%</span>
+<span class="st">  </span>{
+  <span class="kw">gsub</span>(<span class="st">&quot;_&#39; numeric&quot;</span>, <span class="st">&quot;_&#39; {0,1}&quot;</span>, .) <span class="co"># workaround to declare the labels as categorical data having value 0 or 1, in the ARFF</span>
+  }  <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">write</span>(<span class="dt">file =</span> arff_name)
+  <span class="kw">close.connection</span>(conn)
+}
+
+<span class="kw">generate_ARFF</span>(dtm_incidence, <span class="kw">paste</span>(incFileName,<span class="st">&quot;.arff&quot;</span>,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#generate arff for incidence</span>
+<span class="kw">generate_ARFF</span>(dtm_tfidf, <span class="kw">paste</span>(tfidfFileName,<span class="st">&quot;.arff&quot;</span>,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#generate arff for tfidf</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#generate XML for mldr</span>
+label_names &lt;-
+<span class="kw">xmlParse</span>(labelFile) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">xpathApply</span>(<span class="st">&quot;//LIBELLE&quot;</span>, xmlValue) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">get_clean_label</span>()
+xml_root =<span class="st"> </span><span class="kw">newXMLNode</span>(<span class="st">&quot;labels&quot;</span>)
+<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(label_names)) {
+  <span class="kw">newXMLNode</span>(<span class="st">&quot;label&quot;</span>, <span class="dt">attrs =</span> <span class="kw">c</span>(<span class="dt">name =</span> label_names[i]), <span class="dt">parent =</span> xml_root)
+}
+
+<span class="kw">saveXML</span>(xml_root,<span class="dt">file=</span><span class="kw">paste</span>(incFileName,<span class="st">&quot;.xml&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#xml for incidence</span>
+<span class="kw">saveXML</span>(xml_root,<span class="dt">file=</span><span class="kw">paste</span>(tfidfFileName,<span class="st">&quot;.xml&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#xml for tfidf</span></code></pre></div>
+<p>After mldr compliant datasets are generated, they are loaded. Inspection of one of them (incidence) will be fine for further analysis, as they have same features and labels, but different values. tf-idf features will have a positive real number and incidence feature values will be 0 or 1 (incidence of terms).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
+
+eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;../output/tfidf_EN&quot;</span>)</code></pre></div>
+</div>
+<div id="exploration-of-mldr-dataset-traits" class="section level4">
+<h4><span class="header">Exploration of MLDR dataset traits </span></h4>
+<p>After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual <em>summary()</em> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(eurlex)</code></pre></div>
+<pre><code>##   num.attributes num.instances num.inputs num.labels num.labelsets
+## 1           5936         24000       2312       3624         17200
+##   num.single.labelsets max.frequency cardinality    density   meanIR
+## 1                14517           107     5.19475 0.00143343 811.0982
+##     scumble scumble.cv      tcs
+## 1 0.4078093  0.5685903 25.69387</code></pre>
+<p>As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value is also quite high indicating a good amount of imbalance.</p>
+<p>Labels’ information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the <em>labels</em> member of the <em>mldr</em> class.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#inspect first 20 labels</span>
+<span class="kw">head</span>(eurlex<span class="op">$</span>labels, <span class="dv">20</span>) </code></pre></div>
+<pre><code>##                                  index count         freq      IRLbl
+## abandoned_land_                   2313     4 1.666667e-04  632.25000
+## abolition_of_customs_duties_      2314     8 3.333333e-04  316.12500
+## abruzzi_                          2315     1 4.166667e-05 2529.00000
+## access_to_a_profession_           2316     5 2.083333e-04  505.80000
+## access_to_community_information_  2317    26 1.083333e-03   97.26923
+## access_to_education_              2318     1 4.166667e-05 2529.00000
+## access_to_information_            2319    60 2.500000e-03   42.15000
+## access_to_the_courts_             2320     3 1.250000e-04  843.00000
+## accession_criteria_               2321     3 1.250000e-04  843.00000
+## accession_negotiations_           2322     3 1.250000e-04  843.00000
+## accession_to_an_agreement_        2323    22 9.166667e-04  114.95455
+## accession_to_the_european_union_  2324   149 6.208333e-03   16.97315
+## accident_in_the_home_             2325     6 2.500000e-04  421.50000
+## accident_prevention_              2326    14 5.833333e-04  180.64286
+## account_                          2327     9 3.750000e-04  281.00000
+## accountant_                       2328    11 4.583333e-04  229.90909
+## accounting_                       2329    19 7.916667e-04  133.10526
+## accounting_entry_                 2330     3 1.250000e-04  843.00000
+## accounting_system_                2331     1 4.166667e-05 2529.00000
+## acid_                             2332     2 8.333333e-05 1264.50000
+##                                    SCUMBLE  SCUMBLE.CV
+## abandoned_land_                  0.7280804 0.049854037
+## abolition_of_customs_duties_     0.6987362 0.188424548
+## abruzzi_                         0.9163142          NA
+## access_to_a_profession_          0.6149454 0.101608404
+## access_to_community_information_ 0.3241009 0.560816073
+## access_to_education_             0.7741105          NA
+## access_to_information_           0.4354458 0.469904425
+## access_to_the_courts_            0.6962987 0.036354777
+## accession_criteria_              0.6720641 0.008151489
+## accession_negotiations_          0.6720641 0.008151489
+## accession_to_an_agreement_       0.4664373 0.367475379
+## accession_to_the_european_union_ 0.3613541 0.550105571
+## accident_in_the_home_            0.7378820 0.083622918
+## accident_prevention_             0.4383439 0.359313939
+## account_                         0.2721683 0.517509156
+## accountant_                      0.4676959 0.311177023
+## accounting_                      0.3255225 0.629128750
+## accounting_entry_                0.7665729 0.047459745
+## accounting_system_               0.8260609          NA
+## acid_                            0.7918359 0.054765731</code></pre>
+<p>The <em>mldr</em> package provides a plot() function specific for dealing with “mldr” objects, allowing the generation of several specific types of plots. Otherwise the exploratory analysis of the MLD would have been tedious, as there are thousands of attributes and labels.</p>
+<div id="concurrence-ch-plot" class="section level5">
+<h5><span class="header">Concurrence (CH) Plot </span></h5>
+<p>The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - water, pollution and employment.<br />
+We can choose the labels from the mldr attribute <em>eurlex$labels</em>. The plots of mldr use <em>eurlex$attributes</em>, and they contain all features and labels. The <em>eurlex$attributes</em> first start with features and then followed by labels.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(eurlex<span class="op">$</span>attributes)</code></pre></div>
+<pre><code>##          abide        ability           able        abolish      abolition 
+##      &quot;numeric&quot;      &quot;numeric&quot;      &quot;numeric&quot;      &quot;numeric&quot;      &quot;numeric&quot; 
+## abovementioned 
+##      &quot;numeric&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">tail</span>(eurlex<span class="op">$</span>attributes)</code></pre></div>
+<pre><code>##   zambia_ zimbabwe_     zinc_      zoo_  zoology_ zoonosis_ 
+##   &quot;{0,1}&quot;   &quot;{0,1}&quot;   &quot;{0,1}&quot;   &quot;{0,1}&quot;   &quot;{0,1}&quot;   &quot;{0,1}&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">plot_labels &lt;-<span class="st">  </span><span class="kw">grep</span>(<span class="st">&#39;water|employment|pollution&#39;</span>,<span class="kw">rownames</span>(eurlex[[<span class="st">&quot;labels&quot;</span>]])) <span class="op">+</span><span class="st"> </span>(eurlex<span class="op">$</span>measures<span class="op">$</span>num.attributes <span class="op">-</span><span class="st"> </span>eurlex<span class="op">$</span>measures<span class="op">$</span>num.labels)
+
+<span class="kw">names</span>(eurlex<span class="op">$</span>attributes)[plot_labels]</code></pre></div>
+<pre><code>##  [1] &quot;anti_pollution_device_&quot;              
+##  [2] &quot;atmospheric_pollution_&quot;              
+##  [3] &quot;bathing_water_&quot;                      
+##  [4] &quot;chemical_pollution_&quot;                 
+##  [5] &quot;coastal_pollution_&quot;                  
+##  [6] &quot;community_employment_policy_&quot;        
+##  [7] &quot;community_waters_&quot;                   
+##  [8] &quot;degree_of_pollution_&quot;                
+##  [9] &quot;drinking_water_&quot;                     
+## [10] &quot;employment_aid_&quot;                     
+## [11] &quot;employment_policy_&quot;                  
+## [12] &quot;employment_statistics_&quot;              
+## [13] &quot;european_employment_strategy_&quot;       
+## [14] &quot;fight_against_unemployment_&quot;         
+## [15] &quot;freshwater_&quot;                         
+## [16] &quot;freshwater_fish_&quot;                    
+## [17] &quot;full_employment_&quot;                    
+## [18] &quot;groundwater_&quot;                        
+## [19] &quot;industrial_pollution_&quot;               
+## [20] &quot;inland_waterway_&quot;                    
+## [21] &quot;inland_waterway_fleet_&quot;              
+## [22] &quot;inland_waterway_shipping_&quot;           
+## [23] &quot;inland_waterway_transport_&quot;          
+## [24] &quot;integration_into_employment_&quot;        
+## [25] &quot;international_waters_&quot;               
+## [26] &quot;local_employment_initiative_&quot;        
+## [27] &quot;marine_pollution_&quot;                   
+## [28] &quot;metal_pollution_&quot;                    
+## [29] &quot;mineral_water_&quot;                      
+## [30] &quot;motor_vehicle_pollution_&quot;            
+## [31] &quot;network_of_navigable_waterways_&quot;     
+## [32] &quot;noise_pollution_&quot;                    
+## [33] &quot;oil_pollution_&quot;                      
+## [34] &quot;part_time_employment_&quot;               
+## [35] &quot;pollution_&quot;                          
+## [36] &quot;pollution_control_&quot;                  
+## [37] &quot;pollution_control_measures_&quot;         
+## [38] &quot;pollution_from_agricultural_sources_&quot;
+## [39] &quot;pollution_from_land_based_sources_&quot;  
+## [40] &quot;pollution_from_ships_&quot;               
+## [41] &quot;pollution_of_waterways_&quot;             
+## [42] &quot;prevention_of_pollution_&quot;            
+## [43] &quot;radioactive_pollution_&quot;              
+## [44] &quot;self_employment_&quot;                    
+## [45] &quot;soil_pollution_&quot;                     
+## [46] &quot;stratospheric_pollution_&quot;            
+## [47] &quot;surface_water_&quot;                      
+## [48] &quot;tax_on_employment_income_&quot;           
+## [49] &quot;tax_on_profits_of_self_employment_&quot;  
+## [50] &quot;temporary_employment_&quot;               
+## [51] &quot;termination_of_employment_&quot;          
+## [52] &quot;territorial_waters_&quot;                 
+## [53] &quot;transfrontier_pollution_&quot;            
+## [54] &quot;unemployment_&quot;                       
+## [55] &quot;unemployment_insurance_&quot;             
+## [56] &quot;use_of_water_&quot;                       
+## [57] &quot;wastewater_&quot;                         
+## [58] &quot;water_&quot;                              
+## [59] &quot;water_analysis_&quot;                     
+## [60] &quot;water_consumption_&quot;                  
+## [61] &quot;water_management_&quot;                   
+## [62] &quot;water_management_in_agriculture_&quot;    
+## [63] &quot;water_pollution_&quot;                    
+## [64] &quot;water_requirements_&quot;                 
+## [65] &quot;water_resources_&quot;                    
+## [66] &quot;water_supply_&quot;                       
+## [67] &quot;water_treatment_&quot;                    
+## [68] &quot;watercourse_&quot;                        
+## [69] &quot;youth_employment_&quot;                   
+## [70] &quot;youth_unemployment_&quot;</code></pre>
+<p>We can plot the concurrence plot using the plot() using type “LC”</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&quot;LC&quot;</span>, <span class="dt">labelIndices=</span>plot_labels, <span class="dt">title=</span><span class="st">&quot;Concurrence plot&quot;</span>)</code></pre></div>
+<center>
+<img src="Figs/concurrence_plot.png" />
+</center>
+<p>The names of the labels gets abbreviated in the plot. We can see from the <em>fat pink band</em> many instances are common to the categories/labels - <em>water_treatment_ (wat_ent_)</em> and <em>wastewater_ (was_ter)</em> as expected, and also we saw in top-k words/bigram that many words/bigrams were appearing common for these labels. Also bands emanating from pollution related labels <em>pollution_control_ (pol_rol_)</em> and <em>pollution_control_measures_ (pol_res)</em> meets the arc containing <em>atmospheric_pollution_ (atm_ion)</em>, which implies many instances share labels atmosphere pollution and pollution control measures. We can also see the thin orange bands for labels - <em>employment_policy_ (emp_icy)</em> and <em>fight_against_unemployment_ (fig_ent)</em> sharing common instances, and they don’t meet the arcs containing pollution related instances, and even in top-k words/bigrams we had observed there were no common words between employment and pollution/water related labels. Also we see a lot of thread like bands appearing in the plot which implies imbalanced labels appear frequently together, a situation which could limit the possible improvement of a preprocessing technique. [3]</p>
+</div>
+<div id="label-histogram-lh-plot" class="section level5">
+<h5><span class="header">Label Histogram (LH) Plot </span></h5>
+<p>The label histogram relates labels and instances in a way that shows how well-represented labels are in general. The X axis is assigned to the number of instances and the Y axis to the amount of labels. In our plot the data is concentrated on the left side of the plot, which means that a great number of labels are appearing in very few instances.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">100</span>))</code></pre></div>
+<center>
+<img src="Figs/LH.png" />
+</center>
+</div>
+<div id="labelset-histogram-lsh-plot" class="section level5">
+<h5><span class="header">Labelset Histogram (LSH) Plot </span></h5>
+<p>The labelset histogram is similar to LH plot but, instead of representing the number of instances in which each label appears, it shows the amount of labelsets.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LSH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">breaks=</span><span class="dv">200</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">10</span>), <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">2000</span>))</code></pre></div>
+<center>
+<img src="Figs/LSH.png" />
+</center>
+</div>
+<div id="label-bar-lb-plot" class="section level5">
+<h5><span class="header">Label Bar (LB) Plot </span></h5>
+<p>The label bar plot display exactly the number of instances for each one of the labels and labelsets, respectively.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>)<span class="op">+</span><span class="fl">0.1</span>)
+<span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LB&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">labelIndices=</span>plot_labels)</code></pre></div>
+<center>
+<img src="Figs/LB.png" />
+</center>
+</div>
+<div id="cardinality-histogram-ch-plot" class="section level5">
+<h5><span class="header">Cardinality Histogram (CH) Plot </span></h5>
+<p>The cardinality histogram represents the amount of labels instances have in general. Since data has accumulated on the left side of the plot it means that very less instances have a notable amount of labels.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;CH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>)</code></pre></div>
+<center>
+<img src="Figs/CH.png" />
+</center>
 </div>
 </div>
 </div>

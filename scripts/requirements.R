@@ -1,4 +1,5 @@
-## The script installs the necessary packages if not already installed, and then loadd them
+## The script installs the necessary packages if not already installed, and then loads them
+
 packages <- c(
   "textstem",
   "stringi",
@@ -26,9 +27,9 @@ packages <- c(
   "ggraph",
   "igraph",
   "tidyverse",
-  "gridExtra"
+  "gridExtra",
+  "kableExtra"
 )
-
 
 verify.packages <- function(pkg) {
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -36,6 +37,5 @@ verify.packages <- function(pkg) {
     install.packages(new.pkg, dependencies = TRUE)
   sapply(pkg, library, character.only = TRUE)
 }
-
 
 verify.packages(packages)

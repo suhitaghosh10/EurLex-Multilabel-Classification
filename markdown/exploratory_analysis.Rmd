@@ -604,16 +604,14 @@ After mldr compliant datasets are generated, they are loaded. Inspection of one 
 ```{r load_mldr, include=TRUE, cached=TRUE}
 library(mldr)
 
-eurlex <- mldr("../output/inc_EN")
+eurlex <- mldr("../output/tfidf_EN")
 ```
 #### <span class="header">Exploration of MLDR dataset traits </span>
 
 After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual *summary()* function.
 
 ```{r mldr_summ, include=TRUE, cached=TRUE}
-
 summary(eurlex)
-
 ```
 As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value is also quite high indicating a good amount of imbalance.  
 

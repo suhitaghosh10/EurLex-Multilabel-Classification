@@ -8,3 +8,5 @@ navbar:
       href: multilabel_classification_intro.html
     - text: "Exploratory Analysis"
       href: exploratory_analysis.html
+    - text: "Classification"
+      href: experimentalResults.html
