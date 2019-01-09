@@ -56,12 +56,14 @@ mytable5[1]<-"Binary relevance"
 mytable5[2]<-"Classifier chain"
 mytable5[3]<-"Label powerset"
 
-kable(list(mytable4,mytable5),booktabs = TRUE) %>%
-kable_styling(full_width = F)
+kable(list(mytable4,mytable5)) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+kable_styling(bootstrap_options = c("striped", "hover", "condensed"),full_width = F)
 
 ```
 
  We trained nine classifaction models and compared the performance of the classifiers to produce the model that best fits the dataset and to choose the type of features to yield the best predictive performance. The following table shows the nine classifier models :
+ 
 ```{r echo=FALSE}
 #install.packages("kableExtra")
 library(knitr)
@@ -118,6 +120,7 @@ gsub("<thead>.*</thead>", "", x)
  As mentioned earlier, the 25K documents dataset was split into 24 subsets, and the previously mentioned classification models were trained separately in order to compare the performance of these different classifiers.Each subset was split randomly into two disjointly subsets one for training and the other for testing, with the following proportions ( 65%  used for training and 35% used for testing).
  We reported the results of the different models under different settings, we wanted to explore the performance of the classifiers with two types of features, with two languages and with a different number of labels.
 The following table demonstrates the experimental settings:
+
 ```{r echo=FALSE}
 #install.packages("kableExtra")
 library(knitr)
@@ -277,7 +280,17 @@ we compared the three models where we applied a chain of classifiers for each la
 ####<span class="sub-sub-header">Language: German, Feature: TF-IDF, Nr of Labels: 7000 Labels</span>{.tabset  .tabset-fade}
 
 #####Label Powerset
+
+![](Figs/lp_DE_tfidf1.png)
+
+
+
 #####Binary Relevance
+![](Figs/lp_DE_tfidf2.png)
+
+
+
+
 #####Classifier Chains
 
 ####<span class="sub-sub-header">Language: German, Feature: Incidence, Nr of Labels: 7000 Labels</span>{.tabset  .tabset-fade}
@@ -305,7 +318,7 @@ we compared the three models where we applied a chain of classifiers for each la
 
 #####Classifier Chains
 
-![]](Figs/cc_DE_inc1.png)
+![](Figs/cc_DE_inc1.png)
 
 
 
@@ -371,7 +384,7 @@ datasetWithReducedNrLabels <- dataset[.SCUMBLE <= dataset$measures$scumble]
 
 
 ###conclusion
-Label powerset method produced generaly the best accuracy compared to the binary relevance methos. Binary relevance method assumes the independecy of labels, on the other hand Label Powerset assumes that coocurring labels in the same instance are correlated, in addition, we have seen that removing the imabalanced label sets did not improve the performance. According to the previous discussion, we present a strong argument that the label sets of the Eur-Lex data set are homogenously distributed.
+Label powerset method produced generaly the best accuracy compared to the binary relevance methos. Binary relevance method assumes the independecy of labels, on the other hand Label Powerset assumes that coocurring labels in the same instance are correlated, in addition, we have seen that removing the imabalanced label sets did not improve the performance. According to the previous discussion, we present a strong argument that the label sets of the Eur-Lex data set are homogeneously distributed.
 
 
 
