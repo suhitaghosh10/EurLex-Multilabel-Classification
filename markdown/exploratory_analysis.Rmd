@@ -6,7 +6,7 @@ always_allow_html: yes
 output:
   html_document:
     toc: true
-    toc_depth: 6
+    toc_depth: 4
     toc_float: 
       collapsed: false
       smooth_scroll: false
@@ -24,7 +24,7 @@ bookdown::html_document2: default
     
 #Exploratory analysis
 
-Eurlex dataset is available in several European languages, but we have done exploratory analysis for **English** language.  
+This section deals with the exploratory analysis for the **English** EURLex dataset. Exploratory analysis over German corpus can be found in the [GitHub repository](https://github.com/suhitaghosh10/EurLexClassification/tree/master/reports)
 
 #### <span class="header">Dataset</span>
 The Eurlex dataset for every language comprises two files- a <span class="emphasize>"*cf*</span> file and a <span class="emphasize>*XML*</span> file.  
@@ -207,43 +207,52 @@ We need to preprocess labels, as label names are in different file. The dataset-
 ```{r load_preprocess_label, include=TRUE, eval=TRUE}
 # get clean labels
 get_clean_label <- function(labels) {
-  labels <- labels %>%
-    { gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .) } %>% #replace certain characters with hyphen
-    { gsub("'", "", .) } %>% #remove quotes
-    replace_non_ascii(replacement = " ") %>% #remove non-ascii characters
-    tolower()  %>% #to lower case
-    paste("_", sep = "") #append hypehn at the end
-  
-  labels
+labels <- labels %>%
+{
+gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .)
+} %>% #replace certain characters with hyphen
+{
+gsub("'", "", .)
+} %>% #remove quotes
+replace_non_ascii(replacement = " ") %>% #remove non-ascii characters
+tolower()  %>% #to lower case
+paste("_", sep = "") #append hyphen at the end
+
+labels
 }
 
 #get lable name from label-id
 get_label_name <- function(label_id, label_id_name_df) {
-  label_name = label_id_name_df[label_id_name_df$did == label_id, 2]
-    if (length(label_name) > 0)
-      return(as.character(label_name))
-    else
-      return(paste(label_id, "_" , sep = "")) #some label-ids don't have mapping in xml
+label_name = label_id_name_df[label_id_name_df$did == label_id, 2]
+if (length(label_name) > 0)
+return(as.character(label_name))
+else
+return(paste(label_id, "_" , sep = "")) #some label-ids don't have mapping in xml
 }
 
 # gets label name from label-id using xml, [594 4444] -> [AAMS countries abandoned land]
 get_label_name_list <- function(label_id_list) {
-  desc_xml <- xmlParse(labelFile)
-  
-  # a dataframe containing label-id and label-name
-  xm_df <- data.frame(did = sapply(desc_xml["//DESCRIPTEUR_ID"], xmlValue), dname = sapply(desc_xml["//LIBELLE"], xmlValue))
-  
-  xm_df$dname <- get_clean_label(xm_df$dname)
-  
-  label_name_list <- label_id_list %>%
-                      lapply(function(labelsets) strsplit(labelsets, " ")) %>% # split the label-ids (594 4444)
-                      sapply("[[", 1) %>%  # get each array elements- list of list of label-ids
-                      lapply(function(label_id_array)                          
-                        lapply(label_id_array, function(label_id) # get label-name for each label-id in the list
-                            get_label_name(label_id, xm_df))) %>%
-                     lapply(function(label) paste(label, sep = " "))  # append the label-names (AAMS countries abandoned land)
-  
-  label_name_list
+desc_xml <- xmlParse(labelFile)
+
+# a dataframe containing label-id and label-name
+xm_df <-
+data.frame(did = sapply(desc_xml["//DESCRIPTEUR_ID"], xmlValue),
+dname = sapply(desc_xml["//LIBELLE"], xmlValue))
+
+xm_df$dname <- get_clean_label(xm_df$dname)
+
+label_name_list <- label_id_list %>%
+lapply(function(labelsets)
+strsplit(labelsets, " ")) %>% # split the label-ids (594 4444)
+sapply("[[", 1) %>%  # get each array elements- list of list of label-ids
+lapply(function(label_id_array)
+lapply(label_id_array, function(label_id)
+# get label-name for each label-id in the list
+get_label_name(label_id, xm_df))) %>%
+lapply(function(label)
+paste(label, sep = " "))  # append the label-names (AAMS countries abandoned land)
+
+label_name_list
 }
 
 ```
@@ -289,7 +298,7 @@ text_df <- as.data.frame(cbind(text, label), stringsAsFactors = FALSE)
 
 ##### <span class="header"> Wordcloud </span>  
 
-We start exploration with wordcloud, whichis a simple yet informative way to understand textual data and perform analysis.
+We start exploration with wordcloud, which is a simple yet informative way to understand textual data and perform analysis.
 
 ```{r wordcloud_all, include=TRUE, eval=FALSE}
 library(tidytext)
@@ -353,7 +362,7 @@ tokens_by_label <- text_df %>%
 ```
 ![](Figs/wc_tibble.png)  
 
-There is one row in the data frame *tokens_by_label* for each word-label combination. *n* is the number of times that word is used in that legal text category/label and *total* is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 6797 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the labels for our analysis.
+There is one row in the data frame *tokens_by_label* for each word-label combination. *n* is the number of times that word is used in that legal text category/label and *total* is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 7000 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the labels for our analysis.
 
 ```{r tf_graph, include=TRUE, eval=FALSE}
 library(ggplot2)
@@ -523,7 +532,8 @@ library(ggraph)
 #### <span class="header">Preprocessing for mldr </span>
 
 
-To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in section [link]. First we generate the corpus and then document term matrix each for tf-idf and incidence.
+To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in [section](https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html). Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.  
+First we generate _VCorpus_ and then _DocumentTermMatrix_(DTM) of both text and labels. We need to create DTM of labels as we need to append them to the DTM of the text features, to create the _ARFF_ file.
 
 ```{r dtms, include=TRUE, eval=FALSE}
 #corpus of text
@@ -546,44 +556,26 @@ dtm_tfidf <- text_corpus %>%
   
 # column bind text and labels to generate tfidf ARFF file
 dtm_tfidf <- cbind(dtm_tfidf, dtm_labels)
-
-# gets unique words- needed for incidence matrix
-  uniqueWords <- function(text) {
-    return(paste(unique(strsplit(text, " ")[[1]]), collapse = ' '))
-  }
-
-# dtm matrix for incidence. considering words having atleast 3 letters
-dtm_incidence <-  text_corpus %>%
-    tm_map(content_transformer(uniqueWords)) %>%
-    DocumentTermMatrix(control = list(
-    wordLengths = c(3, Inf),
-    weight = weightBin ,
-    stopwords = TRUE
-    )) %>%
-    removeSparseTerms(0.99)
-
-# column bind text and labels to generate incidence ARFF file
-dtm_incidence <- cbind(dtm_incidence,dtm_labels)
 ```
 
 After the document term matrices have been generated we need to generate the ARFFs and the xmls
 
 ```{r arff_gen, include=TRUE, eval=FALSE}
 
+
 #generate ARFF for mldr
 generate_ARFF <- function(dtm, arff_name) {
-  write.arff(dtm, file = arff_name , eol = "\n")
-  conn <- file(arff_name, open = "r")
-  readLines(conn)  %>%
-  {
-  gsub("_' numeric", "_' {0,1}", .) # workaround to declare the labels as categorical data having value 0 or 1, in the ARFF
-  }  %>%
-  write(file = arff_name)
-  close.connection(conn)
+write.arff(dtm, file = arff_name , eol = "\n")
+conn <- file(arff_name, open = "r")
+readLines(conn)  %>%
+{
+gsub("_' numeric", "_' {0,1}", .) # workaround to declare the labels as categorical data having value 0 or 1, in the ARFF
+}  %>%
+write(file = arff_name)
+close.connection(conn)
 }
 
-generate_ARFF(dtm_incidence, paste(incFileName,".arff",sep="")) #generate arff for incidence
-generate_ARFF(dtm_tfidf, paste(tfidfFileName,".arff",sep="")) #generate arff for tfidf
+generate_ARFF(dtm_tfidf, paste(tfidfFileName, ".arff", sep = "")) #generate arff for tfidf
 
 ```
 
@@ -596,24 +588,23 @@ for (i in 1:length(label_names)) {
   newXMLNode("label", attrs = c(name = label_names[i]), parent = xml_root)
 }
 
-saveXML(xml_root,file=paste(incFileName,".xml", sep="")) #xml for incidence
 saveXML(xml_root,file=paste(tfidfFileName,".xml", sep="")) #xml for tfidf
 ```
-After mldr compliant datasets are generated, they are loaded. Inspection of one of them (incidence) will be fine for further analysis, as they have same features and labels, but different values. tf-idf features will have a positive real number and incidence feature values will be 0 or 1 (incidence of terms).
 
+#### <span class="header">Exploration of MLDR dataset traits </span>
+
+We load the dataset using _mldr_ method.
 ```{r load_mldr, include=TRUE, cached=TRUE}
 library(mldr)
 
-eurlex <- mldr("../output/tfidf_EN")
+eurlex <- mldr("output/tfidf_EN")
 ```
-#### <span class="header">Exploration of MLDR dataset traits </span>
-
 After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual *summary()* function.
 
 ```{r mldr_summ, include=TRUE, cached=TRUE}
 summary(eurlex)
 ```
-As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value is also quite high indicating a good amount of imbalance.  
+As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.  
 
 Labels' information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the *labels* member of the *mldr* class.
 
@@ -627,7 +618,7 @@ The *mldr* package provides a plot() function specific for dealing with "mldr" o
 
 ##### <span class="header">Concurrence (CH) Plot </span>
 
-The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - water, pollution and employment.  
+The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - *water, pollution and employment*.  
 We can choose the labels from the mldr attribute *eurlex\$labels*. The plots of mldr use *eurlex\$attributes*, and they contain all features and labels. The *eurlex\$attributes* first start with features and then followed by labels.
 
 ```{r mldr_attrib, include=TRUE, cached=TRUE }
@@ -697,6 +688,8 @@ plot(eurlex, type='CH',col = brewer.pal(11, 'Spectral'), title='Eurlex')
 
 <center>![](Figs/CH.png)</center>
 
+#### <span class="header">Conclusion</span>
+We come to the end of the exploratory analysis over the English text and the MLD dataset. From the above analysis it seems term-incidence and tf-idf can be surmised to be discrimatory features for the problem, as related labels/categories share many terms/bigrams. Also the concurrence plot helped us in observing related categories share many instances.
 
 
 

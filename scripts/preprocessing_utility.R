@@ -43,7 +43,7 @@ get_clean_content <- function(content) {
           clean_content[[index]],
           #generate list of lemma for each document
           FUN = function(x)
-            generate_lemma_per_document(x, index)
+            generate_lemma_per_document(x, index, model)
         )
     }
     #append the lemmata for each document using space
@@ -282,7 +282,7 @@ get_label_name <- function(label_id, label_id_name_df) {
 # content -> a character vector in UTF-8 encoding where each element of the character vector contains text to be tokenized
 #doc_id -> document sequence number
 # @returns: lemmata
-generate_lemma_per_document <- function(content, doc_id) {
+generate_lemma_per_document <- function(content, doc_id, model) {
   
   print(paste("generating lemma for doc-", doc_id))
   #generates a data table containing lemma and original words

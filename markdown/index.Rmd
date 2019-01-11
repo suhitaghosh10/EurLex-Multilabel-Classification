@@ -66,17 +66,17 @@ In the process, we try to answer the following research questions:
            - Label Powerset (LP) [@boutell2004learning]
            - Classifier Chain (CC) [@read2011classifier]
      
-     + Apply the classifiers (Nearest Neighbour, Random Forest, XGBoost) over the preprocessed dataset (tf-idf and term incidence) for English text *for reduced labels*, and for two flavours of multilabel classification methods:  
+     + Apply the classifiers (Nearest Neighbour, Random Forest, XGBoost) over the preprocessed dataset (tf-idf and term incidence) for English and German text *for reduced labels*, and for two flavours of multilabel classification methods:  
            - Binary Relevance (BR)
            - Label Powerset (LP)
 
-* The following evaluation measures cab be used to assess the multilabel predictive performance:
+* The following evaluation measures have been used to assess the multilabel predictive performance:
      + Accuracy
      + Hamming Loss
      + Micro Precision and Recall
      + Macro Precision and Recall
      
-* Compare the accuracies of the state-of-the-art classifiers on this dataset, for:
+* Compare the accuracies of the state-of-the-art classifiers for:
   + Two languages (English and German)
   + Two kinds of features (tf-idf and incidence)
   + Different flavours of multilable classification
@@ -84,7 +84,13 @@ In the process, we try to answer the following research questions:
 
 ### <span class="header">Dataset</span>
 European Union law documents (EUR-Lex).
-The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX) is located inside the software distributed by European Union.
+The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer#Download%20JEX) in different European languages is located inside the software distributed by European Union. We have use two language datasets -English and German. They can also be downloaded directly from the links below:  
+- [English](https://drive.google.com/drive/folders/1F5HznSWxlZno4iVQSzsXHPhCl-cD644t?usp=sharing)  
+- [German](https://drive.google.com/drive/folders/1TncK4erU2ZJc9v1_-RvwM6fDmkkUYKAk?usp=sharing)
+
+### <span class="header"> Screencast</span>
+<iframe width="560" height="315" src="http://www.youtube.com/embed/nNDqbUhtIRg?rel=0" frameborder="0" allowfullscreen></iframe>
+
 
 ### <span class="header"> R packages</span>
 

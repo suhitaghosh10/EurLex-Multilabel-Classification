@@ -1,9 +1,12 @@
 # The script file contains utility methods used for generation of mldr dataset
 
+#The minimum number of documents to be considered
+min_doc_no<- 100
+
 # The method generates clean preprocessed text
 # @input:
 # content -> content of the acquis file
-# @returns: list of preprocessed text
+# @returns: list of preprocessed text 
 generate_clean_text <- function(content) {
   
   #content comprises labels+text, therefore number of documents is half the length of content
@@ -12,11 +15,11 @@ generate_clean_text <- function(content) {
   doc_no <-
     ifelse((
       exists("doc_number") &&
-        doc_number >= 100 &&  #minimum number of documents should be 100
+        doc_number >= min_doc_no &&  #minimum number of documents should be min_doc_no
         doc_number > batch_number &&  #minimum number of documents should be greater than batch no for classification
         doc_number <= max_doc_no  #maximum number of documents should be less than max_doc_no
     ),
-    doc_number, 100 )
+    doc_number, min_doc_no )
   
   text_content_list <- 
     # every even line contains text
@@ -39,11 +42,11 @@ generate_clean_labels <- function(content) {
   doc_no <-
     ifelse((
       exists("doc_number") &&
-        doc_number >= 100 &&  #minimum number of documents should be 100
+        doc_number >= min_doc_no &&  #minimum number of documents should be min_doc_no
         doc_number > batch_number &&  #minimum number of documents should be greater than batch no for classification
         doc_number <= max_doc_no  #maximum number of documents should be less than max_doc_no
     ),
-    doc_number, 100 )
+    doc_number, min_doc_no )
   
   label_list <- 
     # every odd line contains text
@@ -88,14 +91,14 @@ generate_dataset <-
     doc_no <-
       ifelse((
         exists("doc_number") &&
-          doc_number >= 100 &&
-          #minimum number of documents should be 100
+          doc_number >= min_doc_no &&
+          #minimum number of documents should be min_doc_no
           doc_number > batch_number &&
           #minimum number of documents should be greater than batch no for classification
           doc_number <= max_doc_no  #maximum number of documents should be less than max_doc_no
       ),
       doc_number,
-      100
+      min_doc_no
       )
     
     sample_size <-

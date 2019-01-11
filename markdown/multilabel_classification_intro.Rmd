@@ -22,11 +22,11 @@ bibliography: bibliography.bib
 # Basics of multilabel classification 
 
 
-In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single lable, and the task is to predict the label-sets of unseen instances, instead of a single label. Therefore, multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in an MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances.
+In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single lable, and the task is to predict the label-sets of unseen instances, instead of a single label. Therefore, multi-label datasets (MLD) are different from binary/multi-class ones as they have multiple class per instance instead of one. Therefore each instance in MLD has a set of features(attributes) and a set of labels (labelsets). It is not rare in MLDs that there are more labels than features. Our dataset has around 7000 labels and lesser number of attributes. Our dataset like most MLDs is very imbalanced. The labels in a MLD can be correlated or not. Moreover, frequent labels and rare labels can appear together in the same instances.
 
 ## Working with multilabel datasets {.tabset  .tabset-fade}
  
-Binary and multiclass datasets can be handled in R by using dataframes and usually the last attribute is the output class, whether it contains only TRUE/FALSE values or a value belonging to a factor. As MLD have nultiple labels, Some questions might arise in the mind of the readers:
+Binary and multiclass datasets can be handled in R by using dataframes and usually the last attribute is the output class, whether it contains only TRUE/FALSE values or a value belonging to a factor. As MLD have nultiple labels, some questions might arise in the mind of the readers:
 
  <span class="sub-sub-header">Can we use the existing data.frame for Multilabel datasets?</span> - Unfortunately we can't!  
  
@@ -139,7 +139,3 @@ In macro average we take the average of precision and recall of the system on di
 
 <span class="sub-header"> Subset accuracy (Example based)</span>  
 It is also called subset accuracy, is the most strict evaluation metric. It indicates the percentage of samples that have all their labels classified correctly. The downside of this measure is that it is too strcit to be true, i.e - it ignores the partially correct matches. In a dataset having huge number of labels it is very challenging to get a good score for this measure.
-
-
-#### References
- 
