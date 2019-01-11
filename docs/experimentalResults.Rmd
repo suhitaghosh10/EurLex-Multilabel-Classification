@@ -20,14 +20,9 @@ bibliography: bibliography.bib
 ---
 
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-```
-```{r global_options, R.options=knitr::opts_chunk$set(warning=FALSE, message=FALSE)}
-
-```
+&nbsp;
+&nbsp;
+&nbsp;  
 
 
 ##Classification task
@@ -38,10 +33,11 @@ To observe the effect of including a large number of labels on the classificatio
 We use three methods to transform the problem of multi-label classification task into a conventional multi-class classification task: binary relevance, Label Powerset, classifier chain.
 After transforming the classification problem, We trained three different classification models: Random Forest, k nearest neighbors, XGboosted trees. 
  
-```{r echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 
 library(knitr)
 library(kableExtra)
+
 mytable4=matrix(NA,nrow=3,ncol=1)
 colnames(mytable4)<-"classifier Models"
 mytable4[1]<-"K nearest neighbours"
@@ -62,9 +58,6 @@ kable(list(mytable4,mytable5)) %>%
 We trained nine classifaction models and compared the performance of the classifiers to produce the model that best fits the dataset and to choose the type of features to yield the best predictive performance. The following table shows the nine classifier models :
  
 ```{r echo=FALSE}
-#install.packages("kableExtra")
-library(knitr)
-library(kableExtra)
 mytable6=matrix(NA,nrow=1,ncol=1)
 #mytable6[1,1]<-"Classifiers architectures"
 colnames(mytable6)<-"Classifiers architectures"
@@ -159,7 +152,6 @@ iteration <- 24
 for(index in 1:iteration){
 
   ds <- mldr(paste(generic_name,index,sep = "")) %>%
-  remove_skewness_labels(1) %>%
   remove_attributes("...") %>%
   remove_unique_attributes() %>%
   remove_unlabeled_instances() %>%
@@ -201,16 +193,6 @@ for(index in 1:iteration){
   
   
 ```
-####<span class="sub-sub-header">Plotting Graphs Functions</span>
-We used the **ggplot2** package to display the evaluation metrics graphs. The following function **ggplot()** for plotting the graphs and **ggsave()** to save the last plotted graph.
-``` {r  include=TRUE, eval=FALSE}
-
-ggplot(performance)+ylab("value")+xlab("model")+scale_y_continuous(breaks=c(0, 0.25, 0.5,0.75, 1.0))+geom_point(aes(x=performance$model,y=performance$value,color=metric),size=5,alpha=0.7)+facet_grid(performance$metric~.)+coord_flip()+theme_bw()
-ggsave("/multilabelclassification/graphs/cc_EN_tfidf1.png",width = 8, height = 7, dpi = 400)
-ggplot(performance)+geom_tile(aes(x=model,y=metric,fill=value),color="black")+geom_text(aes(x=model,y=metric,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
-ggsave("/multilabelclassification/graphs/cc_EN_tfidf2.png",width = 6, height = 4, dpi = 400)
-
-``` 
 ###<span class="sub-header">Experimental Resutls</span>
 We tested the nine models over two languages (English and German) and with two types of features (TF-IDF and the terms incidence).  
 For the purpose of the evaluation task, The **mldr** package equiped us with various measurment tools, we will present all of them for each experiment, however, we chose marco F1 measurement(a measure combines between the precision and the recall) to compare the predective performance of all classifiers. Through the exploration process of the Eur-Lex dataset, the study revealed the class labels to be imbalanced (i.e some labels are frequent and some are infrequent). In that case considering accuracy is a misleading measure of the performance, and instead we consider **macro F1** as a comparision factor among the classifiers.
