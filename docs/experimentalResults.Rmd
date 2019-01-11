@@ -55,8 +55,7 @@ mytable5[2]<-"Classifier chain"
 mytable5[3]<-"Label powerset"
 
 kable(list(mytable4,mytable5)) %>%
-  column_spec(1, bold = T, border_right = T) %>%
-kable_styling(bootstrap_options = c("striped", "hover", "condensed"),full_width = F)
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),full_width = F)
 
 ```
 
@@ -136,7 +135,7 @@ mytable2[2]<-"incidence"
 mytable3=matrix(NA,nrow=2,ncol=1)
 colnames(mytable3)<-"Number of Labels"
 mytable3[1]<-"7000"
-mytable3[2]<-"4000"
+mytable3[2]<-"<7000"
 
 kable(list(mytable1,mytable2,mytable3),booktabs = TRUE) %>%
 kable_styling(full_width = F)
@@ -226,6 +225,7 @@ The expreiments show that label Powerset combined with random forest recorded th
 
 
 ![](Figs/English_7000_table.png)
+
 In the following sections we will display the results in detail for each feature separately. 
 
 ####<span class="sub-sub-header">Language: English, Feature: TF-IDF, Nr of Labels: 7000 Labels</span> {.tabset  .tabset-fade}
