@@ -222,6 +222,9 @@ For the English dataset, we observed higher macro F1 rates over all the nine tra
 The expreiments show that label Powerset combined with random forest recorded the best result for the two type of features(TF-IDF and Incidence), whereas the label powerset method combined with XGB preformed the worst as shown in the following figures:
 
 ![](Figs/English_7000.png)
+
+
+
 ![](Figs/English_7000_table.png)
 In the following sections we will display the results in detail for each feature separately. 
 
@@ -277,6 +280,9 @@ Unklike the earlier results of the experiments ran for the English dataset,for t
 The expreiments show that label Powerset combined with both the random forest and the K nearest neighbour recorded the best result for the two type of features(TF-IDF and Incidence), compared to the low performance produced by the label powerset method combined with XGB as shown in the following figures:
 
 ![](Figs/German_7000.png)
+
+
+
 ![](Figs/German_7000_table.png)
 
 In the following sections we will display the results of the experimencts ran on the German dataset in detail for each feature separately.
@@ -325,6 +331,8 @@ datasetWithReducedNrLabels <- dataset[.SCUMBLE <= dataset$measures$scumble]
 Pruning the label sets through removing imbalanced label sets improved the performance across all classifiers. Although employing the TFIDFs features yielded in higher macro F1 for classifiers trained on the complete set of labels, training classifiers on the terms incidences in the case of the balanced label sets(reduced number of labels) showed slightly better performance as shown in the followng graphs:
 
 ![](Figs/English_reduced.png)
+
+
 
 ![](Figs/English_reduced_table.png)
 
