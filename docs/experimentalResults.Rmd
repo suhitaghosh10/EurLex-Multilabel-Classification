@@ -277,6 +277,11 @@ Extracting TFIDFs is computentially expensive. Comparing the low performance of 
 ![](Figs/lp_DE_tfidf1.png)
 ![](Figs/lp_DE_tfidf2.png)
 
+#####Binary Relevance
+
+![](Figs/br_DE_tfidf1.png)
+![](Figs/br_DE_tfidf2.png)
+
 ####<span class="sub-sub-header">Language: German, Feature: Incidence, Nr of Labels: 7000 Labels</span>{.tabset  .tabset-fade}
 
 #####Label Powerset
