@@ -105,6 +105,10 @@ generate_dataset <-
       doc_no / iteration_num #number of documents per batch
     
     #create mldr xml for labels from the given 'labelFile'
+    
+    if(!file.exists(labelFile))
+      stop(paste("XML file",fileName,"not found!"))
+    
     label_names <-
       xmlParse(labelFile) %>% xpathApply("//LIBELLE", xmlValue) %>% get_clean_label()
     xml_root = newXMLNode("labels")
@@ -161,8 +165,6 @@ generate_dataset <-
         generate_ARFF(dtm_tfidf, paste(tfidfFileName, index, ".arff", sep = ""))
         #generate mldr xml file
         saveXML(xml_root, file = paste(tfidfFileName, index, ".xml", sep = ""))
-        
-        print(paste("Generated tfidf arrf and XML files for batch No:", index))
       }
       if (incidence_flag == TRUE) {
         #create a dtm from text corpus
@@ -184,11 +186,9 @@ generate_dataset <-
                       paste(incFileName, index, ".arff", sep = ""))
         #generate mldr xml file
         saveXML(xml_root, file = paste(incFileName, index, ".xml", sep = ""))
-        
-        print(paste("Generated incidence arrf and XML files for batch No:", index))
       }
-      
     }
+    print(paste("Generated arrf and XML files"))
   }
 
 # The method generates arff file
@@ -197,6 +197,8 @@ generate_dataset <-
 #arff_name -> name of the arff file
 # @returns: nothing but generates an arff file
 generate_ARFF <- function(dtm, arff_name) {
+  
+  
   
   #writes an arff file
   write.arff(dtm, file = arff_name , eol = "\n")

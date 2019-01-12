@@ -685,10 +685,8 @@ plot(eurlex, type='CH',col = brewer.pal(11, 'Spectral'), title='Eurlex')
 
 
 ```
-
 <center>![](Figs/CH.png)</center>
-
-#### <span class="header">Conclusion</span>
+#### <span class="header">Tf-Idf and term incidence as features</span>
 We come to the end of the exploratory analysis over the English text and the MLD dataset. From the above analysis it seems term-incidence and tf-idf can be surmised to be discrimatory features for the problem, as related labels/categories share many terms/bigrams. Also the concurrence plot helped us in observing related categories share many instances.
 
 

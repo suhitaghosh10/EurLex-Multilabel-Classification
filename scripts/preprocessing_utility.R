@@ -341,3 +341,4 @@ generate_lemma_per_document <- function(content, doc_id, model) {
     
     label_name_list
   }
+  

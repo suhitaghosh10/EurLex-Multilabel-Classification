@@ -19,13 +19,13 @@ classify <- function(mldrfilename,
   #peforms classification over batches of dataset.
   for (index in 1:batch_number) {
     #load dataset using mldr()
+    if(!file.exists(paste(mldrfilename, index,".arff", sep = "")) || !file.exists(paste(mldrfilename, index,".xml", sep = "")))
+      stop(paste("mldr files (arff/XML) ",mldrfilename,index," not found!", sep=""))
+    
     ds <- mldr(paste(mldrfilename, index, sep = ""))
     if (reduceLabels == TRUE) {
       # disable the majority labels on instances with highly imbalanced labels
       ds <- ds[.SCUMBLE <= ds$measures$scumble]
-    } else {
-      # Remove the labels that have number of examples less than 2
-      ds <- remove_skewness_labels(ds, 1)
     }
     
     ds <-  ds %>%
@@ -90,6 +90,7 @@ classify <- function(mldrfilename,
   
   # get mean over all rows (metrics)
   prediction_mean <- rowMeans(cls_pred, na.rm = TRUE)
+  prediction_mean[is.na(prediction_mean)] <- 0
   
   prediction_mean
 }

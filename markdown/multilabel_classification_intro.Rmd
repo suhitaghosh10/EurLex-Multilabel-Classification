@@ -59,19 +59,18 @@ and labels. Each instance has an associated labelset, whose length (number of ac
 
 <span class="sub-header">Label related measures :</span>  
 
-<span class="sub-sub-header"> Card:</span> The average number of active labels per instance is the most basic measure of any MLD, usually
-known as Card (standing for cardinality).
+<span class="sub-sub-header"> SCUMBLE (Score of ConcUrrence among iMBalanced LabEls):</span> The joint presence of labels with different frequencies in the same instance can pose a challenge for resampling algorithms. It is used to assess the concurrence level among frequent and infrequent labels.
 
-<span class="sub-sub-header"> Dens:</span> Dividing * Card * by the number of labels results in a dimension-less measure, known as Dens (standing for label density).
+<span class="sub-sub-header"> Card (Cardinality):</span> The average number of active labels per instance.
 
-<span class="sub-sub-header">  UniqLabelsets:</span> The number of different labelsets, as well as the amount of them being unique labelsets (appearing only once in sample), give us a glimpse on how sparsely the labels are distributed.
+<span class="sub-sub-header"> Dens (Density):</span> Dividing * Card * by the number of labels results in a dimension-less measure, known as Dens.
 
-<span class="sub-sub-header"> SCUMBLE:</span> is used to assess the concurrence level among frequent and infrequent labels.
+<span class="sub-sub-header">  UniqLabelsets:</span> The number of different labelsets and the amount of them being unique (appearing only once in sample). This gives us a glimpse on how sparsely the labels are distributed.
+
 
 <span class="sub-header">Imbalance related measures:</span>  
 
-<span class="sub-sub-header"> IRLb:</span> Most multilabel datasets are imbalanced, meaning that some of the labels are very frequent whereas
-others are quite rare. The level of imbalance of a determinate label can be measured by the imbalance ratio.
+<span class="sub-sub-header"> IRLb (Imbalance ratio per label):</span> The level of imbalance of a determinate label can be measured by the imbalance ratio, known as IRLb. it is calculated for the label *l* as the ratio between the majority label and the label *l*. This value will be 1 for the most frequent label and a greater value for the rest. The larger the IRLbl is, the higher would be the imbalance level for the considered label.
 
 
 ### Multilabel classification  
