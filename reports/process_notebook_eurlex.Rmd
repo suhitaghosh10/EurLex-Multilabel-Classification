@@ -5,6 +5,13 @@ link-citations: yes
 output:
   html_document:
     df_print: paged
+    toc: true
+    toc_depth: 4
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+    theme: united
+    highlight: haddock
 bibliography: ../markdown/bibliography.bib
 ---
 
@@ -154,15 +161,15 @@ We generate a dataframe such that each row contains one document's text and one 
 text <- character()
 label <- character()
 for (index in 1:length(text_content_list)) {
-  temp_labelset <- unlist(class_labels_list[[index]])
-  for (label_index in 1:length(temp_labelset))
+  temp_labelset <- unlist(class_labels_list[[index]]) # get list of labels for the document and unlist
+  for (label_index in 1:length(temp_labelset)) # iterate for all labels of the document
   {
-    text <- append(text, text_content_list[[index]])
-  label <- append(label, temp_labelset[[label_index]])
+    text <- append(text, text_content_list[[index]]) #add to text list
+    label <- append(label, temp_labelset[[label_index]]) #add to label list
   }
 }
 
-text_df <- as.data.frame(cbind(text, label), stringsAsFactors = FALSE)
+text_df <- as.data.frame(cbind(text, label), stringsAsFactors = FALSE) #generate data-frame from the text and label list
 
 text_df[1:4,]
 ```
@@ -171,12 +178,13 @@ text_df[1:4,]
 We start exploration with wordcloud, which is a simple yet informative way to understand textual data and perform analysis.
 To generate wordcloud first we have to generate tokens from the text, and count each token/word present in the corpus.
 ```{r wordcloud_all_en, include=TRUE, eval=TRUE }
-#generate tokens and count of each word from text
+#generate tokens and count of each word from corpus
 tokens <- text_df %>%
 unnest_tokens(word, text) %>%
 dplyr::count(word, sort = TRUE) %>%
 ungroup()
 
+#generates word cloud
 wordcloud(
 words = tokens$word,
 freq = tokens$n,
@@ -191,11 +199,13 @@ scale = c(5, 0.2)
 
 The word cloud has been generated after adding some law and the dataset related stopwords like -*treaty, journal, europe*. We see that the word *state* among others, stands out and it seems the laws/treaties are related to a state more than a country. We also see words like *aid, product, import, export, trade, animal*, from which we can surmise a lot of legal laws are related to these topics. After getting some insight from the wordcloud we examine it further. It will be interesting to see which terms are common for different category of legal text. To get that, we need to count words for each category.
 ```{r tf_en, include=TRUE, eval=TRUE }
+#generate tokens and count of each word (grouped by category/label)
 tokens_by_label <- text_df %>%
   unnest_tokens(word, text) %>% #generate tokens
   dplyr::count(label, word, sort = TRUE) %>% #counts words for each category
   ungroup()
   
+#generates total words in that category
   total_words <- tokens_by_label %>%
   group_by(label) %>%
   summarize(total = sum(n))
@@ -206,8 +216,10 @@ tokens_by_label <- text_df %>%
 ```
 There is one row in the data frame *tokens_by_label* for each word-label combination. *n* is the number of times that word is used in that legal text category/label and *total* is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 7000 labels , and it will be difficult to analyse over all categories! Therefore, we will consider some of the labels for our analysis.
 ```{r tf_graph_en, include=TRUE, eval=TRUE , warning=FALSE}
+#retrieve first 6 labels/categories
 selected_labels <- unique(tokens_by_label$label)[1:8]
 
+#generate distribution of (n/total) for 6 document categories
 tokens_by_label %>% filter(
   label %in% selected_labels) %>%
   ggplot(aes(n / total, fill = label)) +
@@ -221,12 +233,13 @@ Some of the plots portray long tails on the right, and we can use the term frequ
 >> Zipf's law states that the frequency that a word appears is inversely proportional to its rank.
 
 ```{r zipf_en, include=TRUE, eval=TRUE }
-
+#generate term frequency and rank of word in the document category
 freq_by_rank <- tokens_by_label %>%
   group_by(label) %>%
   mutate(rank = row_number(),
   `term frequency` = n / total)
 
+#plot term frequency and rank of word in the document category in log-log coordinates
 freq_by_rank %>%
   ggplot(aes(rank, `term frequency`, color = label)) +
   geom_line(size = 1.1,
@@ -253,7 +266,7 @@ tokens_by_label %>%
   arrange(desc(tf_idf)) %>%
   mutate(bigram = factor(word, levels = rev(unique(word)))) %>%
   group_by(label) %>%
-  top_n(10) %>%
+  top_n(10) %>%  #top 10 words
   ungroup %>%
   ggplot(aes(word, tf_idf, fill = label)) +
   geom_col(show.legend = FALSE) +
@@ -266,7 +279,7 @@ We can see many common terms appearing for labels *fodder_plant_* and *marketing
 Sometimes bigrams are more meaningful than single words, and it would be interesting to see whether we make similar observation for bigrams.
 We generate the tokens in similar way, except we use we used *token = "ngrams"* and *n=2* in the method *unnest_tokens.*
 ```{r topk_bi_plot_en, include=TRUE, eval=TRUE }
-
+#generate bigram tokens
 bigram_tokens <- text_df %>%
   filter(
   label == "seed_" |
@@ -278,14 +291,15 @@ bigram_tokens <- text_df %>%
   dplyr::count(label, bigram, sort = TRUE) %>%
   ungroup()
   
-  total_words <- bigram_tokens %>%
+#generate count of words in the category
+total_words <- bigram_tokens %>%
   group_by(label) %>%
   summarize(total = sum(n))
   
-  bigram_tokens <- left_join(bigram_tokens, total_words)
-  bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
+bigram_tokens <- left_join(bigram_tokens, total_words)
+bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
   
-  bigram_tokens %>%
+bigram_tokens %>%
   arrange(desc(tf_idf)) %>%
   mutate(bigram = factor(bigram, levels = rev(unique(bigram)))) %>%
   group_by(label) %>%
@@ -302,23 +316,20 @@ Here we do not see much common bigrams for the categories. The bigrams generated
 Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion. In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. We can see some interesting word association in the Fig below.
 ```{r wordass_en, include=TRUE, eval=TRUE }
 (
-  bigram_graph <- bigram_tokens %>%
-  separate(bigram, c("word1", "word2"), sep = " ") %>%
-  dplyr::count(word1, word2, sort = TRUE) %>%
-  unite("bigram", c(word1, word2), sep = " ") %>%
-  top_n(100) %>%
-  graph_from_data_frame()
+  bigram_graph <-
+  bigram_tokens %>% dplyr::count(bigram, sort = TRUE) %>% #count bigram occurence
+  top_n(50) %>% #select top 50 frequent bigrams
+  graph_from_data_frame() #generate graph from dataframe
   )
   
-  a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
-  
+#generate word network graph
   ggraph(bigram_graph, layout = "fr") +
-  geom_edge_link() +
-  geom_node_point(color = "lightblue", size = 5) +
-  geom_node_text(aes(label = name), vjust = 1, hjust = 1, check_overlap = TRUE) +
+  geom_edge_link() + #draws edges between nodes
+  geom_node_point(color = "lightblue", size = 5) + #assign colour and size to nodes of graph
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1, check_overlap = TRUE) + #adjusts text in graph
   theme_void() 
 ```
-From the above exploratory analysis we can surmise that tf-idf and term incidence can act as discriminatory features, as we could see related categories to share terms/bigrams. We will further verify this from the instance-label concurrence graph, after generating the dataset in a format expected by the *mldr* package.
+From the above exploratory analysis we can surmise that tf-idf and term incidence can act as discriminatory features, as we could see related categories to share terms/bigrams. We will further verify this from the instance-label concurrence graph, after generating the dataset in a format expected by the _mldr_ package.
 
 ### Preprocessing for mldr
 To perform the exploratory analysis over the MLD dataset traits (label distribution, relationship among labels and label imbalance) we need to generate the dataset in the format which can read by _mldr_ package. The method *generate_dataset* generates the dataset (ARFF and XML) in mldr compliant format. Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits, it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). We will generate the tf-idf dataset.
@@ -334,11 +345,14 @@ generate_dataset(FALSE,text_content_list,class_labels_list,TRUE,FALSE)
 ### Exploratory analysis over multilabel dataset
 After mldr compliant datasets are generated, they are loaded. We are considering tf-idf dataset for our analysis.
 ```{r load_mldr_en, include=TRUE, cached=TRUE}
-if(!file.exists(paste(tfidfFileName, 1,".arff", sep = "")) || !file.exists(paste(tfidfFileName, 1,".xml", sep = "")))
-      stop(paste("mldr files (arff/XML) ",tfidfFileName,1," not found!", sep=""))
-
-eurlex <- mldr(paste(tfidfFileName,"1",sep="")) 
-summary(eurlex)
+if(!file.exists(paste(tfidfFileName, 1, ".arff", sep = "")) ||
+   !file.exists(paste(tfidfFileName, 1, ".xml", sep = "")))
+   stop(paste("mldr files (arff/XML) ", tfidfFileName, 1, " not found!", sep =
+   ""))
+   
+#loads english tfidf mldr dataset
+   eurlex <- mldr(paste(tfidfFileName, "1", sep = ""))
+   summary(eurlex)
 ```
 As we know the value of scumble lies in the range [0,1], and a low score would denote a MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. The scumble value of our dataset is pretty high, implying there is a good amount of concurrence among imbalanced labels. The level of imbalance of a determinate label can also be measured by the imbalance ratio per label (IRLbl). This value will be 1 for the most frequent label and a greater value for the rest. The larger the IRLbl is, the higher would be the imbalance level for the considered label. The mean IRbl (meanIR) gives the mean IRLbl value over all labels. For the dataset the meanIR is also quite high (24) indicating a good amount of imbalance. Therefore from the above statistics we can infer it is indeed a difficult classification problem. 
 
@@ -352,10 +366,12 @@ head(eurlex$labels, 20)
 The concurrence plot explores interactions among labels. 
 We can choose the labels from the mldr attribute *eurlex\$labels*. The plots of mldr use *eurlex\$attributes*, and they contain all features and labels. The *eurlex\$attributes* first start with features and then followed by labels. We choose some labels for the plot, as plotting all of them would produce a very confusing result.
 ```{r mldr_attrib_en, include=TRUE, cached=TRUE }
+#inspect first 6 attributes
 head(eurlex$attributes)
+#inspect last 6 attributes, which are labels (ending with hyphen)
 tail(eurlex$attributes)
 
-#selecting first 20 labels/categories
+#getting indices of some labels/categories in eurlex$attributes, having words - seed/ fodder/marketing /approximation_of_laws_
 plot_labels <-  grep('seed|fodder|marketing|approximation_of_laws_',rownames(eurlex[["labels"]])) + (eurlex$measures$num.attributes - eurlex$measures$num.labels)
 
 names(eurlex$attributes)[plot_labels]
@@ -363,8 +379,8 @@ names(eurlex$attributes)[plot_labels]
 The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels.
 We can plot the concurrence plot using the plot() using type "LC"
 ```{r plot_lc_en, include=TRUE, eval=TRUE  }
-par(mar=c(0,0,0,0))
-plot(eurlex, type="LC", labelIndices=plot_labels, title="Concurrence plot")
+par(mai=c(0,0,0,0)) #setting margins 0 to get a clear plot
+plot(eurlex, type="LC", labelIndices=plot_labels, title=" ")
 ```
 
 We can see a thick purple band joining *seed_* and *mar-ard_ (marketing_standard_)*, which means there are instances common to labels *seed_* and *marketing_standard_*. There are no bands connecting *approximation_of_laws**(app-aws_)* and *seed_*, which means there are no common instances between them, and which also agrees with the top-k words plot, where we saw no common terms for these categories. This further supports our assumption that tf-idf and term-incidence might be good discrimatory features for our classification problem.
@@ -400,7 +416,7 @@ There are several transformation methods in literature. Three have been defined 
  - **Label Powerset (LP)**: This method transforms the multilabel dataset into a multiclass dataset by using the labelset of each instance as class identifier. This approach takes possible correlations between class labels into account unlike the BR. The downside of the method is it has a high computational complexity and when the number of classes increases the number of distinct label combinations can grow exponentially.
  -  **Classifier Chains (CC)**: This method comprises a chain of binary classifiers \(C_0, C_1, . . . , C_m \) is constructed, where a classifier \(C_i\) uses the predictions of all the classifier \(C_j\) , where j < i. The method can takes into account label correlations. The total number of classifiers needed for this approach is equal to the number of classes, but the training of the classifiers is more involved. 
 
-We have used BR, LP and CC for our problem, and we will try to answer the research question: *Which flavour of multilabel classification method performs the best*. We have chosen these three flavours as we wanted to investigate which flavour of transforms works better for this dataset- the one which considers label correlation or the one which treats the labels independently.
+We have used BR, LP and CC for our problem, and we will try to answer the research question: *Which flavour of multilabel classification method performs the best*. We have chosen these three flavours as we wanted to investigate which flavour of transforms works better for this dataset- the one which considers label correlation or the one which treats the labels independently.  
 
 #### Choice of evaluation metric
 
@@ -430,14 +446,19 @@ knn_tfidf_br_results_mean <- classify(tfidfFileName, "br", "KNN", FALSE)
 rf_tfidf_br_results_mean <- classify(tfidfFileName, "br", "RF", FALSE)
 xgb_tfidf_br_results_mean <- classify(tfidfFileName, "br", "XGB", FALSE)
 ```
-```{r br_tfidf_plot_en, message=TRUE, include=TRUE,eval=TRUE  }
-classifiers <- c("KNN",'Random forest','xgboost')
+```{r br_tfidf_plot_en, message=TRUE, include=TRUE,eval=FALSE  }
+classifiers <- c("KNN",'random forest','xgboost')
 performance_br <- as.data.frame(rbind( knn_tfidf_br_results_mean, rf_tfidf_br_results_mean, xgb_tfidf_br_results_mean))
 performance_br[["model"]] <- classifiers
 
+#generate dataframe having columns -> metric_name, metric_value, model_name
 perf_metric_br <- gather(performance_br,metrics,value,-model)
 
-ggplot(perf_metric_br)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+theme(strip.text.y = element_text(angle=0))
+ggplot(perf_metric_br)+
+  geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+ #create scatterplot
+  facet_grid(metrics~.,scales='free_x', space='free_x')+ #Lay out panels in a grid
+  coord_flip()+ #Flip cartesian coordinates
+  theme_bw()+theme(strip.text.y = element_text(angle=0)) #makes text on y axis parallel to x axis
 ```
 
 We compared the three models where the labels are assumed to be independent. The three models performed almost similiarly. In certain aspects like micro-precision and precision Random forest performed much better than the others.
@@ -477,11 +498,17 @@ Here we observe XGBoost and Random Forest produced comparable performance. Thoug
 #### Comparison among MLD algorithms on tf-idf dataset
 Here we will try to answer the research question - *Which classifier performs best among LP, BR, CC for the dataset tf-idf (English)*.
 ```{r mld_tfidf_plot_en, message=TRUE, include=TRUE,eval=TRUE  }
-ggplot(perf_metric_br)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("BR Transform")
+g_br <- ggplot(perf_metric_br)+
+  geom_tile(aes(x=model,y=metrics,fill=value),color="black")+ #creates tiles
+  geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+ #adds formatting to text
+  scale_fill_distiller(palette = "Spectral")+ # smoothly interpolates 6 colours from spectral palette to a continuous scale
+  ggtitle("BR Transform")
 
-ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP Transform")
+g_lp <- ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP Transform")
 
-ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC Transform")
+g_cc <- ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC Transform")
+
+grid.arrange(g_br, g_lp, g_cc, nrow = 2,ncol = 2)
 ```
 Overall Random Forest performs better with respect to most of the metrics and for all the 3 types of transform algorithms. With respect to the metric macro-F1 we observe LP-Random Forest combination performs the best. This implies the transform catering to the label correlation performs the best, on the tf-idf English dataset.
 
@@ -535,11 +562,13 @@ Here, all the classifiers performed very close to each other, no one is the clea
 After performing classification over the incidence dataset, we try to answer the research question- *Which MLD classifier flavour performs best for English incidence dataset ?*
 
 ```{r mld_inc_plot_en, message=TRUE, include=TRUE,eval=TRUE  }
-ggplot(perf_metric_br)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("BR Transform")
+g_br <- ggplot(perf_metric_br)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("BR Transform")
 
-ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP Transform")
+g_lp <- ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP Transform")
 
-ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC Transform")
+g_cc <- ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC Transform")
+
+grid.arrange(g_br, g_lp, g_cc, nrow = 2,ncol = 2)
 ```
 Here also LP along with Random Forest performs best with respect to macro-F1. Infact LP+Random Forest performs better than others with respect to most of the other metrics.
 
@@ -612,11 +641,13 @@ perf_metric_br <- gather(performance_br,metrics,value,-model)
 perf_metric_lp <- gather(performance_lp,metrics,value,-model)
 perf_metric_cc <- gather(performance_cc,metrics,value,-model)
 
-ggplot(perf_metric_br)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("BR Transform")
+g_br <- ggplot(perf_metric_br)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("BR Transform")
 
-ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP Transform")
+g_lp <- ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("LP Transform")
 
-ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC Transform")
+g_cc <- ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color="white")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")+ggtitle("CC Transform")
+
+grid.arrange(g_br, g_lp, g_cc, nrow = 2,ncol = 2)
 ```
 
 With respect to Macro-F1, LP and Random Forest performs the best with the score of 0.258. For the original datasets (without reduced labels), the macro-F1 score was 0.25. Therefore, there was a very slight improvement with the label reduction.
@@ -806,9 +837,12 @@ generate_dataset(FALSE,text_content_list,class_labels_list,TRUE,FALSE)
 ### Exploratory multilabel dataset analysis
 After the mldr compliant tf-idf dataset is generated, it is loaded. 
 ```{r load_mldr_de, include=TRUE, eval=TRUE}
-if(!file.exists(paste(tfidfFileName, 1,".arff", sep = "")) || !file.exists(paste(tfidfFileName, 1,".xml", sep = "")))
-      stop(paste("mldr files (arff/XML) ",tfidfFileName,1," not found!", sep=""))
-eurlex <- mldr(paste(tfidfFileName,"1",sep=""))
+if(!file.exists(paste(tfidfFileName, 1, ".arff", sep = "")) ||
+   !file.exists(paste(tfidfFileName, 1, ".xml", sep = "")))
+   stop(paste("mldr files (arff/XML) ", tfidfFileName, 1, " not found!", sep =
+   ""))
+
+eurlex <- mldr(paste(tfidfFileName, "1", sep = ""))
 summary(eurlex)
 ```
 Similar to English dataset, the scumble value of the German dataset is also high, implying there is a good amount of concurrence among imbalanced labels.The mean IRLbl value (meanIR) is also quite high indicating a good amount of imbalance.
@@ -828,9 +862,11 @@ names(eurlex$attributes)[plot_labels]
 ```
 ```{r plot_lc_de, include=TRUE, eval=TRUE  }
 par(mar=c(0.5,0.5,0.5,0.5))
-plot(eurlex, type="LC", labelIndices=plot_labels, title="Concurrence Plot")
+plot(eurlex, type="LC", labelIndices=plot_labels, title=" ")
 ```
+
 We can see the related labels share instances like *fleischindustrie_ (fle-rie_)* and* frischfleisch_ (fri-sch_)*, as we observed in the CH plot over English dataset.
+
 #### Relationship among labels and instances
 We can observe in German dataset also a great number of labels/labelset are appearing in very few instances in both LH and LSH plots. In CH plot also we see over all instances have very less number of labels.
 ```{r plots_de, include=TRUE, eval=TRUE  }

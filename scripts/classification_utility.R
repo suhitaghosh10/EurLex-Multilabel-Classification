@@ -89,8 +89,11 @@ classify <- function(mldrfilename,
   }
   
   # get mean over all rows (metrics)
-  prediction_mean <- rowMeans(cls_pred, na.rm = TRUE)
-  prediction_mean[is.na(prediction_mean)] <- 0
+  if(batch_number>1){
+    prediction_mean <- rowMeans(cls_pred, na.rm = TRUE)
+    prediction_mean[is.na(prediction_mean)] <- 0
+  } else { prediction_mean <- cls_pred}
+  
   
   prediction_mean
 }

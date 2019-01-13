@@ -284,7 +284,7 @@ get_label_name <- function(label_id, label_id_name_df) {
 # @returns: lemmata
 generate_lemma_per_document <- function(content, doc_id, model) {
   
-  print(paste("generating lemma for doc-", doc_id))
+  #print(paste("generating lemma for doc-", doc_id))
   #generates a data table containing lemma and original words
   annotated_data_table <-
     udpipe_annotate(
