@@ -444,7 +444,6 @@ The method *classify* performs classification over the specified dataset, for on
 
 We start with classification using BR Transform over tf-idf English dataset, using original labels (non-reduced).
 ```{r br_tf_en, message = TRUE, include = TRUE, eval = TRUE, warning= FALSE}
-batch_number=2
 knn_tfidf_br_results_mean <- classify(tfidfFileName, "br", "KNN", FALSE)
 rf_tfidf_br_results_mean <- classify(tfidfFileName, "br", "RF", FALSE)
 xgb_tfidf_br_results_mean <- classify(tfidfFileName, "br", "XGB", FALSE)
