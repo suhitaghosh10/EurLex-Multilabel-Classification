@@ -24,16 +24,16 @@ bookdown::html_document2: default
     
 #Exploratory analysis
 
-This section deals with the exploratory analysis for the **English** EURLex dataset. Exploratory analysis over German corpus can be found in the [GitHub repository](https://github.com/suhitaghosh10/EurLexClassification/tree/master/reports)
+This section deals with the exploratory analysis for the **English** EUR-Lex dataset. Exploratory analysis over German corpus can be found in the [GitHub repository](https://github.com/suhitaghosh10/EurLexClassification/tree/master/reports){target="_blank"}
 
 #### <span class="header">Dataset</span>
-The Eurlex dataset for every language comprises two files- a <span class="emphasize>"*cf*</span> file and a <span class="emphasize>*XML*</span> file.  
+The Eurlex dataset for every language comprises two files- a <span class="emphasize">cf</span> file and a <span class="emphasize">XML</span> file.  
 The documents(laws/treaties) and the document categories/labels is available in the cf file (acquis.cf). The content and the labels for each document has been stored in the file in the following way:  
 
 - Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*.  
 - Every **even** line consists of the actual text.  
 
-An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line.
+An example has been shown below in the diagram below. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line.
 
 <center> ![[Fig1. Data format]](Figs/acquis.png) </center>
 
@@ -63,16 +63,16 @@ The tag *DESCRIPTEUR_ID* contains the label-id and *LIBELLE* contains the label 
 For our task two kinds of  preprocessing is needed:
 
 - <span class="sub-sub-header">Text preprocessing</span>    
-Text data contains many characters which do not convey much information, like punctuations, white spaces, stop words, etc. In English, certain words like “is”, “the” is present in every document and does not help to discriminate two documents. But again, depending on the language and the task at hand, we need to deal with such characters differently.
+Text data contains many characters which do not convey much information, like punctuations, white spaces, stop words, etc. In English, certain words like "is", "the" is present in every document and does not help to discriminate two documents. But again, depending on the language and the task at hand, we need to deal with such characters differently.
 
 - <span class="sub-sub-header">Preprocessing to generate the data expected by *mldr*</span>    
-To study the MLD datasets traits (label distribution, relationship among labels and label imbalance) and perform classification over MLD datasets we need to transform the available dataset into mldr format - a sparse ARFF file containing features and labels , and a XML file containing the label information.
+To study the MLD datasets traits (label distribution, relationship among labels and label imbalance) and perform classification over MLD datasets we need to transform the available dataset into _mldr_ format - a sparse ARFF file containing features and labels , and a XML file containing the label names.
 
 <span class="sub-sub-header"> How much the preprocessing varies across languages for our task? </span>  
 Preprocessing will be almost same for both languages - English and German, except for the following:
 
 - list of stopwords
-- lemmatization - The lemmatization for English language could be done using the method <span class="emphasize">lemmatize_strings</span> from package *textstem*, but for German language we had to use <span class="emphasize">udpipe</span> model. 
+- lemmatization - The lemmatization for English language could be done using the method _lemmatize_strings_ from package *textstem*, but for German language we had to use _udpipe_ model. 
 
 <span class="sub-sub-header"> Features used for the task </span>  
 We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - <span class="emphasize">"How the classifiers' performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?" </span>   
@@ -82,7 +82,7 @@ Therefore we will have two datasets/ARFFs for each language- one containing term
 
 Since the pre-processing is little different for different languages, we need to execute the following code, to perform the pre-processing for a particular language.
 
-```{r language_selection, include=TRUE, eval=TRUE}
+```{r language_selection, include=TRUE, eval=TRUE, message=FALSE}
 library(dplyr)
 library(udpipe)
 
@@ -127,22 +127,29 @@ In the text preprocessing we need to preprocess two things - the actual text and
 Lemmatization using udpipe model needs to be done in small batches of documents, else we get a weird exception when the document size exceeds a limit, therefore we need to define the following function:  
 
 ```{r udpipe, include=TRUE, eval=FALSE}
+#generates lemma for each german document
 generate_lemma_per_document <- function(content, doc_id) {
   annotated_data_table <-
-  udpipe_annotate( model, x = content, doc_id = doc_id, tagger = "default", parser = "none"
-  ) %>% as.data.table()
+  udpipe_annotate(
+  model, #udpipe german model
+  x = content, #character vector in UTF-8 encoding
+  doc_id = doc_id, #document-id
+  tagger = "default", #default udpipe POS tagging and lemmatisation
+  parser = "none" #no dependency parsing needed
+  ) %>% as.data.table() #generate data table
   
-  lemma <- sapply(annotated_data_table$lemma, paste, collapse = " ")
+  lemma <- sapply(annotated_data_table$lemma, paste, collapse = " ") #extract lemma from data table
   return(lemma)
 }
 ```
 
 
 The following method performs the preprocessing for the actual text.
-```{r preprocess_text, include=TRUE, eval=TRUE}
+```{r preprocess_text, include=TRUE, eval=TRUE, message=FALSE}
 library(textclean)
 library(tm)
 
+#generates clean text
 get_clean_content <- function(content) {
   clean_content <- content  %>%
     replace_html(replacement = " ") %>%       #replace html tags with space
@@ -151,9 +158,10 @@ get_clean_content <- function(content) {
     { gsub("\\b[IVXLCDM]+\\b", " ", .) } %>%  #removes roman numerals
     tolower()                                 #to lower case
   
-  if (lang == "english") # lemmatization for english
+  if (lang == "english"){   # lemmatization for english
     clean_content <- lemmatize_strings(clean_content)
-  else{  # lemmatization for german
+  
+  } else {  # lemmatization for german
     lemmata <- c()
     for (index in 1:length(clean_content)) {
       lemmata[index] <-
@@ -175,18 +183,16 @@ get_clean_content <- function(content) {
 }
 ```
 
-The following code will load and preprocess the text for the selected language by *init()*.
+We will now load the text for the selected language by *init()*, and inspect the 1st document's content.
 
 ```{r load_preprocess_text, include=TRUE, eval=TRUE, echo=TRUE}
-
-
 connection <- fileName  %>% file(open = "r")
 raw_text_char <- connection %>% readLines(encoding = "UTF-8")
 close.connection(connection)
+text_content_list <-
+raw_text_char[seq (2, length(raw_text_char), 2)] #every even line contains text
 
-text_content_list <- raw_text_char[seq (2, length(raw_text_char), 2)] #every even line contains text
-
-text_content_list[[1]]
+text_content_list[[1]] #1st document's content
 ```
 
 ```{r temp, include=FALSE, eval=TRUE}
@@ -194,75 +200,85 @@ fname <- "../data\\text_en.txt"
 text_content_list <- unserialize(charToRaw(readChar(fname, file.info(fname)$size)))
 ```
 
+After loading the text, we preprocess it.
 ```{r cln_text, include=TRUE, eval=FALSE}
-text_content_list <- get_clean_content(text_content_list) #get preprocessed text
+text_content_list <- get_clean_content(text_content_list)
 ```
 
+Let's inspect the same (1st) document's preprocessed content.
 ```{r cln_text_show, include=TRUE, eval=TRUE}
 text_content_list[[1]]
 ```
 
-We need to preprocess labels, as label names are in different file. The dataset- *acquis.cf* file just contains label-ids. Also the label names contains certain characters like space which is inconvenient to generate MLD datasets. The following code generates clean label name for all documents.
+We need to preprocess labels, as label names are in different file. The dataset- *acquis.cf* file just contains label-ids. Also the label names contains certain characters like space which is inconvenient to generate MLD datasets.  
 
-```{r load_preprocess_label, include=TRUE, eval=TRUE}
+The following code generates clean label name for all documents.
+```{r clean_label, include=TRUE, eval=TRUE}
 # get clean labels
 get_clean_label <- function(labels) {
-labels <- labels %>%
-{
-gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .)
-} %>% #replace certain characters with hyphen
-{
-gsub("'", "", .)
-} %>% #remove quotes
-replace_non_ascii(replacement = " ") %>% #remove non-ascii characters
-tolower()  %>% #to lower case
-paste("_", sep = "") #append hyphen at the end
-
-labels
-}
-
-#get lable name from label-id
-get_label_name <- function(label_id, label_id_name_df) {
-label_name = label_id_name_df[label_id_name_df$did == label_id, 2]
-if (length(label_name) > 0)
-return(as.character(label_name))
-else
-return(paste(label_id, "_" , sep = "")) #some label-ids don't have mapping in xml
-}
-
-# gets label name from label-id using xml, [594 4444] -> [AAMS countries abandoned land]
-get_label_name_list <- function(label_id_list) {
-desc_xml <- xmlParse(labelFile)
-
-# a dataframe containing label-id and label-name
-xm_df <-
-data.frame(did = sapply(desc_xml["//DESCRIPTEUR_ID"], xmlValue),
-dname = sapply(desc_xml["//LIBELLE"], xmlValue))
-
-xm_df$dname <- get_clean_label(xm_df$dname)
-
-label_name_list <- label_id_list %>%
-lapply(function(labelsets)
-strsplit(labelsets, " ")) %>% # split the label-ids (594 4444)
-sapply("[[", 1) %>%  # get each array elements- list of list of label-ids
-lapply(function(label_id_array)
-lapply(label_id_array, function(label_id)
-# get label-name for each label-id in the list
-get_label_name(label_id, xm_df))) %>%
-lapply(function(label)
-paste(label, sep = " "))  # append the label-names (AAMS countries abandoned land)
-
-label_name_list
+  labels <- labels %>%
+  {
+  #replace certain characters with hyphen
+  gsub("\\s|\\.|\\[|\\]|-|\\(|\\)", "_", .)
+  } %>%
+  {
+  #remove quotes
+  gsub("'", "", .)
+  } %>%
+  replace_non_ascii(replacement = " ") %>% #remove non-ascii characters
+  tolower()  %>% #to lower case
+  paste("_", sep = "") #append hyphen at the end
+  
+  labels
 }
 
 ```
 
+The below utility method retrieves the label name.
+```{r get_label_name, include=TRUE, eval=TRUE}
+get_label_name <- function(label_id, label_id_name_df) {
+  label_name = label_id_name_df[label_id_name_df$did == label_id, 2]
+  if (length(label_name) > 0)
+    return(as.character(label_name))
+  else
+    return(paste(label_id, "_" , sep = "")) #some label-ids don't have mapping in xml
+}
+```
 
-```{r get_clean_label_lst, include=TRUE, eval=TRUE}
+We need to create a dataframe from the label id-name mapping xml. we will use the dataframe to retrieve the label-names from the label-ids.
+```{r get_label_name_list, include=TRUE, eval=TRUE}
 library(XML)
 
+# gets label name from label-id using xml, [594 4444] -> [AAMS countries abandoned land]
+get_label_name_list <- function(label_id_list) {
+  desc_xml <- xmlParse(labelFile)
+  
+  # a dataframe containing label-id and label-name
+  xm_df <-
+    data.frame(did = sapply(desc_xml["//DESCRIPTEUR_ID"], xmlValue),
+               dname = sapply(desc_xml["//LIBELLE"], xmlValue))
+  
+  xm_df$dname <- get_clean_label(xm_df$dname)
+  
+  label_name_list <- label_id_list %>%
+    lapply(function(labelsets)
+      strsplit(labelsets, " ")) %>% # split the label-ids (594 4444)
+    sapply("[[", 1) %>%  # get each array elements- list of list of label-ids
+    lapply(function(label_id_array)
+      lapply(label_id_array, function(label_id)
+        # get label-name for each label-id in the list
+        get_label_name(label_id, xm_df))) %>%
+    lapply(function(label)
+      paste(label, sep = " "))  # append the label-names (AAMS countries abandoned land)
+  
+  label_name_list
+}
+```
+
+After defining the utility methods for label preprocessing we will load and generate the clean label list.
+```{r get_clean_label_lst, include=TRUE, eval=TRUE}
 class_labels_list <-
-  raw_text_char[seq (1, length(raw_text_char), 2)] %>%
+  raw_text_char[seq (1, length(raw_text_char), 2)] %>% #every odd line contains labelsets for the document
   strsplit("#") %>%
   sapply("[[", 1) %>%
   trimws() %>%
@@ -273,21 +289,21 @@ After generating a cleaner version of text and labels we can take a deep dive in
 
 #### <span class="header">Data Exploration </span>  
 
-
-We generate a dataframe containing the text and the corresponding label for data exploration.
+We have now a list of document content and a list of labelsets (list of labels for one document). To perform exploratory analysis we need to generate a dataframe containing the text and one corresponding label (instead of labelsets) against each document.
 
 ```{r exploration_df, include=TRUE, eval=FALSE}
 text <- character()
 label <- character()
-for (index in 1:length(text_content_list)) {
-  temp_labelset <- unlist(class_labels_list[[index]])
-  for (label_index in 1:length(temp_labelset))
+for (index in 1:length(text_content_list)) { #iterate over all documents
+  temp_labelset <- unlist(class_labels_list[[index]]) #unlist the label-list for the document
+  for (label_index in 1:length(temp_labelset)) #iterate over all labels for the document
   {
     text <- append(text, text_content_list[[index]])
-  label <- append(label, temp_labelset[[label_index]])
+    label <- append(label, temp_labelset[[label_index]])
   }
 }
 
+#generate dataframe from list of text and label
 text_df <- as.data.frame(cbind(text, label), stringsAsFactors = FALSE)
 ```
 
@@ -298,17 +314,18 @@ text_df <- as.data.frame(cbind(text, label), stringsAsFactors = FALSE)
 
 ##### <span class="header"> Wordcloud </span>  
 
-We start exploration with wordcloud, which is a simple yet informative way to understand textual data and perform analysis.
+We start exploration with wordcloud, which is a simple yet informative way to understand textual data and perform analysis. We need to generate tokens and count the frequency of words, to generate the word cloud.
 
-```{r wordcloud_all, include=TRUE, eval=FALSE}
+```{r generate_tokens_en, include=TRUE, eval=FALSE}
 library(tidytext)
 
-#generate tokens and count of each word from text 
 tokens <- text_df %>%
   unnest_tokens(word, text) %>%
   dplyr::count( word, sort = TRUE) %>%
   ungroup()
-
+```
+Now we generate word cloud.
+```{r wordcloud_all, include=TRUE, eval=FALSE}
 library(wordcloud)
 
 wordcloud(words = tokens$word, freq = tokens$n, min.freq = 1, max.words=50, random.order=FALSE, rot.per=0.35,colors=brewer.pal(8, "Dark2"),scale=c(3.5,0.25))
@@ -352,17 +369,17 @@ tokens_by_label <- text_df %>%
   dplyr::count(label, word, sort = TRUE) %>% #counts words for each category
   ungroup()
   
-  total_words <- tokens_by_label %>%
-    group_by(label) %>%
-    summarize(total = sum(n))
+total_words <- tokens_by_label %>%
+  group_by(label) %>%
+  summarize(total = sum(n)) # sum of words' count for each category
   
-  tokens_by_label <- left_join(tokens_by_label, total_words)
+tokens_by_label <- left_join(tokens_by_label, total_words) #add total count column (total) to the data frame
   
-  tokens_by_label 
+tokens_by_label 
 ```
 ![](Figs/wc_tibble.png)  
 
-There is one row in the data frame *tokens_by_label* for each word-label combination. *n* is the number of times that word is used in that legal text category/label and *total* is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 7000 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the labels for our analysis.
+There is one row in the data frame *tokens_by_label* for each word-label combination. *n* is the number of times that word is used in that legal text category/label and *total* is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 7000 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the categories for our analysis.
 
 ```{r tf_graph, include=TRUE, eval=FALSE}
 library(ggplot2)
@@ -383,18 +400,18 @@ tokens_by_label %>% filter(
 
 ![](Figs/tf.png) 
 
-We observe there are very long tails to the right for the categories portrayed above in the picture. Distributions like those shown in Figure above are very common in any given corpus of natural language -website, books, etc, and portrays that there are many words that occur rarely and fewer words that occur frequently. We can use the term frequency dataframe to plot term frequency and examine Zipf's law.
+We observe there are very long tails to the right for the categories portrayed above in the picture. Distributions like those shown in the figure above are very common in any given corpus of natural language -website, books, etc, and portrays that there are many words that occur rarely and fewer words that occur frequently. We can use the term frequency dataframe to plot term frequency and examine Zipf's law.
 
 >> Zipf's law states that the frequency that a word appears is inversely proportional to its rank.
 
 ```{r zipf, include=TRUE, eval=FALSE}
-
-
+#generate term frequency for each category
 freq_by_rank <- tokens_by_label %>%
   group_by(label) %>%
   mutate(rank = row_number(),
   `term frequency` = n / total)
 
+# generate Zipf's law graph
 freq_by_rank %>%
   ggplot(aes(rank, `term frequency`, color = label)) +
   geom_line(size = 1.1,
@@ -407,7 +424,7 @@ freq_by_rank %>%
 
 ![](Figs/zipflaw.png) 
 
-The above plot is in log-log coordinates. We can see that text in all the categories in the corpus are almost similar to each other, and that the relationship between rank and frequency does have negative slope, implying that they follow Zipf's Law.
+The above plot is in log-log coordinates. We can see that all the document categories in the corpus exhibit similar behaviour, and the relationship between rank and frequency does have negative slope, implying that they follow Zipf's Law.
 
 ##### <span class="header">Top k words </span>
 
@@ -415,7 +432,7 @@ It would be interesting to find out top 10 words for each category, which will g
 
 ```{r topk_mono, include=TRUE, eval=FALSE}
 
-tokens_by_label <- bind_tf_idf(tokens_by_label, word, label, n) #enerates tf-idf and binds to dataframe
+tokens_by_label <- bind_tf_idf(tokens_by_label, word, label, n) #generates tf-idf and binds to dataframe
 tokens_by_label
 ```
 
@@ -424,7 +441,7 @@ tokens_by_label
 ![](Figs/tfidf_tibble.png)
 
 &nbsp;
-
+Generating the top-10 words' plot now.
 ```{r topk_plot, include=TRUE, eval=FALSE}
 
 tokens_by_label %>%
@@ -452,7 +469,7 @@ tokens_by_label %>%
 
 &nbsp;
 
-We can see from the Fig the categories/labels - *atmospheric_pollution_*, *pollution_control_* share many common words which implies a lot of pollution related documents are dealing with air pollution. There are many common terms among documents *wastewater_* and *water_treatment_* as expected, as both deal with waste water. The category *fight_against_unemployment_tag* does not share any common terms with the other categories. Actually it would have been interesting if it would have happened! - which would have implied that employment/unemployment might have resulted from pollution or water related cause.  
+We can see from the above figure the categories/labels - *atmospheric_pollution_*, *pollution_control_* share many common words which implies a lot of pollution related documents are dealing with air pollution. There are many common terms among documents *wastewater_* and *water_treatment_* as expected, as both deal with waste water. The category *fight_against_unemployment_tag* does not share any common terms with the other categories. Actually it would have been interesting if it would have happened! - which would have implied that employment/unemployment might have resulted from pollution or water related cause.  
 
 Sometimes bigrams are more meaningful than single words, and it would be interesting to see how the top 10 words changes for bigrams.
 
@@ -462,20 +479,22 @@ We generate the tokens in similar way, except we use we used *token = "ngrams"* 
 
 ```{r topk_b_plot, include=TRUE, eval=FALSE}
 
+#generate bigram tokens
 bigram_tokens <- text_df %>%
   filter(grepl('water|pollution|employment', label)) %>%
   unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
   dplyr::count(label, bigram, sort = TRUE) %>%
   ungroup()
   
-  total_words <- bigram_tokens %>%
+total_words <- bigram_tokens %>%
   group_by(label) %>%
   summarize(total = sum(n))
   
-  bigram_tokens <- left_join(bigram_tokens, total_words)
-  bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
-  
-  bigram_tokens %>%
+bigram_tokens <- left_join(bigram_tokens, total_words)
+bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
+
+#generate top 10 bigram plot  
+bigram_tokens %>%
   filter(
   label == "water_treatment_" |
   label == "wastewater_" |
@@ -501,7 +520,7 @@ We can see again the categories *pollution_control_tag* and *atmospheric_polluti
 
 ##### <span class="header">Word association </span>
 
-Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion. In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. We can see some interesting word association in the Fig below.  
+Another way to view word connections is to treat them as a network, similar to a social network. Word networks show term association and cohesion. In a network graph, the circles are called nodes and represent individual terms, while the lines connecting the circles are called edges and represent the connections between the terms. We can see some interesting word association in the figure below.  
 
 ```{r worda, include=TRUE, eval=FALSE}
 library(tidyr)
@@ -509,21 +528,17 @@ library(igraph)
 library(ggraph)
 
 (
-  bigram_graph <- bigram_tokens %>%
-  separate(bigram, c("word1", "word2"), sep = " ") %>%
-  filter(!word1 %in% law_stopwrds,!word2 %in% law_stopwrds) %>%
-  dplyr::count(word1, word2, sort = TRUE) %>%
-  unite("bigram", c(word1, word2), sep = " ") %>%
-  top_n(100) %>%
-  graph_from_data_frame()
+  bigram_graph <-
+  bigram_tokens %>% dplyr::count(bigram, sort = TRUE) %>% #count bigram occurence
+  top_n(100) %>% #select top 100 frequent bigrams
+  graph_from_data_frame() #generate graph from dataframe
   )
   
-  a <- grid::arrow(type = "closed", length = unit(.15, "inches"))
-  
+  #generate word network graph
   ggraph(bigram_graph, layout = "fr") +
-  geom_edge_link() +
-  geom_node_point(color = "lightblue", size = 5) +
-  geom_node_text(aes(label = name), vjust = 1, hjust = 1, repel=TRUE) +
+  geom_edge_link() + #draws edges between nodes
+  geom_node_point(color = "lightblue", size = 5) + #assign colour and size to nodes of graph
+  geom_node_text(aes(label = name), vjust = 1, hjust = 1, check_overlap = TRUE) + #adjusts text in graph
   theme_void() 
 ```
 ![](Figs/wa.png)
@@ -532,7 +547,7 @@ library(ggraph)
 #### <span class="header">Preprocessing for mldr </span>
 
 
-To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in [section](https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html). Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.  
+To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in this [section](https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html). Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.  
 First we generate _VCorpus_ and then _DocumentTermMatrix_(DTM) of both text and labels. We need to create DTM of labels as we need to append them to the DTM of the text features, to create the _ARFF_ file.
 
 ```{r dtms, include=TRUE, eval=FALSE}
@@ -558,29 +573,29 @@ dtm_tfidf <- text_corpus %>%
 dtm_tfidf <- cbind(dtm_tfidf, dtm_labels)
 ```
 
-After the document term matrices have been generated we need to generate the ARFFs and the xmls
+After the document term matrices have been generated we need to generate the ARFF file.
 
 ```{r arff_gen, include=TRUE, eval=FALSE}
 
 
 #generate ARFF for mldr
 generate_ARFF <- function(dtm, arff_name) {
-write.arff(dtm, file = arff_name , eol = "\n")
-conn <- file(arff_name, open = "r")
-readLines(conn)  %>%
-{
-gsub("_' numeric", "_' {0,1}", .) # workaround to declare the labels as categorical data having value 0 or 1, in the ARFF
-}  %>%
-write(file = arff_name)
-close.connection(conn)
+  write.arff(dtm, file = arff_name , eol = "\n")
+  conn <- file(arff_name, open = "r")
+  readLines(conn)  %>%
+  {
+    gsub("_' numeric", "_' {0,1}", .) # workaround to declare the labels as categorical data having value 0 or 1, in the ARFF
+  }  %>%
+    write(file = arff_name)
+  close.connection(conn)
 }
 
 generate_ARFF(dtm_tfidf, paste(tfidfFileName, ".arff", sep = "")) #generate arff for tfidf
 
 ```
-
+We generate the mldr XML file, containing the label names.
 ```{r xml_gen, include=TRUE, eval=FALSE}
-#generate XML for mldr
+#generate XML structure
 label_names <-
 xmlParse(labelFile) %>% xpathApply("//LIBELLE", xmlValue) %>% get_clean_label()
 xml_root = newXMLNode("labels")
@@ -588,7 +603,8 @@ for (i in 1:length(label_names)) {
   newXMLNode("label", attrs = c(name = label_names[i]), parent = xml_root)
 }
 
-saveXML(xml_root,file=paste(tfidfFileName,".xml", sep="")) #xml for tfidf
+#generate xml file
+saveXML(xml_root,file=paste(tfidfFileName,".xml", sep=""))
 ```
 
 #### <span class="header">Exploration of MLDR dataset traits </span>
@@ -599,7 +615,7 @@ library(mldr)
 
 eurlex <- mldr("output/tfidf_EN")
 ```
-After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual *summary()* function.
+After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual _summary()_ function.
 
 ```{r mldr_summ, include=TRUE, eval=FALSE}
 summary(eurlex)
@@ -610,8 +626,8 @@ As we know the value of scumble lies in the range [0,1], and a low score would d
 Labels' information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the *labels* member of the *mldr* class.
 
 ```{r mldr_label, include=TRUE, cached=TRUE}
-#inspect first 20 labels
-head(eurlex$labels, 20) 
+#inspect first 10 labels
+head(eurlex$labels, 10) 
 
 ```
 
@@ -620,7 +636,7 @@ The *mldr* package provides a plot() function specific for dealing with "mldr" o
 ##### <span class="header">Concurrence (CH) Plot </span>
 
 The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - *water, pollution and employment*.  
-We can choose the labels from the mldr attribute *eurlex\$labels*. The plots of mldr use *eurlex\$attributes*, and they contain all features and labels. The *eurlex\$attributes* first start with features and then followed by labels.
+We can choose the labels from the mldr attribute *eurlex\$labels*. But, the plots of mldr use *eurlex\$attributes*, and they contain all features and labels. So we need to find those labels' indices in *eurlex\$attributes*.   *eurlex\$attributes* first start with features and then followed by labels.
 
 ```{r mldr_attrib, include=TRUE, cached=TRUE }
 head(eurlex$attributes)
@@ -629,8 +645,7 @@ tail(eurlex$attributes)
 
 plot_labels <-  grep('water|employment|pollution',rownames(eurlex[["labels"]])) + (eurlex$measures$num.attributes - eurlex$measures$num.labels)
 
-names(eurlex$attributes)[plot_labels]
-
+head(names(eurlex$attributes)[plot_labels])
 
 ```
 
@@ -650,7 +665,7 @@ The names of the labels gets abbreviated in the plot. We can see from the *fat p
 The label histogram relates labels and instances in a way that shows how well-represented labels are in general. The X axis is assigned to the number of instances and the Y axis to the amount of labels. In our plot the data is concentrated on the left side of the plot, which means that a great number of labels are appearing in very few instances.
 
 ```{r plot_lh, include=TRUE, eval=FALSE }
-plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(1,100))
+plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(0,100))
 ```
 
 <center>![](Figs/LH.png)</center>
