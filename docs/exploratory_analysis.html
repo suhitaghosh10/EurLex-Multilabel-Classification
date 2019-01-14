@@ -201,7 +201,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3,h4,h5,h6",
+      selectors: "h1,h2,h3,h4",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
@@ -337,7 +337,7 @@ div.tocify {
 <p>     </p>
 <div id="exploratory-analysis" class="section level1">
 <h1>Exploratory analysis</h1>
-<p>Eurlex dataset is available in several European languages, but we have done exploratory analysis for <strong>English</strong> language.</p>
+<p>This section deals with the exploratory analysis for the <strong>English</strong> EURLex dataset. Exploratory analysis over German corpus can be found in the <a href="https://github.com/suhitaghosh10/EurLexClassification/tree/master/reports">GitHub repository</a></p>
 <div id="dataset" class="section level4">
 <h4><span class="header">Dataset</span></h4>
 <p>The Eurlex dataset for every language comprises two files- a <span class="emphasize>“<em>cf</em></span> file and a <span class="emphasize&gt;*XML*&lt;/span&gt; file. The documents(laws/treaties) and the document categories/labels is available in the cf file (acquis.cf). The content and the labels for each document has been stored in the file in the following way: - Every **odd** line consists of *label-ids* and the *document-id* of a document. The labels and document-id is separted by a *#*. - Every **even** line consists of the actual text. An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line. &lt;center&gt; ![[Fig1. Data format]](Figs/acquis.png) &lt;/center&gt; The mapping between label-id and label-name has been provided in a XML. A small snippet of the xml has been provided below. ```xml &lt;?xml version=" 1.0"="" encoding="UTF-8" ?=""><em>XML</em></span> file.<br />
@@ -382,8 +382,16 @@ Preprocessing will be almost same for both languages - English and German, excep
 We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - <span class="emphasize">“How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?” </span><br />
 Therefore we will have two datasets/ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features.</p>
 <p>Since the pre-processing is little different for different languages, we need to execute the following code, to perform the pre-processing for a particular language.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
-<span class="kw">library</span>(udpipe)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(udpipe)
 
 init &lt;-<span class="st"> </span><span class="cf">function</span>(language) {
   <span class="cf">if</span> (language <span class="op">==</span><span class="st"> &quot;english&quot;</span>) {
@@ -426,9 +434,9 @@ init &lt;-<span class="st"> </span><span class="cf">function</span>(language) {
 }</code></pre></div>
 <p>The following method performs the preprocessing for the actual text.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(textclean)
-<span class="kw">library</span>(tm)
-
-get_clean_content &lt;-<span class="st"> </span><span class="cf">function</span>(content) {
+<span class="kw">library</span>(tm)</code></pre></div>
+<pre><code>## Loading required package: NLP</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_clean_content &lt;-<span class="st"> </span><span class="cf">function</span>(content) {
   clean_content &lt;-<span class="st"> </span>content  <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">replace_html</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span><span class="st">       </span><span class="co">#replace html tags with space</span>
 <span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&#39;-&#39;</span>, <span class="st">&#39;&#39;</span>, .) } <span class="op">%&gt;%</span><span class="st">                  </span><span class="co">#removes hyphen between words</span>
@@ -473,43 +481,52 @@ text_content_list[[<span class="dv">1</span>]]</code></pre></div>
 <p>We need to preprocess labels, as label names are in different file. The dataset- <em>acquis.cf</em> file just contains label-ids. Also the label names contains certain characters like space which is inconvenient to generate MLD datasets. The following code generates clean label name for all documents.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># get clean labels</span>
 get_clean_label &lt;-<span class="st"> </span><span class="cf">function</span>(labels) {
-  labels &lt;-<span class="st"> </span>labels <span class="op">%&gt;%</span>
-<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s|</span><span class="ch">\\</span><span class="st">.|</span><span class="ch">\\</span><span class="st">[|</span><span class="ch">\\</span><span class="st">]|-|</span><span class="ch">\\</span><span class="st">(|</span><span class="ch">\\</span><span class="st">)&quot;</span>, <span class="st">&quot;_&quot;</span>, .) } <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#replace certain characters with hyphen</span>
-<span class="st">    </span>{ <span class="kw">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, .) } <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove quotes</span>
-<span class="st">    </span><span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove non-ascii characters</span>
-<span class="st">    </span><span class="kw">tolower</span>()  <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#to lower case</span>
-<span class="st">    </span><span class="kw">paste</span>(<span class="st">&quot;_&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>) <span class="co">#append hypehn at the end</span>
-  
-  labels
+labels &lt;-<span class="st"> </span>labels <span class="op">%&gt;%</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">s|</span><span class="ch">\\</span><span class="st">.|</span><span class="ch">\\</span><span class="st">[|</span><span class="ch">\\</span><span class="st">]|-|</span><span class="ch">\\</span><span class="st">(|</span><span class="ch">\\</span><span class="st">)&quot;</span>, <span class="st">&quot;_&quot;</span>, .)
+} <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#replace certain characters with hyphen</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;&#39;&quot;</span>, <span class="st">&quot;&quot;</span>, .)
+} <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove quotes</span>
+<span class="kw">replace_non_ascii</span>(<span class="dt">replacement =</span> <span class="st">&quot; &quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove non-ascii characters</span>
+<span class="kw">tolower</span>()  <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#to lower case</span>
+<span class="kw">paste</span>(<span class="st">&quot;_&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>) <span class="co">#append hyphen at the end</span>
+
+labels
 }
 
 <span class="co">#get lable name from label-id</span>
 get_label_name &lt;-<span class="st"> </span><span class="cf">function</span>(label_id, label_id_name_df) {
-  label_name =<span class="st"> </span>label_id_name_df[label_id_name_df<span class="op">$</span>did <span class="op">==</span><span class="st"> </span>label_id, <span class="dv">2</span>]
-    <span class="cf">if</span> (<span class="kw">length</span>(label_name) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)
-      <span class="kw">return</span>(<span class="kw">as.character</span>(label_name))
-    <span class="cf">else</span>
-      <span class="kw">return</span>(<span class="kw">paste</span>(label_id, <span class="st">&quot;_&quot;</span> , <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)) <span class="co">#some label-ids don&#39;t have mapping in xml</span>
+label_name =<span class="st"> </span>label_id_name_df[label_id_name_df<span class="op">$</span>did <span class="op">==</span><span class="st"> </span>label_id, <span class="dv">2</span>]
+<span class="cf">if</span> (<span class="kw">length</span>(label_name) <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)
+<span class="kw">return</span>(<span class="kw">as.character</span>(label_name))
+<span class="cf">else</span>
+<span class="kw">return</span>(<span class="kw">paste</span>(label_id, <span class="st">&quot;_&quot;</span> , <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)) <span class="co">#some label-ids don&#39;t have mapping in xml</span>
 }
 
 <span class="co"># gets label name from label-id using xml, [594 4444] -&gt; [AAMS countries abandoned land]</span>
 get_label_name_list &lt;-<span class="st"> </span><span class="cf">function</span>(label_id_list) {
-  desc_xml &lt;-<span class="st"> </span><span class="kw">xmlParse</span>(labelFile)
-  
-  <span class="co"># a dataframe containing label-id and label-name</span>
-  xm_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">did =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//DESCRIPTEUR_ID&quot;</span>], xmlValue), <span class="dt">dname =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//LIBELLE&quot;</span>], xmlValue))
-  
-  xm_df<span class="op">$</span>dname &lt;-<span class="st"> </span><span class="kw">get_clean_label</span>(xm_df<span class="op">$</span>dname)
-  
-  label_name_list &lt;-<span class="st"> </span>label_id_list <span class="op">%&gt;%</span>
-<span class="st">                      </span><span class="kw">lapply</span>(<span class="cf">function</span>(labelsets) <span class="kw">strsplit</span>(labelsets, <span class="st">&quot; &quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># split the label-ids (594 4444)</span>
-<span class="st">                      </span><span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st">  </span><span class="co"># get each array elements- list of list of label-ids</span>
-<span class="st">                      </span><span class="kw">lapply</span>(<span class="cf">function</span>(label_id_array)                          
-                        <span class="kw">lapply</span>(label_id_array, <span class="cf">function</span>(label_id) <span class="co"># get label-name for each label-id in the list</span>
-                            <span class="kw">get_label_name</span>(label_id, xm_df))) <span class="op">%&gt;%</span>
-<span class="st">                     </span><span class="kw">lapply</span>(<span class="cf">function</span>(label) <span class="kw">paste</span>(label, <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>))  <span class="co"># append the label-names (AAMS countries abandoned land)</span>
-  
-  label_name_list
+desc_xml &lt;-<span class="st"> </span><span class="kw">xmlParse</span>(labelFile)
+
+<span class="co"># a dataframe containing label-id and label-name</span>
+xm_df &lt;-
+<span class="kw">data.frame</span>(<span class="dt">did =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//DESCRIPTEUR_ID&quot;</span>], xmlValue),
+<span class="dt">dname =</span> <span class="kw">sapply</span>(desc_xml[<span class="st">&quot;//LIBELLE&quot;</span>], xmlValue))
+
+xm_df<span class="op">$</span>dname &lt;-<span class="st"> </span><span class="kw">get_clean_label</span>(xm_df<span class="op">$</span>dname)
+
+label_name_list &lt;-<span class="st"> </span>label_id_list <span class="op">%&gt;%</span>
+<span class="kw">lapply</span>(<span class="cf">function</span>(labelsets)
+<span class="kw">strsplit</span>(labelsets, <span class="st">&quot; &quot;</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># split the label-ids (594 4444)</span>
+<span class="kw">sapply</span>(<span class="st">&quot;[[&quot;</span>, <span class="dv">1</span>) <span class="op">%&gt;%</span><span class="st">  </span><span class="co"># get each array elements- list of list of label-ids</span>
+<span class="kw">lapply</span>(<span class="cf">function</span>(label_id_array)
+<span class="kw">lapply</span>(label_id_array, <span class="cf">function</span>(label_id)
+<span class="co"># get label-name for each label-id in the list</span>
+<span class="kw">get_label_name</span>(label_id, xm_df))) <span class="op">%&gt;%</span>
+<span class="kw">lapply</span>(<span class="cf">function</span>(label)
+<span class="kw">paste</span>(label, <span class="dt">sep =</span> <span class="st">&quot; &quot;</span>))  <span class="co"># append the label-names (AAMS countries abandoned land)</span>
+
+label_name_list
 }</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(XML)
 
@@ -543,7 +560,7 @@ text_df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<spa
 <p> </p>
 <div id="wordcloud" class="section level5">
 <h5><span class="header"> Wordcloud </span></h5>
-<p>We start exploration with wordcloud, whichis a simple yet informative way to understand textual data and perform analysis.</p>
+<p>We start exploration with wordcloud, which is a simple yet informative way to understand textual data and perform analysis.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidytext)
 
 <span class="co">#generate tokens and count of each word from text </span>
@@ -597,7 +614,7 @@ tokens &lt;-<span class="st"> </span>tokens[<span class="op">!</span>tokens<span
 <img src="Figs/wc_tibble.png" />
 
 </div>
-<p>There is one row in the data frame <em>tokens_by_label</em> for each word-label combination. <em>n</em> is the number of times that word is used in that legal text category/label and <em>total</em> is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 6797 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the labels for our analysis.</p>
+<p>There is one row in the data frame <em>tokens_by_label</em> for each word-label combination. <em>n</em> is the number of times that word is used in that legal text category/label and <em>total</em> is the total words in that category. Let us have a look at the distribution of (n/total) for each document category- the number of times a word appears in a label divided by the total number of terms in that category. Our dataset has around 7000 labels , and it will be difficult to analyse over all categories! Therfore, we will consider some of the labels for our analysis.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
 
 tokens_by_label <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(
@@ -746,7 +763,8 @@ tokens_by_label</code></pre></div>
 </div>
 <div id="preprocessing-for-mldr" class="section level4">
 <h4><span class="header">Preprocessing for mldr </span></h4>
-<p>To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in section [link]. First we generate the corpus and then document term matrix each for tf-idf and incidence.</p>
+<p>To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in <a href="https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html">section</a>. Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.<br />
+First we generate <em>VCorpus</em> and then <em>DocumentTermMatrix</em>(DTM) of both text and labels. We need to create DTM of labels as we need to append them to the DTM of the text features, to create the <em>ARFF</em> file.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#corpus of text</span>
 text_corpus &lt;-<span class="st"> </span><span class="kw">VCorpus</span>(<span class="kw">VectorSource</span>(text_content_list))
 
@@ -766,40 +784,21 @@ dtm_tfidf &lt;-<span class="st"> </span>text_corpus <span class="op">%&gt;%</spa
 <span class="st">  </span><span class="kw">removeSparseTerms</span>(<span class="fl">0.99</span>) <span class="co"># remove sparse terms, so that sparsity is maximum 99%</span>
   
 <span class="co"># column bind text and labels to generate tfidf ARFF file</span>
-dtm_tfidf &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_tfidf, dtm_labels)
-
-<span class="co"># gets unique words- needed for incidence matrix</span>
-  uniqueWords &lt;-<span class="st"> </span><span class="cf">function</span>(text) {
-    <span class="kw">return</span>(<span class="kw">paste</span>(<span class="kw">unique</span>(<span class="kw">strsplit</span>(text, <span class="st">&quot; &quot;</span>)[[<span class="dv">1</span>]]), <span class="dt">collapse =</span> <span class="st">&#39; &#39;</span>))
-  }
-
-<span class="co"># dtm matrix for incidence. considering words having atleast 3 letters</span>
-dtm_incidence &lt;-<span class="st">  </span>text_corpus <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">tm_map</span>(<span class="kw">content_transformer</span>(uniqueWords)) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">DocumentTermMatrix</span>(<span class="dt">control =</span> <span class="kw">list</span>(
-    <span class="dt">wordLengths =</span> <span class="kw">c</span>(<span class="dv">3</span>, <span class="ot">Inf</span>),
-    <span class="dt">weight =</span> weightBin ,
-    <span class="dt">stopwords =</span> <span class="ot">TRUE</span>
-    )) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">removeSparseTerms</span>(<span class="fl">0.99</span>)
-
-<span class="co"># column bind text and labels to generate incidence ARFF file</span>
-dtm_incidence &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_incidence,dtm_labels)</code></pre></div>
+dtm_tfidf &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_tfidf, dtm_labels)</code></pre></div>
 <p>After the document term matrices have been generated we need to generate the ARFFs and the xmls</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#generate ARFF for mldr</span>
 generate_ARFF &lt;-<span class="st"> </span><span class="cf">function</span>(dtm, arff_name) {
-  <span class="kw">write.arff</span>(dtm, <span class="dt">file =</span> arff_name , <span class="dt">eol =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
-  conn &lt;-<span class="st"> </span><span class="kw">file</span>(arff_name, <span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
-  <span class="kw">readLines</span>(conn)  <span class="op">%&gt;%</span>
-<span class="st">  </span>{
-  <span class="kw">gsub</span>(<span class="st">&quot;_&#39; numeric&quot;</span>, <span class="st">&quot;_&#39; {0,1}&quot;</span>, .) <span class="co"># workaround to declare the labels as categorical data having value 0 or 1, in the ARFF</span>
-  }  <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">write</span>(<span class="dt">file =</span> arff_name)
-  <span class="kw">close.connection</span>(conn)
+<span class="kw">write.arff</span>(dtm, <span class="dt">file =</span> arff_name , <span class="dt">eol =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+conn &lt;-<span class="st"> </span><span class="kw">file</span>(arff_name, <span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
+<span class="kw">readLines</span>(conn)  <span class="op">%&gt;%</span>
+{
+<span class="kw">gsub</span>(<span class="st">&quot;_&#39; numeric&quot;</span>, <span class="st">&quot;_&#39; {0,1}&quot;</span>, .) <span class="co"># workaround to declare the labels as categorical data having value 0 or 1, in the ARFF</span>
+}  <span class="op">%&gt;%</span>
+<span class="kw">write</span>(<span class="dt">file =</span> arff_name)
+<span class="kw">close.connection</span>(conn)
 }
 
-<span class="kw">generate_ARFF</span>(dtm_incidence, <span class="kw">paste</span>(incFileName,<span class="st">&quot;.arff&quot;</span>,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#generate arff for incidence</span>
-<span class="kw">generate_ARFF</span>(dtm_tfidf, <span class="kw">paste</span>(tfidfFileName,<span class="st">&quot;.arff&quot;</span>,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#generate arff for tfidf</span></code></pre></div>
+<span class="kw">generate_ARFF</span>(dtm_tfidf, <span class="kw">paste</span>(tfidfFileName, <span class="st">&quot;.arff&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)) <span class="co">#generate arff for tfidf</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#generate XML for mldr</span>
 label_names &lt;-
 <span class="kw">xmlParse</span>(labelFile) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">xpathApply</span>(<span class="st">&quot;//LIBELLE&quot;</span>, xmlValue) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">get_clean_label</span>()
@@ -808,24 +807,17 @@ xml_root =<span class="st"> </span><span class="kw">newXMLNode</span>(<span clas
   <span class="kw">newXMLNode</span>(<span class="st">&quot;label&quot;</span>, <span class="dt">attrs =</span> <span class="kw">c</span>(<span class="dt">name =</span> label_names[i]), <span class="dt">parent =</span> xml_root)
 }
 
-<span class="kw">saveXML</span>(xml_root,<span class="dt">file=</span><span class="kw">paste</span>(incFileName,<span class="st">&quot;.xml&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#xml for incidence</span>
 <span class="kw">saveXML</span>(xml_root,<span class="dt">file=</span><span class="kw">paste</span>(tfidfFileName,<span class="st">&quot;.xml&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;&quot;</span>)) <span class="co">#xml for tfidf</span></code></pre></div>
-<p>After mldr compliant datasets are generated, they are loaded. Inspection of one of them (incidence) will be fine for further analysis, as they have same features and labels, but different values. tf-idf features will have a positive real number and incidence feature values will be 0 or 1 (incidence of terms).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
-
-eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;../output/tfidf_EN&quot;</span>)</code></pre></div>
 </div>
 <div id="exploration-of-mldr-dataset-traits" class="section level4">
 <h4><span class="header">Exploration of MLDR dataset traits </span></h4>
+<p>We load the dataset using <em>mldr</em> method.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)</code></pre></div>
+<pre><code>## Enter mldrGUI() to launch mldr&#39;s web-based GUI</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
 <p>After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual <em>summary()</em> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(eurlex)</code></pre></div>
-<pre><code>##   num.attributes num.instances num.inputs num.labels num.labelsets
-## 1           5936         24000       2312       3624         17200
-##   num.single.labelsets max.frequency cardinality    density   meanIR
-## 1                14517           107     5.19475 0.00143343 811.0982
-##     scumble scumble.cv      tcs
-## 1 0.4078093  0.5685903 25.69387</code></pre>
-<p>As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value is also quite high indicating a good amount of imbalance.</p>
+<p><img src="Figs/summary.png" /> As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.</p>
 <p>Labels’ information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the <em>labels</em> member of the <em>mldr</em> class.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#inspect first 20 labels</span>
 <span class="kw">head</span>(eurlex<span class="op">$</span>labels, <span class="dv">20</span>) </code></pre></div>
@@ -874,7 +866,7 @@ eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="s
 <p>The <em>mldr</em> package provides a plot() function specific for dealing with “mldr” objects, allowing the generation of several specific types of plots. Otherwise the exploratory analysis of the MLD would have been tedious, as there are thousands of attributes and labels.</p>
 <div id="concurrence-ch-plot" class="section level5">
 <h5><span class="header">Concurrence (CH) Plot </span></h5>
-<p>The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - water, pollution and employment.<br />
+<p>The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - <em>water, pollution and employment</em>.<br />
 We can choose the labels from the mldr attribute <em>eurlex$labels</em>. The plots of mldr use <em>eurlex$attributes</em>, and they contain all features and labels. The <em>eurlex$attributes</em> first start with features and then followed by labels.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(eurlex<span class="op">$</span>attributes)</code></pre></div>
 <pre><code>##          abide        ability           able        abolish      abolition 
@@ -997,6 +989,10 @@ We can choose the labels from the mldr attribute <em>eurlex$labels</em>. The plo
 <img src="Figs/CH.png" />
 </center>
 </div>
+</div>
+<div id="tf-idf-and-term-incidence-as-features" class="section level4">
+<h4><span class="header">Tf-Idf and term incidence as features</span></h4>
+<p>We come to the end of the exploratory analysis over the English text and the MLD dataset. From the above analysis it seems term-incidence and tf-idf can be surmised to be discrimatory features for the problem, as related labels/categories share many terms/bigrams. Also the concurrence plot helped us in observing related categories share many instances.</p>
 </div>
 </div>
 

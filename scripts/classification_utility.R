@@ -77,14 +77,12 @@ classify <- function(mldrfilename,
         rm(cls_pred)
       
       cls_pred <- temp_prediction
-      print("Classification done for batch 1")
       
     } else if (index > 1 && !is.na(temp_prediction)) {
       if (!exists('cls_pred'))
         cls_pred <- temp_prediction
       else
         cls_pred <- cbind(cls_pred, temp_prediction)
-      print(paste("Classification done for batch", index))
     }
   }
   
@@ -94,6 +92,6 @@ classify <- function(mldrfilename,
     prediction_mean[is.na(prediction_mean)] <- 0
   } else { prediction_mean <- cls_pred}
   
-  
+  print(paste("Classification done for: ",mode,"-", classifier,sep = ""))
   prediction_mean
 }

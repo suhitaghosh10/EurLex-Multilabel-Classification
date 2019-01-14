@@ -18,7 +18,7 @@ bibliography: ../markdown/bibliography.bib
 ##Overview and motivation
 A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. Therefore, often a document needs to be tagged to multiple labels/categories, instead of a single category. Most of the classification algorithms deal with datasets which have a set of input features and only *one* output class. However, in reality the problem might be different from a typical binary or multiclass classification, as often a document or an image can be associated with multiple categories rather than a single category.
 
-An introduction of enormous amount of documents belonging to multiple categories in the legal domain, makes it an attractive area for employing automated solutions. In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the **EUR-Lex** dataset containing about twenty five thousand documents, around seven thousand labels and in several European languages. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this dataset an interesting proposition. Few publications have used an older version of the dataset which had around four thousand labels. The ones that have used this have reported relatively poor values in the range of 50% [@LozaMencía2010] (which may be fair, given the high number of labels). There is no publications for the new dataset (having around 7000 labels), which motivates us to explore the problem of multilabel classification on this dataset.  
+An introduction of enormous amount of documents belonging to multiple categories in the legal domain, makes it an attractive area for employing automated solutions. In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 24 different languages. This is popularly known as the **EUR-Lex** dataset containing about twenty five thousand documents, around seven thousand labels and in several European languages. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this dataset an interesting proposition. Few publications have used an older version of the dataset which had around four thousand labels. The ones that have used this have reported relatively poor values in the range of 50% [@LozaMencía2010] (which may be fair, given the high number of labels). There is no publications for the new dataset (having around 7000 labels), which motivates us to explore the problem of multilabel classification on this dataset.  
 
 > **Multilable v/s Multiclass classification**  
 In multi-label classification, each instance in the training set is associated with a set of labels, instead of a single label, and the task is to predict the *label-sets* of unseen instances, instead of a single label. There is a difference between *multi-class classification* and *multi-label classification*. In multi-class problem the classes or labels are mutually-exclusive, i.e. it makes the assumption that each instance can be assigned to only one label. E.g - an animal can be either a dog or a cat but not both. But in multi-label problem multiple labels may be assigned to an instance. E.g - a movie can belong to a comedy genre as well a detective genre.
@@ -228,7 +228,7 @@ tokens_by_label %>% filter(
   facet_wrap( ~ label, ncol = 2, scales = "free_y")
 ```
 
-Some of the plots portray long tails on the right, and we can use the term frequency dataframe to plot term frequency and examine Zipf's law.
+The plots portray long tails on the right, and we can use the term frequency dataframe to plot term frequency and examine Zipf's law.
 
 >> Zipf's law states that the frequency that a word appears is inversely proportional to its rank.
 
@@ -388,7 +388,7 @@ We can see a thick purple band joining *seed_* and *mar-ard_ (marketing_standard
 #### Label histogram Plot (LH)
 The label histogram relates labels and instances in a way that shows how well-represented labels are in general. The X axis is assigned to the number of instances and the Y axis to the amount of labels. In our plot the data is concentrated on the left side of the plot, which means that a great number of labels are appearing in very few instances.
 ```{r plot_lh_en, include=TRUE, eval=TRUE  }
-plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(1,100))
+plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(0,20))
 ```
 We can see most of the instances have very less labels considering the total number of labels is around 7000.
 #### Labelset histogram (LSH)
@@ -421,12 +421,14 @@ We have used BR, LP and CC for our problem, and we will try to answer the resear
 #### Choice of evaluation metric
 
 In multi-label classification we cannot define misclassification as a hard correct or incorrect, but a prediction comprising subset of actual classes is deemed better than containg none of them. Multilabel evaluation metrics are grouped into two main categories: example based and label based metrics.  
-  - **Example based metrics** are computed individually for each instance, then averaged to obtain the final
-value. E.g - Hamming Loss
-  - **Label based metrics** are computed per label, instead of per instance. There are two approaches called micro-averaging and macro-averaging. 
-  
-    + A *macro-average* will compute the metric independently for each class and then take the average (hence treating all classes equally). E.g - Macro Precision, Macro Recall, Macro F1.
-    + A *micro-average* will aggregate the contributions of all classes to compute the average metric.  E.g - Micro Precision, Micro Recall, Micro F1.
+
+- **Example based metrics** are computed individually for each instance, then averaged to obtain the final
+value. E.g - Hamming Loss  
+- **Label based metrics** are computed per label, instead of per instance. There are two approaches called micro-averaging and macro-averaging.  
+
+>>A Macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally). E.g - Macro Precision, Macro Recall, Macro F1.  
+
+>> A Micro-average will aggregate the contributions of all classes to compute the average metric.  E.g - Micro Precision, Micro Recall, Micro F1.
 
 Since both the datasets (English and German) have huge number of labels and has severe amount of class-imbalance, **Macro-F1** would be a more appropriate choice as mentioned in literature [@narasimhan2016optimizing]. **Macro** is preferred in our case over micro as the former gives equal importance to each class whereas the latter gives equal importance to each sample (which means with increasing number of samples, it will favour the majority classes).
 
@@ -442,11 +444,12 @@ The method *classify* performs classification over the specified dataset, for on
 
 We start with classification using BR Transform over tf-idf English dataset, using original labels (non-reduced).
 ```{r br_tf_en, message = TRUE, include = TRUE, eval = TRUE, warning= FALSE}
+batch_number=2
 knn_tfidf_br_results_mean <- classify(tfidfFileName, "br", "KNN", FALSE)
 rf_tfidf_br_results_mean <- classify(tfidfFileName, "br", "RF", FALSE)
 xgb_tfidf_br_results_mean <- classify(tfidfFileName, "br", "XGB", FALSE)
 ```
-```{r br_tfidf_plot_en, message=TRUE, include=TRUE,eval=FALSE  }
+```{r br_tfidf_plot_en, message=TRUE, include=TRUE,eval=TRUE  }
 classifiers <- c("KNN",'random forest','xgboost')
 performance_br <- as.data.frame(rbind( knn_tfidf_br_results_mean, rf_tfidf_br_results_mean, xgb_tfidf_br_results_mean))
 performance_br[["model"]] <- classifiers
@@ -856,7 +859,7 @@ head(eurlex$labels, 20)
 #### Concurrence Plot (CH)
 We will now explore the interactions among labels using the concurrence plot. Similar to the English mldr analysis we will choose some labels for the plot.
 ```{r mldr_attrib_de, include=TRUE, cached=TRUE }
-#selecting first 20 labels/categories
+#selecting few labels/categories
 plot_labels <- grep('industrie|wirtschaftsstatistische|frischfleisch',rownames(eurlex[["labels"]])) + (eurlex$measures$num.attributes - eurlex$measures$num.labels)
 names(eurlex$attributes)[plot_labels]
 ```
@@ -999,12 +1002,12 @@ Unlike the earlier results of the experiments run for the English dataset, for t
 Here we will try to answer the research question for German text also *whether classification accuracy improves with reduced labels for German dataset*. We considered both tf-idf and incidence.
 
 For tf-idf we considered only Random forest and KNN along with LP Transform, as they had performed very closely, and the other combinations performed much worse than them, with respect to most of the metrics.
-```{r cls_red_labels_de , message=TRUE, include=TRUE, eval=FALSE, warning= FALSE  }
+```{r cls_red_labels_de , message=TRUE, include=TRUE, eval=TRUE, warning= FALSE  }
 knn_tfidf_lp_red_results_mean_de <- classify(tfidfFileName,"lp","KNN", TRUE)
 rf_tfidf_lp_red_results_mean_de <- classify(tfidfFileName,"lp","RF", TRUE)
 ```
 
-First we we analyse which classifier performed best for LP over reduced labels.
+First we analyse which classifier performed best for LP over reduced labels.
 ```{r mld_red_label_plot_de, message=TRUE, include=TRUE,eval=TRUE  }
 performance_lp <- as.data.frame(rbind( knn_tfidf_lp_red_results_mean, rf_tfidf_lp_red_results_mean,xgb_tfidf_lp_red_results_mean))
 performance_lp[["model"]] <- c('knn','rf','xgb')
@@ -1012,34 +1015,67 @@ perf_metric_lp <- gather(performance_lp,metrics,value,-model)
 
 ggplot(perf_metric_lp)+geom_point(aes(x=model,y=value,color=model),size=5,alpha=0.7)+facet_grid(metrics~.,scales='free_x', space='free_x')+coord_flip()+theme_bw()+theme(strip.text.y = element_text(angle=0))
 
-ggplot(perf_metric_de)+geom_tile(aes(x=classificationModel,y=classifier,fill=value),color="black")+geom_text(aes(x=classificationModel,y=classifier,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="black")+geom_text(aes(x=model,y=metrics,label=round(value,3)),color="black")+scale_fill_distiller(palette = "Spectral")
+
 ```
-![](../docs/Figs/german_red_lp_tfidf.png)
-![](../docs/Figs/german_red_lp_tfidf2.png)
+
 We can see Random forest performs best. Also removing the imbalanced labels, the macro F1 value of the Label Powerset with the Random forest classifier increased by around(15%).
 
 We now perform classification over reduced labels for German incidence features and compare the performance with the original(non-reduced) one. We have considered only Random Forest+LP combination, as this combination performed best among all for the original German incidence dataset. 
 ```{r _red_label_plot_de, message=TRUE, include=TRUE, eval=TRUE  }
 performance_lp_rf <- classify(incFileName,"lp","RF", TRUE)
-```
-```{r include=FALSE, eval=TRUE,echo=TRUE}
-performance_lp_rf[["accuracy"]] <- 0.353
-performance_lp_rf[["F1"]] <- 0.429
-performance_lp_rf[["hamming-loss"]] <- 0.012
-performance_lp_rf[["macro-AUC"]] <-0.997
-performance_lp_rf[["macro-F1"]] <-0.269
-performance_lp_rf[["macro-precision"]] <- 0.276
-  performance_lp_rf[["macro-recall"]] <- 0.311
-  performance_lp_rf[["micro-AUC"]] <- 0.996
-  performance_lp_rf[["micro-F1"]] <- 0.451
-  performance_lp_rf[["micro-precision"]] <- 0.449
-  performance_lp_rf[["micro-recall"]] <- 0.454
-  performance_lp_rf[["precision"]] <- 0.431
-  performance_lp_rf[["recall"]] <-0.438
-  performance_lp_rf[["subset-accuracy"]] <-0.13
-  
-  performance_lp_rf
-  
+performance_lp_rf
 ```
 
 The macro-F1 score after reduction of labels is 0.269, and for the original dataset it was 0.237, which signifies slight improvement.
+
+###<span class="sub-header">Final Analysis</span>
+
+Based on the results of various experiments that we conducted on the different classification models, the best performance was observed for the combination <span class="emphasize">LP transform with Random Forest</span> and <span class="emphasize">LP transform with  K-nearest neighbour</span>, compared to BR transform along with the same classifiers .
+
+>>As mentioned earlier, LP transform takes into consideration the correlation among the labels. In contrast, the BR transform assumes the labels to be independent and ignores any dependency among labels. We argue that the assumption of the independency of labels does not hold in the case of the EUR-Lex dataset.
+
+We will try to investigate the reasons behind the failure of the BR transform technique using a small subset of labels and documents from the English corpus.
+
+Let,  
+**X** be a labelset containing six labels, **X={Spain,Award Of Contract, Portugal, Cereals, Tariff Reduction, Tariff Quota}**  
+**D** be the documents labeled with only the labels in X  
+**T** be the set of terms occuring in all documents in D  
+We found that all documents in D have 86 terms in common, thus we assume that these terms are relevant to the labels in X.
+
+We wanted to assign for each label in X the exclusive relevant terms among the 86 terms in T. Therefore, we extracted for each label in X the most relevant terms. We retrieved the documents for each label in X, and included only that label.
+
+$$Documents(Label)=\{ document| \exists l\in Labels(document) \& l=Label \& \{Labels(document) \cap \{X\setminus Label\}\} = \emptyset\}$$ 
+We identfied the the exclusive relevant terms for a label.
+We define relevant_terms(Label) as the terms occuring in the documents labeled only with this label.
+We got the following figures for each label from the English dataset:
+
+1. S1=relevant_terms(Label=Spain)=Terms(Documents(Spain)) includes 21 exclusive relevent term
+2. S2=relevant_terms(Label=Portugal)=Terms(Documents(Portugal)) includes 23 exclusive relevent term
+3. S3=relevant_terms(Label=tariff reduction)=Terms(Documents(tariff reduction)) includes 33 exclusive relevent term
+4. S4=relevant_terms(Label=tariff quota)=Terms(Documents(tariff quota)) includes 10 exclusive relevent term
+5. S5=relevant_terms(Label=award contract)=Terms(Documents(ward contract)) includes 21 exclusive relevent term
+6. S6=relevant_terms(Label=cereals)=Terms(Documents(cereals)) includes 19 exclusive relevent term
+
+Let $U=\{S1\cup S2\cup S3\cup S4\cup S5\cup S6\}$  
+Since the documents labeled with the previous 6 labels include 86 terms, there was 41 term belonging to T but do not belong to U, i.e  $\{|terms|_{term \in \{ T \setminus U \}}=41  term \}$.
+
+The occurance of the 6 labels in the same documents yielded into 41 more terms relate to the labels in X only when these 6 labels occur together in the same document.
+
+**BR transform method** - Here the binary independent classifiers will relate the 86 terms for each label independently assuming that all the 86 terms belong to that label, whereas only a small subset of the terms are relevant to that label (for example 21 terms among the 86 terms relevant to label "Spain").
+
+**K-nearest neighbour** - For KNN, a document with 86 terms labeled with "Spain" are not close to a document with 21 terms labelled with "Spain" in the terms vector space, thus will lead to missclassifying the documents labeled with "Spain". The former example explain the failure of the binary relevce in detecting the relevant execlusive terms to each label, thus, detriorate the performance of the classifier comapred to the LP method.
+
+**XGBoost** - Despite the relatively good performance of k-nearest neighbour and Random Forest classifiers, XGBoost classifier showed poor performance when combined whith LP transform. XGBoost is considered as one of the most powerful classification models that combine weak learners using the boosting ensemble technique to produce a more powerful learner. we believe that with the large number of labelsets, the LP method trying to predict, prevented the XGBoost classifier from optimizing the error of the model.
+
+Contrary to the LP method,the BR considers the labels themself (7000 labels not the 14517 labelsets). It reduces the number of labels when applying the BR to build an independent classifier for each label, which improves the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.
+
+In experiments over the BR transformation method, XGBoost performed better than the Random Forest and the k-nearest neighbour classifiers. We surmise, since XGBoost classifier is an ensemble model uses "Boosting" as a deliberate ensemble technique, whereas Random Forest employs "Bagging" as an ensemble technique and KNN encounters the curse of dimensionality.
+
+**CC transform method** - delivered poor performance across all classication models(k-nearest neighbour, Random Forest, XGBoost). XGBoost performed the best with CC, due to the boosting optimization technique the xgboost based on.
+
+**Features (tf-idf/term incidence)** - Suprisingly, we found the classifiers trained on the terms incidence features performed better than when trained on the TFIDF features. we think that the occurance of the term in a document was a sufficient distinctive feature of the documents of the legal EUR-Lex dataset.
+
+**Reduced Labels** - With reduced labels we found that classifiers overall performed better, though not much, for both English and German dataset.
+
+Finally as a conclusion, for both English and German dataset,the best performance was deliverd by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure provided by the **mldr** package and trained on the terms incidence in order to gain the highest macro F1 values.

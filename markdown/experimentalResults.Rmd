@@ -378,36 +378,27 @@ In the case of removing imbalanced labelsets, the macro F1 value of  the label p
 ![](Figs/lp_DE_rf_inc2_red.png)
 
 
-###<span class="sub-header">Final Analysis</span>
-Based on the results of various experiments that we conducted on the different classification models, we observed the best performance by the classifiers employed the label powerset transformation with the random forest and the label powerset with the K-nearest neighbour compared to a lower performance when they were combined with the binary relevance transformation method.
-As mentioned earlier, the label powerset transformation performed based on the assumption of the high correlation between labels occuring in the same set of labels, in contrast, the binary relevance transformation assumes the labels to be independent and ignores any dependency among labels. We argue that The assumption of the independency of labels does not hold in the case of the Euro-Lex data set.
-We will try to investigate the reasons lies behind the failure of the binary relevance transformation technique with a demonstaring example:
-Let X be a labelset containing six labels, **X={Spain,Award Of Contract, Portugal, Cereals, Tariff Reduction, Tariff Quota}**
-and let D be the documents labeled with all and only labels in X .
-let T be the set of terms occuring in all documents in D, we found that all documents in D have 86 terms in common, thus we assume that these terms are relevant to the labels in X.
-we wanted to assign for each label in X the relevant terms among the 86 term in T. Therefore, we extracted for each label in X the most relevant execusively terms. For each label in  X, we retrieved the documents included that label but did not include any of the other labels in X.
+###<span class="sub-header">Conclusion</span>
 
-$$Documents(Label)=\{ document| \exists l\in Labels(document) \& l=Label \& \{Labels(document) \cap \{X\setminus Label\}\} = \emptyset\}$$ 
-We identfied the the execlusive relevant terms for a label, we define relevant_terms(Label) as the terms occur in documents labeled with this label and not with other labels in the previous list X. For each label included in X, we tried to find the relevant terms occured in documents labeled with this particular label and did not include any of other labels in X, we got the following figures for each label from the English dataset:
+>>We can conclude for both English and German dataset,the best performance was deliverd by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure and trained on the terms incidence in order to gain the highest macro F1 values.
 
-1. S1=relevant_terms(Label=Spain)=Terms(Documents(Spain)) includes 21 execlusively relevent term
-2. S2=relevant_terms(Label=Portugal)=Terms(Documents(Portugal)) includes 23 execlusively relevent term
-3. S3=relevant_terms(Label=tariff reduction)=Terms(Documents(tariff reduction)) includes 33 execlusively relevent term
-4. S4=relevant_terms(Label=tariff quota)=Terms(Documents(tariff quota)) includes 10 execlusively relevent term
-5. S5=relevant_terms(Label=award contract)=Terms(Documents(ward contract)) includes 21 execlusively relevent term
-6. S6=relevant_terms(Label=cereals)=Terms(Documents(cereals)) includes 19 execlusively relevent term
+- Based on the results of various experiments that we conducted on the different classification models, the best performance was observed for the combination <span class="emphasize">LP transform with Random Forest</span> and <span class="emphasize">LP transform with  K-nearest neighbour</span>, compared to BR transform along with the same classifiers .
 
-Let $U=\{S1\cup S2\cup S3\cup S4\cup S5\cup S6\}$, since the documents labeled with the previous six labels include 86 terms, there was 41 term belong to T but do not belong to U, i.e  $\{|terms|_{term \in \{ T \setminus U \}}=41  term \}$.
-The occurance of the six labels in the same documents yielded into 41 more terms relate to the labels in X only when  these six labels occur together in the same document. In the case of binary relevance transformation method, the binary independent classifiers will relate the 86 terms for each label independently assuming the all the 86 terms belong to that label whereas only a small subset of the terms are relevant to that label (for example 21 terms among the 86 terms relevant to label "Spain"). For k-nearest neighbour classifier, a document with 86 terms labeled with "Spain" are not close to a document with 21 terms labeled with "Spain" in the terms vector space, thus will lead to missclassifying the documents labeled with "Spain". The former example explain the failure of the binary relevce in detecting the relevant execlusively terms to each label, thus, detriorate the performance of the classifier comapred to the label powerset method.
-Despite the relatively good performance of k-nearest neighbour and random forest classicatiers,  XGBoost classifier showed poor performance when combined whith label powerset transformation. XGBoost is considered as one of the most powerful classification models that combine weak learners using the boosting ensemble technique to produce a more powerful learner. we believe the large number of labelsets around( 14517 sets) the label powerset method try to predict, prevented the XGBoost classifier from optimizing the error of the model. Contrary to the label powerset method,the binary relevance considers the labels themself(7000 labels not the 14517 labelsets),  reducing the number of labels when applying the binary relevance to build an independent classifier for each label improved the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.
+- As mentioned earlier, LP transform takes into consideration the correlation among the labels. In contrast, the BR transform assumes the labels to be independent and ignores any dependency among labels. We infer that the assumption of the independency of labels does not hold in the case of the EUR-Lex dataset.
 
-In experiments over the binary relevance transformation method, XGBoost performed better than the random forest and the k-nearest neighbour classifiers, since XGBoost classifier is an ensemble model uses "Boosting" as a deliberate ensemble technique, whereas random forest employs "Bagging" as an ensemble technique and KNN encounters the curse of dimensionality.
-Classifier chain transformation method delivered poor performance across all classication models(k-nearest neighbour, random forest, XGBoost). XGBoost performed the best with the 
+- Contrary to the LP method,the BR considers the labels themself. It reduces the number of labels when applying the BR to build an independent classifier for each label, which improves the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.
 
-classifier chain, due to the boosting optimization technique the xgboost based on.
-Suprisingly, we found the classifiers trained on the terms incidence features performaed better than when trained on the TFIDF features. we think that the occurance of the term in a document was a sufficient disticntive feature of the documents of the legal Eur-Lex dataset.
+- In experiments over the BR transformation method, XGBoost performed better than the Random Forest and the k-nearest neighbour classifiers. We surmise, since XGBoost classifier is an ensemble model uses "Boosting" as a deliberate ensemble technique, whereas Random Forest employs "Bagging" as an ensemble technique and KNN encounters the curse of dimensionality.
 
-Finally as a conclusion, for both English and German dataset,the best performance was deliverd by the label powerset transformation method combined with the random forest classifier after removing imbalanced labelsets through exploiting the scumble measure provided by the "**mldr**" package and trained on the terms incidence in order to gain the highest maro F1 values.
+- CC transform method delivered poor performance across all classication models(k-nearest neighbour, Random Forest, XGBoost).
+
+- XGBoost performed the best with CC, due to the boosting optimization technique the xgboost based on.
+
+- Suprisingly, we found the classifiers trained on the *terms incidence* features performed better than when trained on the *tf-idf* features. we think that the occurance of the term in a document was a sufficient distinctive feature of the documents of the legal EUR-Lex dataset.
+
+- With reduced labels we found that the classifiers overall performed better, though not much, for both English and German dataset.
+
+
 
 
 

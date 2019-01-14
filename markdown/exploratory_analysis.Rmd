@@ -601,9 +601,10 @@ eurlex <- mldr("output/tfidf_EN")
 ```
 After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual *summary()* function.
 
-```{r mldr_summ, include=TRUE, cached=TRUE}
+```{r mldr_summ, include=TRUE, eval=FALSE}
 summary(eurlex)
 ```
+![](Figs/summary.png)
 As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.  
 
 Labels' information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the *labels* member of the *mldr* class.
@@ -686,8 +687,8 @@ plot(eurlex, type='CH',col = brewer.pal(11, 'Spectral'), title='Eurlex')
 
 ```
 <center>![](Figs/CH.png)</center>
-#### <span class="header">Tf-Idf and term incidence as features</span>
-We come to the end of the exploratory analysis over the English text and the MLD dataset. From the above analysis it seems term-incidence and tf-idf can be surmised to be discrimatory features for the problem, as related labels/categories share many terms/bigrams. Also the concurrence plot helped us in observing related categories share many instances.
+#### <span class="header">Tf-Idf and Term incidence as features</span>
+We come to the end of the exploratory analysis over the English text and the MLD dataset. From the above analysis it seems term-incidence and tf-idf can be surmised to be discriminatory features for the problem, as related labels/categories share many terms/bigrams. Also the concurrence plot helped us in observing related categories share many instances.
 
 
 
