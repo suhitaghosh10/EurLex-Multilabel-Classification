@@ -89,7 +89,9 @@ The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer
 - [German](https://drive.google.com/drive/folders/1TncK4erU2ZJc9v1_-RvwM6fDmkkUYKAk?usp=sharing)
 
 ### <span class="header"> Screencast</span>
-<iframe width="560" height="315" src="http://www.youtube.com/embed/3ELi5mLlzgM?rel=0" frameborder="0" allowfullscreen></iframe>
+<div class="screencast">
+[![screencast link](Figs/eurlex_First_Frame.png)](http://www.youtube.com/watch?v=3ELi5mLlzgM"Screencast"){target="_blank"}
+</div>
 
 
 ### <span class="header"> R packages</span>

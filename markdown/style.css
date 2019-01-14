@@ -33,3 +33,12 @@
 .home {
    font-size: 0.5em;
 }
+
+.screencast {
+	
+  width: 200px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #dd4814;
+  
+}
