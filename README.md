@@ -6,7 +6,7 @@ A single text document often has multiple semantic aspects. A single news articl
 https://suhitaghosh10.github.io/EurLexClassification/
 
 # Screencast URL
-https://suhitaghosh10.github.io/EurLexClassification/
+https://www.youtube.com/watch?v=3ELi5mLlzgM
 
 # Repository structure
 The content in the repository has been stored in the following manner:
