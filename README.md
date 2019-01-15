@@ -10,13 +10,13 @@ https://www.youtube.com/watch?v=3ELi5mLlzgM
 
 # Data URL
 The English and German data is present at the *data* folder.
-Please note if you are downloading the code from Web, data would not get downloaded (as it exceeds the limit provided by Github). Please perform the following:  
+Please note if you are downloading the code from Github Web, data would not get downloaded (as it exceeds the limit provided by Github). In such case, please perform the following:
 * Download the data from the links below:
   - [English](https://drive.google.com/drive/folders/1F5HznSWxlZno4iVQSzsXHPhCl-cD644t?usp=sharing)
   - [German](https://drive.google.com/drive/folders/1TncK4erU2ZJc9v1_-RvwM6fDmkkUYKAk?usp=sharing)
 * After downloading the files:
-  - English -> Place the downloaded data for English (acquis.cf, desc_en.xml) at data/english
-  - German -> Place the downloaded data for German (acquis.cf, desc_de.xml) at data/german
+  - English -> Place the downloaded English data (acquis.cf, desc_en.xml) at data/english
+  - German -> Place the downloaded German data (acquis.cf, desc_de.xml) at data/german
 
 # Repository structure
 The content in the repository has been stored in the following manner:
@@ -25,7 +25,7 @@ The content in the repository has been stored in the following manner:
 * report -> R Process notebook (markdown + html)
 * scripts -> R scripts
 * docs -> The documents for the website (markdown, html, site xml, pictures)
-* output -> udpipe models and mldr datasets generated will be stored here
+* output -> udpipe models
 
 # Process Notebook configuration
 Since the dataset comprises around 25,000 documents, it will take long time to execute the process notebook over the entire corpus. For trying out the process notebook on a small sample, some parameters have been defined in the file *configuration/config.R*. Please adjust the following parameters before running the notebook.
