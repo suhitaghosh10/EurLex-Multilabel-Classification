@@ -1,0 +1,397 @@
+---
+header-includes:
+   - \usepackage{bbm}
+always_allow_html: yes
+output:
+  html_document: 
+    toc: true
+    toc_depth: 6
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+    theme: united
+    highlight: haddock
+    css: "style.css"
+    
+bookdown::html_document2: default
+link-citations: yes
+csl: biomed-central.csl
+bibliography: bibliography.bib
+---
+
+
+&nbsp;
+&nbsp;
+&nbsp;  
+
+
+##Classification
+The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We have divided the dataset into 25 subsets, therefore each subset contains 1000 documents. We trained the classifiers over the subsets. The final evaluations results will be the average over the subsets.  
+
+####<span class="sub-sub-header">Classification Models</span>
+We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB).
+
+```{r  classifiers,echo=FALSE, warning=FALSE}
+
+library(knitr)
+library(kableExtra)
+
+classifiermodel=matrix(NA,nrow=4,ncol=1)
+colnames(classifiermodel)<-"Classifier Models"
+classifiermodel[1]<-"--------------------------"
+classifiermodel[2]<-"KNN"
+classifiermodel[4]<-"Random Forest"
+classifiermodel[3]<-"XGboost"
+
+transmodel=matrix(NA,nrow=4,ncol=1)
+colnames(transmodel)<-"Transform Methods"
+transmodel[1]<-"--------------------------"
+transmodel[2]<-"Binary relevance"
+transmodel[3]<-"Classifier chain"
+transmodel[4]<-"Label powerset"
+
+kable(list(classifiermodel,transmodel)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),full_width = F)
+
+```
+
+We have trained nine classifaction models over 4 datasets - English tf-idf, English term incidence, German tf-idf, German term incidence and compared the performance of the classifiers, to answer the research questions:  
+
+* How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).    
+* How the classifiers' performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.  
+* Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.  
+* How the classifiers' performance changes when the number of labels is reduced.  
+
+The answers to these questions will help us understand whether we can apply machine learnin techniques to automatically categorize the legal text. 
+
+The following table shows the nine classifier models :
+ 
+```{r models, echo=FALSE}
+
+labelpowerset=matrix(NA,nrow=1,ncol=3)
+labelpowerset[1,1]<-"KNN-Label Powerset"
+labelpowerset[1,2]<-"RF-Label Powerset"
+labelpowerset[1,3]<-"XGboost-Label Powerset"
+
+
+binaryrelevance=matrix(NA,nrow=1,ncol=3)
+binaryrelevance[1,1]<-"KNN-Binary Relevance"
+binaryrelevance[1,2]<-"RF-Binary Relevance"
+binaryrelevance[1,3]<-"XGboost-Binary Relevance"
+
+classifierchain=matrix(NA,nrow=1,ncol=3)
+classifierchain[1,1]<-"KNN-Classifier Chain"
+classifierchain[1,2]<-"RF-Classifier Chain"
+classifierchain[1,3]<-"XGboost-Classifier Chain"
+
+
+x = kable(labelpowerset, format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x)
+
+x = kable(binaryrelevance, format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x)
+x = kable(classifierchain, format="html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+gsub("<thead>.*</thead>", "", x)
+
+```
+
+###<span class="sub-sub-header">Experimental settings</span> 
+As mentioned earlier, the 25K documents dataset was split into 25 subsets.Each subset was split randomly into two disjoint subsets one for training and the other for testing, with the following proportions (65%  used for training and 35% used for testing).
+
+We reported the results of the different models under different settings. We wanted to explore the performance of the classifiers with two types of features, with two languages and with different number of labelsets. The following table demonstrates the experimental settings:
+
+```{r  experiments_settings ,echo=FALSE}
+language=matrix(NA,nrow=3,ncol=1)
+colnames(language)<-"Language"
+language[1]<-"--------"
+language[2]<-"English dataset"
+language[3]<-"German dataset"
+
+feature=matrix(NA,nrow=3,ncol=1)
+colnames(feature)<-"Features"
+feature[1]<-"--------"
+feature[2]<-"Tf-idf"
+feature[3]<-"Terms incidence"
+
+
+labelsets=matrix(NA,nrow=3,ncol=1)
+colnames(labelsets)<-"Number of Labelsets"
+labelsets[1]<-"--------"
+labelsets[2]<-"14517"
+labelsets[3]<-"only balanced labelsets"
+
+kable(list(language,feature,labelsets),booktabs = TRUE) %>%
+kable_styling(full_width = F)
+
+```
+
+The following code pertains to classification using BR transform.
+
+To split the dataset into training and testing subsets we have used the function [create_holdout_partition()](https://www.rdocumentation.org/packages/utiml/versions/0.1.4/topics/create_holdout_partition). To perform classification using other transform methods we have to replace [br()](https://rdrr.io/cran/utiml/man/br.html) for Binary Relevance with [lp()](https://rdrr.io/cran/utiml/man/lp.html) for Label Powerset, and [cc()](https://rdrr.io/cran/utiml/man/cc.html) for Classifier Chain.
+we had to destroy the model after storing the performance results to free memory using the function *rm()*.
+``` {r classification code, include=TRUE, eval=FALSE}
+
+library(mldr)
+library(utiml)
+
+train_ratio <- 0.65
+test_ratio <- 0.35
+iteration <- 25
+
+for (index in 1:iteration) {
+ds <- mldr(paste(generic_name, index, sep = "")) %>%
+remove_unique_attributes() %>% #remove attribute having same value for all labels
+remove_unlabeled_instances() %>% #remove instances having no labels
+create_holdout_partition(c(train = train_ratio, test = test_ratio)) #create holdout samples for train and test
+
+## KNN - K nearest neighbour
+brmodel1 <- br(ds$train, "KNN") #create model - BR +KNN
+prediction1 <- predict(brmodel1, ds$test) #prediction for BR +KNN
+temp_knn <-
+multilabel_evaluate(ds$test, prediction1, "bipartition") #get evaluation metric score  for BR +KNN
+
+#remove memory consuming variables
+rm(brmodel1)
+rm(prediction1)
+
+## RF - Random Forest
+brmodel2 <- br(ds$train, "RF") #create model - BR +RF
+prediction2 <- predict(brmodel2, ds$test) #prediction for BR +RF
+temp_rf <-
+multilabel_evaluate(ds$test, prediction2, "bipartition") #get evaluation metric score for BR +RF
+
+#remove memory consuming variables
+rm(brmodel2)
+rm(prediction2)
+
+## XGB - eXtreme Gradient Boosting
+brmodel3 <- br(ds$train, "XGB") #create model - BR +XGB
+prediction3 <- predict(brmodel3, ds$test) #prediction for BR +XGB
+temp_xgb <-
+multilabel_evaluate(ds$test, prediction3, "bipartition") #get evaluation metric score  for BR +XGB
+
+#remove memory consuming variables
+rm(brmodel3)
+rm(prediction3)
+
+#create dataframe of evaluation metric scores
+if (index == 1) {
+knn <- temp_knn
+rf <- temp_rf
+xgb <- temp_xgb
+} else{
+knn <- cbind(knn, temp_knn)
+rf <- cbind(rf, temp_rf)
+xgb <- cbind(xgb, temp_xgb)
+}
+
+```
+###<span class="sub-header">Experimental Results</span>
+We have applied the nine models over two languages (English and German) and with two types of features (TF-IDF and the terms incidence).  
+For the purpose of the evaluation task, The **mldr** package equipped us with _multilabel_evaluate_ method to inspect many evaluation metrics(accuracy, micro based metrics, macro based metrics, precision, recall, F1, subset-accuracy). We will present all of them for each experiment. Through the exploration process of the Eur-Lex dataset, we come to know the class labels are imbalanced (i.e. some labels are frequent and some are infrequent). In that case considering accuracy is a misleading measure of the performance, instead we consider **F1** as a comparision factor among the classifiers. Infact we consider **macro-F1** as the Macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), which is desirable in case of class imbalance.
+
+####<span class="sub-header">Dataset: English</span>
+For the English dataset, we observed higher macro F1 over all the nine trained classifiers when we used tf-idf as the features. Tf-idf is more powerful representative features than simply using the incidence of terms as features.
+The expreiments portrayed that LP combined with the Random Forest recorded the best result for the two type of features(tf-idf and term incidence), whereas the LP method combined with XGB performed the worst as shown in the following figures:
+
+![](Figs/English_7000.png)
+
+
+
+![](Figs/English_7000_table.png)
+
+In the following sections we will display the results in detail for each dataset. 
+
+####<span class="sub-sub-header">Dataset: English, Feature: Tf-idf</span> {.tabset  .tabset-fade}
+
+#####Label Powerset
+
+According to the following figures, LP with KNN and Random Forest performed the best, and XGBoost performed the worst.
+
+![](Figs/lp_EN_tfidf1.png)
+
+![](Figs/lp_EN_tfidf2.png)
+
+#####Binary Relevance
+We compared the three models where the labels are assumed to be independent. The BR method produced the best results when combined with XGBoost.
+
+![](Figs/br_EN_tfidf1.png) 
+
+
+![](Figs/br_EN_tfidf2.png) 
+
+#####Classifier Chain
+Similar to the BR method, CC method performed the best with the XGBoost classifier.
+
+![](Figs/cc_EN_tfidf1.png) 
+
+![](Figs/cc_EN_tfidf2.png) 
+
+
+#### <span class="sub-sub-header">Dataset: English, Feature: Term incidence</span>{.tabset  .tabset-fade}
+We wanted to test the performance of the models in case of employing more naive features as the incidence of terms. The experiments showed similar pattern to the experiments with tf-idf dataset-LP with the Random Forest scored the highest macro F1 value, with the XGBoost performing the worst. Nevertheless, classifiers trained on the incidence of terms as features did not score better than the ones trained on the tf-idf features.
+
+#####Label Powerset
+
+![](Figs/lp_EN_inc1.png)
+
+![](Figs/lp_EN_inc2.png) 
+
+
+#####Binary Relevance
+
+![](Figs/br_EN_inc1.png)
+
+![](Figs/br_EN_inc2.png) 
+
+#####Classifier Chain
+
+![](Figs/cc_EN_inc1.png)
+
+![](Figs/cc_EN_inc2.png) 
+
+####<span class="sub-header">Dataset: German</span>{.tabset  .tabset-fade}
+Similar to the experiments run over the English dataset, for the German dataset the experiments showed that LP combined with Random Forest or KNN recorded the best results for the two type of features(tf-idf and incidence of terms), compared to the low performance produced by the LP method combined with XGBoost.
+On the other hand, in the contrast to the results for the English dataset,for the German dataset, we observed higher macro F1 over all the nine trained classifiers when we used incidence of terms instead of the tf-idf as features. 
+
+![](Figs/German_7000.png)
+
+
+
+![](Figs/German_7000_table.png)
+
+In the following sections we will display the results of the experiments run on the German dataset in detail for each type of features.
+
+####<span class="sub-sub-header">Dataset: German, Feature: Tf-idf</span>{.tabset  .tabset-fade}
+Unlike the experiments conducted on the English dataset, LP combined with KNN deliverd slightly higher performance than the model combining the LP with Random Forest.
+
+#####Label Powerset
+
+![](Figs/lp_DE_tfidf1.png)
+![](Figs/lp_DE_tfidf2.png)
+
+#####Binary Relevance
+The performance of BR was significantly poor over the three models.
+![](Figs/br_DE_tfidf1.png)
+![](Figs/br_DE_tfidf2.png)
+
+####<span class="sub-sub-header">Dataset: German dataset, Feature: Incidence of terms</span>{.tabset  .tabset-fade}
+The classifiers performed better over term incidence features, which portrays term incidence are good discriminatory features compared tf-idf, which demands more computational effort compared to term incidence.
+
+#####Label Powerset
+
+![](Figs/lp_DE_inc1.png) 
+
+
+
+![](Figs/lp_DE_inc2.png) 
+
+
+#####Binary Relevance
+
+![](Figs/br_DE_inc1.png) 
+
+
+
+
+![](Figs/br_DE_inc2.png)
+
+###Dataset with reduced number of labelsets
+Training our classification models on a dataset with such a large number of labels(7000 labels) was a challenging task.
+we surmised that reducing the number of labels would improve the predictive capacity of the classifiers.
+To reduce the large number of labels, we take advantage of the "scumble" attribute provided by the **mldr** package. Scumble measure indicates the concurrence level among frequent and infrequent labels in the same labelsets.
+we simply removed imbalanced labelsets(i.e imbalanced labelsets are labelsets with frequent and infrequent labels) and kept only balanced labelsets by filtering only labelsets with lower level of scumble values than the mean scumble value of the dataset with the following command line:
+
+``` {r  include=TRUE, eval=FALSE}
+datasetWithBalancedLabelsets <- dataset[.SCUMBLE <= dataset$measures$scumble]
+``` 
+
+
+####<span class="sub-header">Dataset: English, Balanced labelsets</span>
+Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Employing the tf-idf features yielded higher macro F1 for classifiers trained on the complete set of labels. In the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:
+
+![](Figs/English_reduced.png)
+
+
+
+![](Figs/English_reduced_table.png)
+
+####<span class="sub-sub-header"> Dataset: English, Feature: Tf-idf, Balanced labelsets</span>{.tabset  .tabset-fade}
+For the tf-idf features, most of the classifiers trained on the balanced labelsets maintained almost similar levels of performance compared to the performace with the complete set of labels.
+
+#####Label Powerset
+
+![](Figs/lp_EN_tfidf1_red.png)
+
+![](Figs/lp_EN_tfidf2_red.png)
+
+#####Binary Relevance
+
+![](Figs/br_EN_tfidf1_red.png)
+
+![](Figs/br_EN_tfidf2_red.png)
+
+
+####<span class="sub-sub-header">Dataset: English, Feature: Term incidence, balanced labelsets</span> {.tabset .tabset-fade}
+For balanced labelsets, we observed better performance for the incidence features for all classifiers compared to the performance with the complete labelsets. LP combined with the Random Forest classifier outperformed the performance of the same classification model trained on the complete set with the tf-idf features. We consider incidence of terms as sufficient features even for the English dataset, after pruning the imbalanced labelsets.
+
+#####Label Powerset 
+
+ ![](Figs/lp_EN_inc1_red.png)
+ 
+ 
+ ![](Figs/lp_EN_inc2_red.png)
+ 
+ 
+
+#####Binary Relevance
+
+![](Figs/br_EN_inc1_red.png)
+ 
+
+
+![](Figs/br_EN_inc2_red.png)
+
+####<span class="sub-sub-header">Dataset: German, Balanced labelsets</span>
+
+![](Figs/German_reduced2.png)
+
+####<span class="sub-sub-header">Dataset: German, Feature: Tf-idf, Balanced labelsets</span>
+After removing the imbalanced labelsets, the macro F1 for the combination of LP with Random Forest increased by around 15%.
+
+![](Figs/lp_DE_tfidf1_red.png)
+
+![](Figs/lp_DE_tfidf2_red.png)
+
+####<span class="sub-sub-header">Dataset: German, Feature: Term incidence, balanced labelsets</span>
+
+![](Figs/lp_DE_rf_inc2_red.png)
+
+
+###<span class="sub-header">Conclusion</span>
+
+>>We can conclude for both English and German dataset,the best performance was deliverd by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure and trained on the terms incidence in order to gain the highest macro F1 values.
+
+- Based on the results of various experiments that we conducted on the different classification models, the best performance was observed for the combination <span class="emphasize">LP transform with Random Forest</span> and <span class="emphasize">LP transform with  K-nearest neighbour</span>, compared to BR transform along with the same classifiers .
+
+- As mentioned earlier, LP transform takes into consideration the correlation among the labels. In contrast, the BR transform assumes the labels to be independent and ignores any dependency among labels. We infer that the assumption of the independency of labels does not hold in the case of the EUR-Lex dataset.
+
+- Contrary to the LP method,each model in the BR transform considers the labels independently- it reduces the number of labels when applying the BR to build an independent classifier for each label, which improves the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.
+
+- In experiments over the BR transformation method, XGBoost performed better than the Random Forest and the k-nearest neighbour classifiers. We surmise, since XGBoost classifier is an ensemble model uses "Boosting" as a deliberate ensemble technique, whereas Random Forest employs "Bagging" as an ensemble technique and KNN encounters the curse of dimensionality.
+
+- CC transform method delivered poor performance across all classication models(k-nearest neighbour, Random Forest, XGBoost).
+
+- XGBoost performed the best with CC, due to the boosting optimization technique the XGBoost based on.
+
+- Suprisingly, we found the classifiers trained on the *terms incidence* features performed better than when trained on the *tf-idf* features. we think that the occurance of the term in a document was a sufficient distinctive feature of the documents of the legal EUR-Lex dataset.
+
+- With reduced labels we found that the classifiers overall performed better, though not much, for both English and German dataset.
+
+
+
+
+

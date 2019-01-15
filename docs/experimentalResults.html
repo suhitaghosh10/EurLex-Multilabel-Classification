@@ -336,12 +336,12 @@ div.tocify {
 
 
 <p>     </p>
-<div id="classification-task" class="section level2">
-<h2>Classification task</h2>
-<p>The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We divided the dataset into 24 subsets, each subset contains the same number of documents, we trained the classifiers over the subsets. The final evaluations results will be the average seperatly reported results for each subset. The dataset has around 7000 labels, an older version had only 4000 labels. To observe the effect of including a large number of labels on the classification task in general, we compared the predective performance of the models when trained on a dataset with 7000 labels and when trained on a dataset with a reduced number of labels.</p>
+<div id="classification" class="section level2">
+<h2>Classification</h2>
+<p>The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We have divided the dataset into 25 subsets, therefore each subset contains 1000 documents. We trained the classifiers over the subsets. The final evaluations results will be the average over the subsets.</p>
 <div id="classification-models" class="section level4">
 <h4><span class="sub-sub-header">Classification Models</span></h4>
-<p>We use three methods to transform the problem of multi-label classification task into a conventional multi-class classification task: binary relevance, label powerset, classifier chain. After transforming the classification problem, We trained three different classification models: Random Forest, k nearest neighbors, XGboosted trees.</p>
+<p>We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB).</p>
 <table class="kable_wrapper table table-striped table-hover table-condensed" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <tbody>
 <tr>
@@ -350,19 +350,19 @@ div.tocify {
 <thead>
 <tr>
 <th style="text-align:left;">
-classifier Models
+Classifier Models
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-———————-
+————————–
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-K nearest neighbours
+KNN
 </td>
 </tr>
 <tr>
@@ -383,14 +383,14 @@ Random Forest
 <thead>
 <tr>
 <th style="text-align:left;">
-Transformation methods
+Transform Methods
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-———————-
+————————–
 </td>
 </tr>
 <tr>
@@ -414,7 +414,18 @@ Label powerset
 </tr>
 </tbody>
 </table>
-<p>We trained nine classifaction models and compared the performance of the classifiers to produce the model that best fits the dataset and to choose the type of features to yield the best predictive performance. The following table shows the nine classifier models :</p>
+<p>We have trained nine classifaction models over 4 datasets - English tf-idf, English term incidence, German tf-idf, German term incidence and compared the performance of the classifiers, to answer the research questions:</p>
+<ul>
+<li>How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).<br />
+</li>
+<li>How the classifiers’ performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.<br />
+</li>
+<li>Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.<br />
+</li>
+<li>How the classifiers’ performance changes when the number of labels is reduced.</li>
+</ul>
+<p>The answers to these questions will help us understand whether we can apply machine learnin techniques to automatically categorize the legal text.</p>
+<p>The following table shows the nine classifier models :</p>
 <table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
 <tbody>
 <tr>
@@ -463,7 +474,8 @@ XGboost-Classifier Chain
 </div>
 <div id="experimental-settings" class="section level3">
 <h3><span class="sub-sub-header">Experimental settings</span></h3>
-<p>As mentioned earlier, the 25K documents dataset was split into 24 subsets.Each subset was split randomly into two disjointly subsets one for training and the other for testing, with the following proportions ( 65% used for training and 35% used for testing). We trained the previously mentioned classification models separately in order to compare their performance. We reported the results of the different models under different settings, we wanted to explore the performance of the classifiers with two types of features, with two languages and with different number of labelsets. The following table demonstrates the experimental settings:</p>
+<p>As mentioned earlier, the 25K documents dataset was split into 25 subsets.Each subset was split randomly into two disjoint subsets one for training and the other for testing, with the following proportions (65% used for training and 35% used for testing).</p>
+<p>We reported the results of the different models under different settings. We wanted to explore the performance of the classifiers with two types of features, with two languages and with different number of labelsets. The following table demonstrates the experimental settings:</p>
 <table class="kable_wrapper table" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <tbody>
 <tr>
@@ -512,12 +524,12 @@ Features
 </tr>
 <tr>
 <td style="text-align:left;">
-TFIDF
+Tf-idf
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-incidence of terms
+Terms incidence
 </td>
 </tr>
 </tbody>
@@ -554,63 +566,69 @@ only balanced labelsets
 </tr>
 </tbody>
 </table>
-<p>The following code shows the functions used for classification, we use <a href="https://cran.r-project.org/web/packages/utiml/index.html"><em>utiml</em></a> package. To split the dataset into training and testing set we use the function <a href="https://www.rdocumentation.org/packages/utiml/versions/0.1.4/topics/create_holdout_partition">create_holdout_partition()</a>.The example code is showen for <strong>binary relevance</strong> method. We simply change the method used into one of the following methods: <a href="https://rdrr.io/cran/utiml/man/lp.html">lp()</a> Label Powerset, <a href="https://rdrr.io/cran/utiml/man/br.html">br()</a> Binary Relevance, <a href="https://rdrr.io/cran/utiml/man/cc.html">cc()</a> Classifier Chain we had to destroy the model after exporting the performance results to avoid any problematics with memory capacity using the function <em>rm()</em></p>
+<p>The following code pertains to classification using BR transform.</p>
+<p>To split the dataset into training and testing subsets we have used the function <a href="https://www.rdocumentation.org/packages/utiml/versions/0.1.4/topics/create_holdout_partition">create_holdout_partition()</a>. To perform classification using other transform methods we have to replace <a href="https://rdrr.io/cran/utiml/man/br.html">br()</a> for Binary Relevance with <a href="https://rdrr.io/cran/utiml/man/lp.html">lp()</a> for Label Powerset, and <a href="https://rdrr.io/cran/utiml/man/cc.html">cc()</a> for Classifier Chain. we had to destroy the model after storing the performance results to free memory using the function <em>rm()</em>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
 <span class="kw">library</span>(utiml)
 
 train_ratio &lt;-<span class="st"> </span><span class="fl">0.65</span>
 test_ratio &lt;-<span class="st"> </span><span class="fl">0.35</span>
-iteration &lt;-<span class="st"> </span><span class="dv">24</span>
+iteration &lt;-<span class="st"> </span><span class="dv">25</span>
 
-<span class="cf">for</span>(index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>iteration){
+<span class="cf">for</span> (index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>iteration) {
+ds &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="kw">paste</span>(generic_name, index, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="kw">remove_unique_attributes</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove attribute having same value for all labels</span>
+<span class="kw">remove_unlabeled_instances</span>() <span class="op">%&gt;%</span><span class="st"> </span><span class="co">#remove instances having no labels</span>
+<span class="kw">create_holdout_partition</span>(<span class="kw">c</span>(<span class="dt">train =</span> train_ratio, <span class="dt">test =</span> test_ratio)) <span class="co">#create holdout samples for train and test</span>
 
-  ds &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="kw">paste</span>(generic_name,index,<span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">remove_attributes</span>(<span class="st">&quot;...&quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">remove_unique_attributes</span>() <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">remove_unlabeled_instances</span>() <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">create_holdout_partition</span>(<span class="kw">c</span>(<span class="dt">train=</span>train_ratio, <span class="dt">test=</span>test_ratio))
-  
-  ## KNN - K nearest neighbour
-  brmodel1 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;KNN&quot;</span>)
-  prediction1 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel1, ds<span class="op">$</span>test)
-  temp_knn &lt;-<span class="st"> </span><span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction1, <span class="st">&quot;bipartition&quot;</span>)
+## KNN - K nearest neighbour
+brmodel1 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;KNN&quot;</span>) <span class="co">#create model - BR +KNN</span>
+prediction1 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel1, ds<span class="op">$</span>test) <span class="co">#prediction for BR +KNN</span>
+temp_knn &lt;-
+<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction1, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score  for BR +KNN</span>
 
-  ##remove model of memory
-  <span class="kw">rm</span>(brmodel1)
-  <span class="kw">rm</span>(prediction1)
-  
-  ## RF - Random Forest
-  brmodel2 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;RF&quot;</span>)
-  prediction2 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel2, ds<span class="op">$</span>test)
-  temp_rf &lt;-<span class="st"> </span><span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction2, <span class="st">&quot;bipartition&quot;</span>)
+<span class="co">#remove memory consuming variables</span>
+<span class="kw">rm</span>(brmodel1)
+<span class="kw">rm</span>(prediction1)
 
-  <span class="kw">rm</span>(brmodel2)
-  <span class="kw">rm</span>(prediction2)
+## RF - Random Forest
+brmodel2 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;RF&quot;</span>) <span class="co">#create model - BR +RF</span>
+prediction2 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel2, ds<span class="op">$</span>test) <span class="co">#prediction for BR +RF</span>
+temp_rf &lt;-
+<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction2, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score for BR +RF</span>
 
-  ## XGB - eXtreme Gradient Boosting
-  brmodel3 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;XGB&quot;</span>)
-  prediction3 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel3, ds<span class="op">$</span>test)
-  temp_xgb &lt;-<span class="st"> </span><span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction3, <span class="st">&quot;bipartition&quot;</span>)
+<span class="co">#remove memory consuming variables</span>
+<span class="kw">rm</span>(brmodel2)
+<span class="kw">rm</span>(prediction2)
 
-  <span class="kw">rm</span>(brmodel3)
-  <span class="kw">rm</span>(prediction3)
-  <span class="cf">if</span>(index<span class="op">==</span><span class="dv">1</span>){
-  knn &lt;-<span class="st"> </span>temp_knn
-  rf &lt;-<span class="st"> </span>temp_rf
-  xgb &lt;-<span class="st"> </span>temp_xgb
-  }<span class="cf">else</span>{
-  knn &lt;-<span class="st"> </span><span class="kw">cbind</span>(knn,temp_knn)
-  rf &lt;-<span class="st"> </span><span class="kw">cbind</span>(rf,temp_rf)
-  xgb &lt;-<span class="st"> </span><span class="kw">cbind</span>(xgb, temp_xgb)
-  }</code></pre></div>
+## XGB - eXtreme Gradient Boosting
+brmodel3 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;XGB&quot;</span>) <span class="co">#create model - BR +XGB</span>
+prediction3 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel3, ds<span class="op">$</span>test) <span class="co">#prediction for BR +XGB</span>
+temp_xgb &lt;-
+<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction3, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score  for BR +XGB</span>
+
+<span class="co">#remove memory consuming variables</span>
+<span class="kw">rm</span>(brmodel3)
+<span class="kw">rm</span>(prediction3)
+
+<span class="co">#create dataframe of evaluation metric scores</span>
+<span class="cf">if</span> (index <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) {
+knn &lt;-<span class="st"> </span>temp_knn
+rf &lt;-<span class="st"> </span>temp_rf
+xgb &lt;-<span class="st"> </span>temp_xgb
+} <span class="cf">else</span>{
+knn &lt;-<span class="st"> </span><span class="kw">cbind</span>(knn, temp_knn)
+rf &lt;-<span class="st"> </span><span class="kw">cbind</span>(rf, temp_rf)
+xgb &lt;-<span class="st"> </span><span class="kw">cbind</span>(xgb, temp_xgb)
+}</code></pre></div>
 </div>
 <div id="experimental-results" class="section level3">
 <h3><span class="sub-header">Experimental Results</span></h3>
-<p>We tested the nine models over two languages (English and German) and with two types of features (TF-IDF and the terms incidence).<br />
-For the purpose of the evaluation task, The <strong>mldr</strong> package equiped us with various measurment tools, we will present all of them for each experiment, however, we chose marco F1 measurement(a measure combines between the precision and the recall) to compare the predective performance of all classifiers. Through the exploration process of the Eur-Lex dataset, the study revealed the class labels to be imbalanced (i.e some labels are frequent and some are infrequent). In that case considering accuracy is a misleading measure of the performance, instead we consider <strong>macro F1</strong> as a comparision factor among the classifiers. In General, across all the experiments, we inferred that combining the label powerset transformation method with the random forest classifier produced the best performance, however, combining the label powerset with the XGBoost classifier resulted in the worst performance.</p>
-<div id="dataset-english-dataset" class="section level4">
-<h4><span class="sub-header">Dataset: English dataset</span></h4>
-<p>For the English dataset, we observed higher macro F1 rates over all the nine trained classifiers when we used TF-IDF as the instances features. TF-IDFs are more powerful representative features than simply using the incidence of terms as features. The expreiments show that label powerset combined with the random forest recorded the best result for the two type of features(TF-IDF and Incidence), whereas the label powerset method combined with XGB performed the worst as shown in the following figures:</p>
+<p>We have applied the nine models over two languages (English and German) and with two types of features (TF-IDF and the terms incidence).<br />
+For the purpose of the evaluation task, The <strong>mldr</strong> package equipped us with <em>multilabel_evaluate</em> method to inspect many evaluation metrics(accuracy, micro based metrics, macro based metrics, precision, recall, F1, subset-accuracy). We will present all of them for each experiment. Through the exploration process of the Eur-Lex dataset, we come to know the class labels are imbalanced (i.e. some labels are frequent and some are infrequent). In that case considering accuracy is a misleading measure of the performance, instead we consider <strong>F1</strong> as a comparision factor among the classifiers. Infact we consider <strong>macro-F1</strong> as the Macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), which is desirable in case of class imbalance.</p>
+<div id="dataset-english" class="section level4">
+<h4><span class="sub-header">Dataset: English</span></h4>
+<p>For the English dataset, we observed higher macro F1 over all the nine trained classifiers when we used tf-idf as the features. Tf-idf is more powerful representative features than simply using the incidence of terms as features. The expreiments portrayed that LP combined with the Random Forest recorded the best result for the two type of features(tf-idf and term incidence), whereas the LP method combined with XGB performed the worst as shown in the following figures:</p>
 <div class="figure">
 <img src="Figs/English_7000.png" />
 
@@ -619,13 +637,13 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 <img src="Figs/English_7000_table.png" />
 
 </div>
-<p>In the following sections we will display the results in detail for each feature separately.</p>
+<p>In the following sections we will display the results in detail for each dataset.</p>
 </div>
-<div id="dataset-english-dataset-feature-tf-idf" class="section level4 tabset tabset-fade">
-<h4><span class="sub-sub-header">Dataset: English dataset, Feature: TF-IDF</span></h4>
+<div id="dataset-english-feature-tf-idf" class="section level4 tabset tabset-fade">
+<h4><span class="sub-sub-header">Dataset: English, Feature: Tf-idf</span></h4>
 <div id="label-powerset" class="section level5">
 <h5>Label Powerset</h5>
-<p>According to the following figures, the label powerset with the k-nearest neighbour and the random forest performed the best, however XGBoost performed the worst.</p>
+<p>According to the following figures, LP with KNN and Random Forest performed the best, and XGBoost performed the worst.</p>
 <div class="figure">
 <img src="Figs/lp_EN_tfidf1.png" />
 
@@ -637,7 +655,7 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 <div id="binary-relevance" class="section level5">
 <h5>Binary Relevance</h5>
-<p>We compared the three models where the labels are assumed to be independent. The binary relevance method produced the best results when combined with XGBoost.</p>
+<p>We compared the three models where the labels are assumed to be independent. The BR method produced the best results when combined with XGBoost.</p>
 <div class="figure">
 <img src="Figs/br_EN_tfidf1.png" />
 
@@ -649,7 +667,7 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 <div id="classifier-chain" class="section level5">
 <h5>Classifier Chain</h5>
-<p>Similar to the binary relevance method, classifier chain method performed the best with the XGBoost classifier.</p>
+<p>Similar to the BR method, CC method performed the best with the XGBoost classifier.</p>
 <div class="figure">
 <img src="Figs/cc_EN_tfidf1.png" />
 
@@ -660,9 +678,9 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 </div>
 </div>
-<div id="dataset-english-dataset-feature-incidence-of-terms" class="section level4 tabset tabset-fade">
-<h4><span class="sub-sub-header">Dataset: English dataset, Feature: Incidence of terms</span></h4>
-<p>We wanted to test the performance of the models in case of employing more naive features as the incidence of terms. For English language, the experiments showed similar pattern as the case in experiments conducted for TF-IDF features, where the label powerset with the random forest classifier scored the highest macro F1 value, with the XGBoost performing the worst. Nevertheless, classifiers trained on the incidence of terms as features did not score better than the ones trained on the TF-IDF features.</p>
+<div id="dataset-english-feature-term-incidence" class="section level4 tabset tabset-fade">
+<h4><span class="sub-sub-header">Dataset: English, Feature: Term incidence</span></h4>
+<p>We wanted to test the performance of the models in case of employing more naive features as the incidence of terms. The experiments showed similar pattern to the experiments with tf-idf dataset-LP with the Random Forest scored the highest macro F1 value, with the XGBoost performing the worst. Nevertheless, classifiers trained on the incidence of terms as features did not score better than the ones trained on the tf-idf features.</p>
 <div id="label-powerset-1" class="section level5">
 <h5>Label Powerset</h5>
 <div class="figure">
@@ -697,9 +715,9 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 </div>
 </div>
-<div id="dataset-german-dataset" class="section level4 tabset tabset-fade">
-<h4><span class="sub-header">Dataset: German Dataset</span></h4>
-<p>Similar to The expreiments run over the English dataset, for the German dataset the experiments show that label Powerset combined with both the random forest and the K-nearest neighbour recorded the best results for the two type of features(TF-IDF and Incidence of terms), compared to the low performance produced by the label powerset method combined with XGBoost. On the other hand, in the contrast to the results of the the English dataset experiments,for the German dataset, we observed higher macro F1 rates over all the nine trained classifiers when we used incidences of terms instead of the TF-IDFs as the instances features.</p>
+<div id="dataset-german" class="section level4 tabset tabset-fade">
+<h4><span class="sub-header">Dataset: German</span></h4>
+<p>Similar to the experiments run over the English dataset, for the German dataset the experiments showed that LP combined with Random Forest or KNN recorded the best results for the two type of features(tf-idf and incidence of terms), compared to the low performance produced by the LP method combined with XGBoost. On the other hand, in the contrast to the results for the English dataset,for the German dataset, we observed higher macro F1 over all the nine trained classifiers when we used incidence of terms instead of the tf-idf as features.</p>
 <div class="figure">
 <img src="Figs/German_7000.png" />
 
@@ -708,23 +726,23 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 <img src="Figs/German_7000_table.png" />
 
 </div>
-<p>In the following sections we will display the results of the experiments run on the German dataset in detail for each type of features separately.</p>
+<p>In the following sections we will display the results of the experiments run on the German dataset in detail for each type of features.</p>
 </div>
-<div id="dataset-german-dataset-feature-tf-idf" class="section level4 tabset tabset-fade">
-<h4><span class="sub-sub-header">Dataset: German dataset, Feature: TF-IDF</span></h4>
-<p>Extracting TF-IDFs features is computentially expensive. Comparing the low performance of the classifiers to the better performance of the one trained on the incidence of terms, lead us to qualify the terms incidences as more effective features to train the classifiers on. Unlike the English experiments, the label powerset combined with the k-nearest neighbour deliverd slightly higher performance than the classifier combining the label powerset with the random forest.</p>
+<div id="dataset-german-feature-tf-idf" class="section level4 tabset tabset-fade">
+<h4><span class="sub-sub-header">Dataset: German, Feature: Tf-idf</span></h4>
+<p>Unlike the experiments conducted on the English dataset, LP combined with KNN deliverd slightly higher performance than the model combining the LP with Random Forest.</p>
 <div id="label-powerset-2" class="section level5">
 <h5>Label Powerset</h5>
 <p><img src="Figs/lp_DE_tfidf1.png" /> <img src="Figs/lp_DE_tfidf2.png" /></p>
 </div>
 <div id="binary-relevance-2" class="section level5">
 <h5>Binary Relevance</h5>
-<p>The performance of the binary relevance was significantly poor over the three models. <img src="Figs/br_DE_tfidf1.png" /> <img src="Figs/br_DE_tfidf2.png" /></p>
+<p>The performance of BR was significantly poor over the three models. <img src="Figs/br_DE_tfidf1.png" /> <img src="Figs/br_DE_tfidf2.png" /></p>
 </div>
 </div>
 <div id="dataset-german-dataset-feature-incidence-of-terms" class="section level4 tabset tabset-fade">
 <h4><span class="sub-sub-header">Dataset: German dataset, Feature: Incidence of terms</span></h4>
-<p>Based on the better performance deliverd when the classifiers trained on the the incidence of terms, we can consider the incidence of terms as sufficient features instead of the computentially expensive extraction of the TF-IDF features.</p>
+<p>The classifiers performed better over term incidence features, which portrays term incidence are good discriminatory features compared tf-idf, which demands more computational effort compared to term incidence.</p>
 <div id="label-powerset-3" class="section level5">
 <h5>Label Powerset</h5>
 <div class="figure">
@@ -751,11 +769,11 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 <div id="dataset-with-reduced-number-of-labelsets" class="section level3">
 <h3>Dataset with reduced number of labelsets</h3>
-<p>Training our classification models on a dataset with such a large number of labels(7000 labels) was a challenging task. we expected that reducing the number of labels would improve the predective capacity of the classifiers. To reduce the large number of labels, we take advangtage of the “scumble” measure provided by the <strong>mldr</strong> package. Scumble measure indicates the concurrence level among frequent and infrequent labels in the same labelsets. we simply removed imbalanced labelsets(i.e imbalanced labelsets are labelsets with frequent and infrequent labels) and kept only balanced labelsets by filtering only labelsets with lower level of scumble values than the mean scumble value of the dataset with the following command line:</p>
+<p>Training our classification models on a dataset with such a large number of labels(7000 labels) was a challenging task. we surmised that reducing the number of labels would improve the predictive capacity of the classifiers. To reduce the large number of labels, we take advantage of the “scumble” attribute provided by the <strong>mldr</strong> package. Scumble measure indicates the concurrence level among frequent and infrequent labels in the same labelsets. we simply removed imbalanced labelsets(i.e imbalanced labelsets are labelsets with frequent and infrequent labels) and kept only balanced labelsets by filtering only labelsets with lower level of scumble values than the mean scumble value of the dataset with the following command line:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">datasetWithBalancedLabelsets &lt;-<span class="st"> </span>dataset[.SCUMBLE <span class="op">&lt;=</span><span class="st"> </span>dataset<span class="op">$</span>measures<span class="op">$</span>scumble]</code></pre></div>
-<div id="dataset-english-dataset-balanced-labelsets" class="section level4">
-<h4><span class="sub-header">Dataset: English dataset, balanced labelsets</span></h4>
-<p>Generaly, pruning the labelsets through removing imbalanced labelsets improved the performance. Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Although employing the TF-IDF features yielded in higher macro F1 for classifiers trained on the complete set of labels, in the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:</p>
+<div id="dataset-english-balanced-labelsets" class="section level4">
+<h4><span class="sub-header">Dataset: English, Balanced labelsets</span></h4>
+<p>Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Employing the tf-idf features yielded higher macro F1 for classifiers trained on the complete set of labels. In the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:</p>
 <div class="figure">
 <img src="Figs/English_reduced.png" />
 
@@ -765,9 +783,9 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 
 </div>
 </div>
-<div id="dataset-english-dataset-feature-tf-idf-balanced-labelsets" class="section level4 tabset tabset-fade">
-<h4><span class="sub-sub-header"> Dataset: English dataset, Feature: TF-IDF, balanced labelsets</span></h4>
-<p>For the TF-IDFs features, most of the classifiers trained on the balanced labelsets maintained almost similar levels of performance compared to the performace with the complete set of labels.</p>
+<div id="dataset-english-feature-tf-idf-balanced-labelsets" class="section level4 tabset tabset-fade">
+<h4><span class="sub-sub-header"> Dataset: English, Feature: Tf-idf, Balanced labelsets</span></h4>
+<p>For the tf-idf features, most of the classifiers trained on the balanced labelsets maintained almost similar levels of performance compared to the performace with the complete set of labels.</p>
 <div id="label-powerset-4" class="section level5">
 <h5>Label Powerset</h5>
 <div class="figure">
@@ -791,9 +809,9 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 </div>
 </div>
-<div id="dataset-english-dataset-feature-incidence-of-terms-balanced-labelsets" class="section level4 tabset tabset-fade">
-<h4><span class="sub-sub-header">Dataset: English dataset, Feature: Incidence of terms, balanced labelsets</span></h4>
-<p>For balanced labelsets, we observed better performance for the incidence features for all classifiers compared to the performance with the complete labelsets. The label powerset combined with the random forest classifier outperformed the performance of the same classification model trained on the complete set with the TF-IDF features. We consider incidences of terms as sufficient features even for the English dataset in case of removing imbalanced labelsets.</p>
+<div id="dataset-english-feature-term-incidence-balanced-labelsets" class="section level4 tabset tabset-fade">
+<h4><span class="sub-sub-header">Dataset: English, Feature: Term incidence, balanced labelsets</span></h4>
+<p>For balanced labelsets, we observed better performance for the incidence features for all classifiers compared to the performance with the complete labelsets. LP combined with the Random Forest classifier outperformed the performance of the same classification model trained on the complete set with the tf-idf features. We consider incidence of terms as sufficient features even for the English dataset, after pruning the imbalanced labelsets.</p>
 <div id="label-powerset-5" class="section level5">
 <h5>Label Powerset</h5>
 <div class="figure">
@@ -817,16 +835,16 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 </div>
 </div>
 </div>
-<div id="dataset-german-dataset-balanced-labelsets" class="section level4">
-<h4><span class="sub-sub-header">Dataset: German dataset, balanced labelsets</span></h4>
+<div id="dataset-german-balanced-labelsets" class="section level4">
+<h4><span class="sub-sub-header">Dataset: German, Balanced labelsets</span></h4>
 <div class="figure">
 <img src="Figs/German_reduced2.png" />
 
 </div>
 </div>
-<div id="dataset-german-dataset-feature-tf-idf-balanced-labelsets" class="section level4">
-<h4><span class="sub-sub-header">Dataset: German dataset, Feature: TF-IDF, balanced labelsets</span></h4>
-<p>In the case of removing imbalanced labelsets, the macro F1 value of the label powerset with the random forest classifier increased by around(15%).</p>
+<div id="dataset-german-feature-tf-idf-balanced-labelsets" class="section level4">
+<h4><span class="sub-sub-header">Dataset: German, Feature: Tf-idf, Balanced labelsets</span></h4>
+<p>After removing the imbalanced labelsets, the macro F1 for the combination of LP with Random Forest increased by around 15%.</p>
 <div class="figure">
 <img src="Figs/lp_DE_tfidf1_red.png" />
 
@@ -836,8 +854,8 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 
 </div>
 </div>
-<div id="dataset-german-dataset-feature-incidence-of-terms-balanced-labelsets" class="section level4">
-<h4><span class="sub-sub-header">Dataset: German dataset, Feature: Incidence of terms, balanced labelsets</span></h4>
+<div id="dataset-german-feature-term-incidence-balanced-labelsets" class="section level4">
+<h4><span class="sub-sub-header">Dataset: German, Feature: Term incidence, balanced labelsets</span></h4>
 <div class="figure">
 <img src="Figs/lp_DE_rf_inc2_red.png" />
 
@@ -854,10 +872,10 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipe
 <ul>
 <li><p>Based on the results of various experiments that we conducted on the different classification models, the best performance was observed for the combination <span class="emphasize">LP transform with Random Forest</span> and <span class="emphasize">LP transform with K-nearest neighbour</span>, compared to BR transform along with the same classifiers .</p></li>
 <li><p>As mentioned earlier, LP transform takes into consideration the correlation among the labels. In contrast, the BR transform assumes the labels to be independent and ignores any dependency among labels. We infer that the assumption of the independency of labels does not hold in the case of the EUR-Lex dataset.</p></li>
-<li><p>Contrary to the LP method,the BR considers the labels themself. It reduces the number of labels when applying the BR to build an independent classifier for each label, which improves the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.</p></li>
+<li><p>Contrary to the LP method,each model in the BR transform considers the labels independently- it reduces the number of labels when applying the BR to build an independent classifier for each label, which improves the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.</p></li>
 <li><p>In experiments over the BR transformation method, XGBoost performed better than the Random Forest and the k-nearest neighbour classifiers. We surmise, since XGBoost classifier is an ensemble model uses “Boosting” as a deliberate ensemble technique, whereas Random Forest employs “Bagging” as an ensemble technique and KNN encounters the curse of dimensionality.</p></li>
 <li><p>CC transform method delivered poor performance across all classication models(k-nearest neighbour, Random Forest, XGBoost).</p></li>
-<li><p>XGBoost performed the best with CC, due to the boosting optimization technique the xgboost based on.</p></li>
+<li><p>XGBoost performed the best with CC, due to the boosting optimization technique the XGBoost based on.</p></li>
 <li><p>Suprisingly, we found the classifiers trained on the <em>terms incidence</em> features performed better than when trained on the <em>tf-idf</em> features. we think that the occurance of the term in a document was a sufficient distinctive feature of the documents of the legal EUR-Lex dataset.</p></li>
 <li><p>With reduced labels we found that the classifiers overall performed better, though not much, for both English and German dataset.</p></li>
 </ul>
