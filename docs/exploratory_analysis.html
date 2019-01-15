@@ -845,8 +845,8 @@ eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="s
 ## accession_criteria_              0.6720641 0.008151489
 ## accession_negotiations_          0.6720641 0.008151489</code></pre>
 <p>The <em>mldr</em> package provides a plot() function specific for dealing with “mldr” objects, allowing the generation of several specific types of plots. Otherwise the exploratory analysis of the MLD would have been tedious, as there are thousands of attributes and labels.</p>
-<div id="concurrence-ch-plot" class="section level5">
-<h5><span class="header">Concurrence (CH) Plot </span></h5>
+<div id="concurrence-lc-plot" class="section level5">
+<h5><span class="header">Concurrence (LC) Plot </span></h5>
 <p>The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - <em>water, pollution and employment</em>.<br />
 We can choose the labels from the mldr attribute <em>eurlex$labels</em>. But, the plots of mldr use <em>eurlex$attributes</em>, and they contain all features and labels. So we need to find those labels’ indices in <em>eurlex$attributes</em>. <em>eurlex$attributes</em> first start with features and then followed by labels.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(eurlex<span class="op">$</span>attributes)</code></pre></div>

@@ -632,7 +632,7 @@ head(eurlex$labels, 10)
 
 The *mldr* package provides a plot() function specific for dealing with "mldr" objects, allowing the generation of several specific types of plots. Otherwise the exploratory analysis of the MLD would have been tedious, as there are thousands of attributes and labels. 
 
-##### <span class="header">Concurrence (CH) Plot </span>
+##### <span class="header">Concurrence (LC) Plot </span>
 
 The concurrence plot explores interactions among labels. This plot has a circular shape, with the circumference partitioned into many disjoint arcs representing labels. Each arc has length proportional to the number of instances where the label is present. These arcs are in turn divided into bands that join two of them, showing the relation between the corresponding labels. The width of each band is proportional to the number of instances in which both labels appear simultaneously. Since drawing interactions among all the labels can produce a confusing result, we have plotted for some labels containing terms - *water, pollution and employment*.  
 We can choose the labels from the mldr attribute *eurlex\$labels*. But, the plots of mldr use *eurlex\$attributes*, and they contain all features and labels. So we need to find those labels' indices in *eurlex\$attributes*.   *eurlex\$attributes* first start with features and then followed by labels.

@@ -363,7 +363,7 @@ Labels' information in the MLD, including the number of times they appear, their
 #inspect first 20 labels
 head(eurlex$labels, 20)
 ```
-#### Concurrence Plot (CH)
+#### Concurrence Plot (LC)
 The concurrence plot explores interactions among labels. We choose some labels for the plot, as plotting all of them would produce a very confusing result.
 We can choose the labels from the mldr attribute *eurlex\$labels*. But, the plots of mldr use *eurlex\$attributes*, and they contain all features and labels. So we need to find those labels' indices in *eurlex\$attributes*. *eurlex\$attributes* start with features and ends with labels.
 ```{r mldr_attrib_en, include=TRUE, cached=TRUE }
@@ -856,7 +856,7 @@ We inspect the labels for German dataset as well.
 #inspect first 20 labels
 head(eurlex$labels, 20)
 ```
-#### Concurrence Plot (CH)
+#### Concurrence Plot (LC)
 We will now explore the interactions among labels using the concurrence plot. Similar to the English mldr analysis we will choose some labels for the plot.
 ```{r mldr_attrib_de, include=TRUE, cached=TRUE }
 #selecting few labels/categories
