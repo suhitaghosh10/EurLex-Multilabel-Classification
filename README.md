@@ -22,9 +22,10 @@ Please note if you are downloading the code from Web, data would not get downloa
 The content in the repository has been stored in the following manner:
 * configuration -> The configuration files used for the project
 * data -> The data used for the project
-* docs -> The documents for the website (markdown, html, site xml, pictures)
 * report -> R Process notebook (markdown + html)
 * scripts -> R scripts
+* docs -> The documents for the website (markdown, html, site xml, pictures)
+* output -> udpipe models and mldr datasets generated will be stored here
 
 # Process Notebook configuration
 Since the dataset comprises around 25,000 documents, it will take long time to execute the process notebook over the entire corpus. For trying out the process notebook on a small sample, some parameters have been defined in the file *configuration/config.R*. Please adjust the following parameters before running the notebook.
