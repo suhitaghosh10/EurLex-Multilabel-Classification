@@ -1,6 +1,6 @@
 # EurLexClassification
 
-A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 22 different languages. This is popularly known as the EUR-Lex dataset containing about twenty thousand documents and seven thousand labels. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this data set an interesting proposition. Few publications have used this dataset; the ones that have used this have reported relatively poor values in the range of 50% (which may be fair, given the high number of labels).
+A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 24 different languages. This is popularly known as the EUR-Lex dataset containing about twenty thousand documents and seven thousand labels. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this data set an interesting proposition. Few publications have used this dataset; the ones that have used this have reported relatively poor values in the range of 40%.
 
 # Website URL
 https://suhitaghosh10.github.io/EurLexClassification
@@ -27,7 +27,7 @@ The content in the repository has been stored in the following manner:
 * scripts -> R scripts
 
 # Process Notebook configuration
-Since the dataset comprises around 25,000 documents, it will take long time to execute the process notebook over the entire corpus. For trying out the process notebook on a small sample, some parameters have been defined in the file *configuration/config.R*. Please adjust the parameters as following before running the notebook.
+Since the dataset comprises around 25,000 documents, it will take long time to execute the process notebook over the entire corpus. For trying out the process notebook on a small sample, some parameters have been defined in the file *configuration/config.R*. Please adjust the following parameters before running the notebook.
 - doc_number (the number of documents to be considered)
 - batch_number (the number of batches of datasets to be generated for classification)
 
