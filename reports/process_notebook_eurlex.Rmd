@@ -51,7 +51,7 @@ To answer the question we need to answer some research questions:
            - Label Powerset (LP) [@boutell2004learning]
            - Classifier Chain (CC) [@read2011classifier]
      
-     + Apply the classifiers (Nearest Neighbour, Random Forest, XGBoost) over the preprocessed dataset (tf-idf and term incidence) for German and English text *for reduced labels*, and for two flavours of multilabel classification methods:  
+     + Apply the classifiers (Nearest Neighbour, Random Forest, XGBoost) over the preprocessed dataset (tf-idf and term incidence) for German and English text *for balanced labelsets*, and for two flavours of multilabel classification methods:  
            - Binary Relevance (BR)
            - Label Powerset (LP)
 
@@ -65,7 +65,7 @@ To answer the question we need to answer some research questions:
     + Two languages (English and German)
     + Two kinds of features (tf-idf and incidence)
     + Three flavours of multilable classification algorithms (Binary Relevance, Label Powerset, Classifier Chain)
-    + Reduced labels
+    + Balanced labelsets
 
 ## Data
 
@@ -355,7 +355,7 @@ if(!file.exists(paste(tfidfFileName, 1, ".arff", sep = "")) ||
    eurlex <- mldr(paste(tfidfFileName, "1", sep = ""))
    summary(eurlex)
 ```
-As we know the value of scumble lies in the range [0,1], and a low score would denote a MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. The scumble value of our dataset is pretty high, implying there is a good amount of concurrence among imbalanced labels. The level of imbalance of a determinate label can also be measured by the imbalance ratio per label (IRLbl). This value will be 1 for the most frequent label and a greater value for the rest. The larger the IRLbl is, the higher would be the imbalance level for the considered label. The mean IRbl (meanIR) gives the mean IRLbl value over all labels. For the dataset the meanIR is also quite high (24) indicating a good amount of imbalance. Therefore from the above statistics we can infer it is indeed a difficult classification problem. 
+As we know the value of scumble lies in the range [0,1], and a low score would denote a MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. The scumble value of our dataset is pretty high, implying there is a good amount of concurrence among imbalanced labels. The level of imbalance of a determinate label can also be measured by the imbalance ratio per label (IRLbl). This value will be 1 for the most frequent label and a greater value for the rest. The larger the IRLbl is, the higher would be the imbalance level for the considered label. The mean IRbl (meanIR) gives the mean IRLbl value over all labels. For the dataset the meanIR is also quite high indicating a good amount of imbalance. Therefore from the above statistics we can infer it is indeed a difficult classification problem. 
 
 #### Labels' information
 Labels' information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the *labels* member of the *mldr* class.
@@ -441,7 +441,7 @@ set.seed(123) #ensures to reproduce results.
 
 
 #### Classification on tf-idf dataset using BR
-The method *classify* performs classification over the specified dataset, for one of the multilabel flavour (Binary relevance -*br*, Labelpowerset- *lp* or Classifier Chain-*cc*), and for one of the classifiers (Nearest Neighbour-*KNN*, Random Forest-*RF*, XGBoost-*XGB*). The last input to method *classify* is a flag which determines whether to consider reduced labels or not. The method returns the average of the metrics' values over the batches of dataset.
+The method *classify* performs classification over the specified dataset, for one of the multilabel flavour (Binary relevance -*br*, Labelpowerset- *lp* or Classifier Chain-*cc*), and for one of the classifiers (Nearest Neighbour-*KNN*, Random Forest-*RF*, XGBoost-*XGB*). The last input to method *classify* is a flag which determines whether to consider balanced labelsets or not. The method returns the average of the metrics' values over the batches of dataset.
 
 We start with classification using BR Transform over tf-idf English dataset, using original labels (non-reduced).
 ```{r br_tf_en, message = TRUE, include = TRUE, eval = TRUE, warning= FALSE}
@@ -464,7 +464,7 @@ ggplot(perf_metric_br)+
   theme_bw()+theme(strip.text.y = element_text(angle=0)) #makes text on y axis parallel to x axis
 ```
 
-We compared the three models where the labels are assumed to be independent. The three models performed almost similiarly. In certain aspects like micro-precision and precision Random forest performed much better than the others.
+We compared the three models where the labels are assumed to be independent. The three models performed almost similarly. In certain aspects like micro-precision and precision Random forest performed much better than the others.
 
 #### Classification on tf-idf dataset using LP
 We similarly perform classification using LP flavour of MLD classification and plot the metrics.
@@ -613,8 +613,8 @@ ggplot(perf_metric)+geom_tile(aes(x=classificationModel,y=classifier,fill=macroF
 For the English dataset, we observed higher macro F1 rates over all the nine trained classifiers when we used TF-IDFs as the instances features. TF-IDFs are more powerful representative features than simply using the incidence of terms as features. The experiments show that Label Powerset combined with Random forest recorded the best result for the two type of features(TF-IDF and Incidence), whereas the Label Powerset method combined with XGB preformed the worst.
 
 
-#### Classification using reduced labels
-Classification on the tf-idf dataset is done similarly by using BR, LP and CC, but using reduced labels. By reducing labels we mean disabling majority labels on instances with highly imbalanced labels. We will try to answer the research question- *whether classification accuracy improves with reduced labels?*. To answer this first we have to answer another research question- *which flavour of MLD classification algorithm and classifier(knn,rf,xgb) performs best for reduced labels?*
+#### Classification using balanced labelsets
+Classification on the tf-idf dataset is done similarly by using BR, LP and CC, but using balanced labelsets. By reducing labels we mean disabling majority labels on instances with highly imbalanced labels. We will try to answer the research question- *whether classification accuracy improves with balanced labelsets?*. To answer this first we have to answer another research question- *which flavour of MLD classification algorithm and classifier(knn,rf,xgb) performs best for balanced labelsets?*
 We are considering only tf-idf dataset as performance of the classification was comparable on both the datasets.
 ```{r cls_red_labels_en , message=TRUE, include=TRUE, eval=TRUE, warning= FALSE  }
 knn_tfidf_br_red_results_mean <- classify(tfidfFileName,"br","KNN", TRUE)
@@ -653,7 +653,7 @@ g_cc <- ggplot(perf_metric_cc)+geom_tile(aes(x=model,y=metrics,fill=value),color
 grid.arrange(g_br, g_lp, g_cc, nrow = 2,ncol = 2)
 ```
 
-With respect to Macro-F1, LP and Random Forest performs the best with the score of 0.258. For the original datasets (without reduced labels), the macro-F1 score was 0.25. Therefore, there was a very slight improvement with the label reduction.
+With respect to Macro-F1, LP and Random Forest performs the best with the score of 0.258. For the original datasets (without balanced labelsets), the macro-F1 score was 0.25. Therefore, there was a very slight improvement with the label reduction.
 
 We can conclude for the English balanced labelsets, that we observed better performance for the incidence features for all the classifiers compared to the performance with the complete label sets. LP combined with the Random Forest classifier outperformed the performance for the same classification model trained on the complete set with the tf-idf features. It can be said that for more balanced label sets, the terms incidencs features were sufficient even for the English dataset.
 
@@ -998,8 +998,8 @@ We observe for German corpus LP+Random forest performs best using incidence feat
 
 Unlike the earlier results of the experiments run for the English dataset, for the German dataset, we observed higher macro F1 rates over all the nine trained classifiers when we used term incidence instead of the TF-IDFs as the instances features. The experiments show that Label Powerset combined with both the Random forest and the K nearest neighbour recorded the best result for the two type of features(TF-IDF and Incidence), compared to the low performance produced by the Label Powerset method combined with XGB.
 
-#### Classification using reduced labels
-Here we will try to answer the research question for German text also *whether classification accuracy improves with reduced labels for German dataset*. We considered both tf-idf and incidence.
+#### Classification using balanced labelsets
+Here we will try to answer the research question for German text also *whether classification accuracy improves with balanced labelsets for German dataset*. We considered both tf-idf and incidence.
 
 For tf-idf we considered only Random forest and KNN along with LP Transform, as they had performed very closely, and the other combinations performed much worse than them, with respect to most of the metrics.
 ```{r cls_red_labels_de , message=TRUE, include=TRUE, eval=TRUE, warning= FALSE  }
@@ -1007,7 +1007,7 @@ knn_tfidf_lp_red_results_mean_de <- classify(tfidfFileName,"lp","KNN", TRUE)
 rf_tfidf_lp_red_results_mean_de <- classify(tfidfFileName,"lp","RF", TRUE)
 ```
 
-First we analyse which classifier performed best for LP over reduced labels.
+First we analyse which classifier performed best for LP over balanced labelsets.
 ```{r mld_red_label_plot_de, message=TRUE, include=TRUE,eval=TRUE  }
 performance_lp <- as.data.frame(rbind( knn_tfidf_lp_red_results_mean, rf_tfidf_lp_red_results_mean,xgb_tfidf_lp_red_results_mean))
 performance_lp[["model"]] <- c('knn','rf','xgb')
@@ -1021,7 +1021,7 @@ ggplot(perf_metric_lp)+geom_tile(aes(x=model,y=metrics,fill=value),color="black"
 
 We can see Random forest performs best. Also removing the imbalanced labels, the macro F1 value of the Label Powerset with the Random forest classifier increased by around(15%).
 
-We now perform classification over reduced labels for German incidence features and compare the performance with the original(non-reduced) one. We have considered only Random Forest+LP combination, as this combination performed best among all for the original German incidence dataset. 
+We now perform classification over balanced labelsets for German incidence features and compare the performance with the original(non-reduced) one. We have considered only Random Forest+LP combination, as this combination performed best among all for the original German incidence dataset. 
 ```{r _red_label_plot_de, message=TRUE, include=TRUE, eval=TRUE  }
 performance_lp_rf <- classify(incFileName,"lp","RF", TRUE)
 performance_lp_rf
@@ -1076,11 +1076,11 @@ In experiments over the BR transformation method, XGBoost performed better than 
 
 **Features (tf-idf/term incidence)** - Suprisingly, we found the classifiers trained on the terms incidence features performed better than when trained on the TFIDF features. we think that the occurance of the term in a document was a sufficient distinctive feature of the documents of the legal EUR-Lex dataset.
 
-**Reduced Labels** - With reduced labels we found that classifiers overall performed better, though not much, for both English and German dataset.
+**Balanced Labelsets** - With balanced labelsets we found that classifiers overall performed better, though not much, for both English and German dataset.
 
 We can conclude for both English and German dataset,the best performance was delivered by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure provided by the **mldr** package and trained on the terms incidence in order to gain the highest macro F1 values.
 
 ###<span class="sub-header">Conclusion</span>
 
-The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.
+The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature [@rabiger2018annotators] while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.
 
