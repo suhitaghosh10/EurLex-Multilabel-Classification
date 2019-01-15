@@ -211,7 +211,7 @@ $(document).ready(function ()  {
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
     };
-    options.showAndHide = false;
+    options.showAndHide = true;
     options.smoothScroll = false;
 
     // tocify
@@ -274,12 +274,6 @@ div.tocify {
   border-radius: 0px;
 }
 
-.tocify-subheader {
-  display: inline;
-}
-.tocify-subheader .tocify-item {
-  font-size: 0.95em;
-}
 
 </style>
 
@@ -339,8 +333,8 @@ div.tocify {
 <div id="classification" class="section level2">
 <h2>Classification</h2>
 <p>The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We have divided the dataset into 25 subsets, therefore each subset contains 1000 documents. We trained the classifiers over the subsets. The final evaluations results will be the average over the subsets.</p>
-<div id="classification-models" class="section level4">
-<h4><span class="sub-sub-header">Classification Models</span></h4>
+<div id="classification-models" class="section level3">
+<h3><span class="sub-header">Classification Models</span></h3>
 <p>We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB). We have used the <em>knn</em> classifier from the package <a href="https://www.rdocumentation.org/packages/kknn/versions/1.3.1/topics/kknn">kknn</a>, <em>Random Forest</em> from <a href="https://www.rdocumentation.org/packages/randomForest">randomForest</a> and <em>XGBoost</em> from <a href="https://cran.r-project.org/web/packages/xgboost/xgboost.pdf">xgboost</a>. We have used the default parameters for the packages (kknn, randomforest, xgboost) for the classification task.</p>
 <table class="kable_wrapper table table-striped table-hover table-condensed" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <tbody>
@@ -418,7 +412,7 @@ Label powerset
 <ul>
 <li>How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).<br />
 </li>
-<li>How the classifiers’ performance changes with different features- one with term frequencyâ€“inverse document frequency(tf-idf), another with term incidence.<br />
+<li>How the classifiers’ performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.<br />
 </li>
 <li>Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.<br />
 </li>
@@ -473,7 +467,7 @@ XGboost-Classifier Chain
 </table>
 </div>
 <div id="experimental-settings" class="section level3">
-<h3><span class="sub-sub-header">Experimental settings</span></h3>
+<h3><span class="sub-header">Experimental settings</span></h3>
 <p>As mentioned earlier, the 25K documents dataset was split into 25 subsets.Each subset was split randomly into two disjoint subsets one for training and the other for testing, with the following proportions (65% used for training and 35% used for testing).</p>
 <p>We reported the results of the different models under different settings. We wanted to explore the performance of the classifiers with two types of features, with two languages and with different number of labelsets. The following table demonstrates the experimental settings:</p>
 <table class="kable_wrapper table" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -780,13 +774,13 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 </div>
 </div>
-</div>
-<div id="dataset-with-reduced-number-of-labelsets" class="section level3">
-<h3>Dataset with reduced number of labelsets</h3>
+<div id="dataset-with-balanced-labelsets" class="section level4">
+<h4><span class="sub-header">Dataset with balanced labelsets</h4>
 <p>Training our classification models on a dataset with such a large number of labels(7000 labels) was a challenging task. we surmised that reducing the number of labels would improve the predictive capacity of the classifiers. To reduce the large number of labels, we take advantage of the “scumble” attribute provided by the <strong>mldr</strong> package. Scumble measure indicates the concurrence level among frequent and infrequent labels in the same labelsets. we simply removed imbalanced labelsets(i.e imbalanced labelsets are labelsets with frequent and infrequent labels) and kept only balanced labelsets by filtering only labelsets with lower level of scumble values than the mean scumble value of the dataset with the following command line:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">datasetWithBalancedLabelsets &lt;-<span class="st"> </span>dataset[.SCUMBLE <span class="op">&lt;=</span><span class="st"> </span>dataset<span class="op">$</span>measures<span class="op">$</span>scumble]</code></pre></div>
+</div>
 <div id="dataset-english-balanced-labelsets" class="section level4">
-<h4><span class="sub-header">Dataset: English, Balanced labelsets</span></h4>
+<h4><span class="sub-sub-header">Dataset: English, Balanced labelsets</span></h4>
 <p>This section the research question for the English corpus:<br />
 <span class="emphasize">How the classifiers’ performance changes when the number of labels is reduced, and which features delivered the best performance.</span></p>
 <p>Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Employing the tf-idf features yielded higher macro F1 for classifiers trained on the complete set of labels. In the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:</p>
@@ -900,9 +894,12 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 <div id="conclusion" class="section level3">
 <h3><span class="sub-header">Conclusion</span></h3>
 <p>The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies that the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature <span class="citation">[<a href="#ref-rabiger2018annotators">1</a>]</span> while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.</p>
+<div id="references" class="section level4 unnumbered">
+<h4><span class="sub-header">References</span></h4>
 <div id="refs" class="references">
 <div id="ref-rabiger2018annotators">
 <p>1. Räbiger S, Spiliopoulou M, Saygına Y. How do annotators label short texts? Toward understanding the temporal dynamics of tweet labeling. 2018.</p>
+</div>
 </div>
 </div>
 </div>

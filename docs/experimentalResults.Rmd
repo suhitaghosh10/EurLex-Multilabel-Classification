@@ -1,13 +1,14 @@
+
 ---
 header-includes:
    - \usepackage{bbm}
 always_allow_html: yes
 output:
-  html_document: 
+  html_document:
     toc: true
     toc_depth: 6
     toc_float: 
-      collapsed: false
+      collapsed: true
       smooth_scroll: false
     theme: united
     highlight: haddock
@@ -28,7 +29,7 @@ bibliography: bibliography.bib
 ##Classification
 The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We have divided the dataset into 25 subsets, therefore each subset contains 1000 documents. We trained the classifiers over the subsets. The final evaluations results will be the average over the subsets.  
 
-####<span class="sub-sub-header">Classification Models</span>
+###<span class="sub-header">Classification Models</span>
 We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB). We have used the _knn_ classifier from the package [kknn](https://www.rdocumentation.org/packages/kknn/versions/1.3.1/topics/kknn), _Random Forest_ from [randomForest](https://www.rdocumentation.org/packages/randomForest) and _XGBoost_ from [xgboost](https://cran.r-project.org/web/packages/xgboost/xgboost.pdf). We have used the default parameters for the packages (kknn, randomforest, xgboost) for the classification task.
 
 ```{r  classifiers,echo=FALSE, warning=FALSE}
@@ -98,7 +99,7 @@ gsub("<thead>.*</thead>", "", x)
 
 ```
 
-###<span class="sub-sub-header">Experimental settings</span> 
+###<span class="sub-header">Experimental settings</span> 
 As mentioned earlier, the 25K documents dataset was split into 25 subsets.Each subset was split randomly into two disjoint subsets one for training and the other for testing, with the following proportions (65%  used for training and 35% used for testing).
 
 We reported the results of the different models under different settings. We wanted to explore the performance of the classifiers with two types of features, with two languages and with different number of labelsets. The following table demonstrates the experimental settings:
@@ -311,7 +312,7 @@ The classifiers performed better over term incidence features, which portrays te
 
 ![](Figs/br_DE_inc2.png)
 
-###Dataset with reduced number of labelsets
+####<span class="sub-header">Dataset with balanced labelsets
 Training our classification models on a dataset with such a large number of labels(7000 labels) was a challenging task.
 we surmised that reducing the number of labels would improve the predictive capacity of the classifiers.
 To reduce the large number of labels, we take advantage of the "scumble" attribute provided by the **mldr** package. Scumble measure indicates the concurrence level among frequent and infrequent labels in the same labelsets.
@@ -322,7 +323,7 @@ datasetWithBalancedLabelsets <- dataset[.SCUMBLE <= dataset$measures$scumble]
 ``` 
 
 
-####<span class="sub-header">Dataset: English, Balanced labelsets</span>
+####<span class="sub-sub-header">Dataset: English, Balanced labelsets</span>
 This section the research question for the English corpus:   
 <span class="emphasize">How the classifiers' performance changes when the number of labels is reduced, and which features delivered the best performance.</span>  
 
@@ -412,3 +413,4 @@ After removing the imbalanced labelsets, the macro F1 for the combination of LP 
 
 The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies that the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature [@rabiger2018annotators] while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.
 
+####<span class="sub-header">References</span>
