@@ -1078,4 +1078,9 @@ In experiments over the BR transformation method, XGBoost performed better than 
 
 **Reduced Labels** - With reduced labels we found that classifiers overall performed better, though not much, for both English and German dataset.
 
-Finally as a conclusion, for both English and German dataset,the best performance was deliverd by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure provided by the **mldr** package and trained on the terms incidence in order to gain the highest macro F1 values.
+We can conclude for both English and German dataset,the best performance was delivered by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure provided by the **mldr** package and trained on the terms incidence in order to gain the highest macro F1 values.
+
+###<span class="sub-header">Conclusion</span>
+
+The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.
+

@@ -359,9 +359,9 @@ There is a difference between <em>multi-class classification</em> and <em>multi-
 <ul>
 <li>How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).<br />
 </li>
-<li>How the classifiers’ performance changes with different features- one with term frequencyâ€“inverse document frequency(tf-idf), another with term incidence.</li>
+<li>How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence.</li>
 <li>Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.</li>
-<li>How the classifiers’ performance changes when the number of labels is reduced.</li>
+<li>How the classifiers’ performance changes when the number of labels is reduced (disabling the imbalanced labelsets).</li>
 </ul>
 </div>
 <div id="design-overview-algorithms-and-methods" class="section level2">
@@ -370,7 +370,7 @@ There is a difference between <em>multi-class classification</em> and <em>multi-
 <li>Pre-processing:
 <ul>
 <li>Exclude stop words, perform lemmatization.</li>
-<li>Extract features - term frequencyâ€“inverse document frequency(tf-idf) and term incidence.</li>
+<li>Extract features - term frequency-inverse document frequency(tf-idf) and term incidence.</li>
 <li>Generate the MLD <span class="citation">[<a href="#ref-Gibaja:2015:TML:2737799.2716262">2</a>]</span> data format, which is needed for multi label data exploration and classification using <em>mldr</em> <span class="citation">[<a href="#ref-charte2015working">3</a>]</span> and <em>utiml</em> <span class="citation">[<a href="#ref-rivolliutiml">4</a>]</span> packages.</li>
 </ul></li>
 <li>Statistical exploration:

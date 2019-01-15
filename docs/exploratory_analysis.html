@@ -813,9 +813,9 @@ xml_root =<span class="st"> </span><span class="kw">newXMLNode</span>(<span clas
 <div id="exploration-of-mldr-dataset-traits" class="section level4">
 <h4><span class="header">Exploration of MLDR dataset traits </span></h4>
 <p>We load the dataset using <em>mldr</em> method.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
-
-eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)</code></pre></div>
+<pre><code>## Enter mldrGUI() to launch mldr&#39;s web-based GUI</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
 <p>After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual <em>summary()</em> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(eurlex)</code></pre></div>
 <p><img src="Figs/summary.png" /> As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.</p>

@@ -341,7 +341,7 @@ div.tocify {
 <p>The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We have divided the dataset into 25 subsets, therefore each subset contains 1000 documents. We trained the classifiers over the subsets. The final evaluations results will be the average over the subsets.</p>
 <div id="classification-models" class="section level4">
 <h4><span class="sub-sub-header">Classification Models</span></h4>
-<p>We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB).</p>
+<p>We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB). We have used the <em>knn</em> classifier from the package <a href="https://www.rdocumentation.org/packages/kknn/versions/1.3.1/topics/kknn">kknn</a>, <em>Random Forest</em> from <a href="https://www.rdocumentation.org/packages/randomForest">randomForest</a> and <em>XGBoost</em> from <a href="https://cran.r-project.org/web/packages/xgboost/xgboost.pdf">xgboost</a>. We have used the default parameters for the packages (kknn, randomforest, xgboost) for the classification task.</p>
 <table class="kable_wrapper table table-striped table-hover table-condensed" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <tbody>
 <tr>
@@ -418,7 +418,7 @@ Label powerset
 <ul>
 <li>How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).<br />
 </li>
-<li>How the classifiers’ performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.<br />
+<li>How the classifiers’ performance changes with different features- one with term frequencyâ€“inverse document frequency(tf-idf), another with term incidence.<br />
 </li>
 <li>Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.<br />
 </li>
@@ -628,6 +628,13 @@ xgb &lt;-<span class="st"> </span><span class="kw">cbind</span>(xgb, temp_xgb)
 For the purpose of the evaluation task, The <strong>mldr</strong> package equipped us with <em>multilabel_evaluate</em> method to inspect many evaluation metrics(accuracy, micro based metrics, macro based metrics, precision, recall, F1, subset-accuracy). We will present all of them for each experiment. Through the exploration process of the Eur-Lex dataset, we come to know the class labels are imbalanced (i.e. some labels are frequent and some are infrequent). In that case considering accuracy is a misleading measure of the performance, instead we consider <strong>F1</strong> as a comparision factor among the classifiers. Infact we consider <strong>macro-F1</strong> as the Macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), which is desirable in case of class imbalance.</p>
 <div id="dataset-english" class="section level4">
 <h4><span class="sub-header">Dataset: English</span></h4>
+<p>This section answers three research questions for the English corpus:</p>
+<ul>
+<li><span class="emphasize">How well the classifiers perform over Eur-Lex dataset?</span><br />
+</li>
+<li><span class="emphasize">How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?</span></li>
+<li><span class="emphasize">Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not?</span></li>
+</ul>
 <p>For the English dataset, we observed higher macro F1 over all the nine trained classifiers when we used tf-idf as the features. Tf-idf is more powerful representative features than simply using the incidence of terms as features. The expreiments portrayed that LP combined with the Random Forest recorded the best result for the two type of features(tf-idf and term incidence), whereas the LP method combined with XGB performed the worst as shown in the following figures:</p>
 <div class="figure">
 <img src="Figs/English_7000.png" />
@@ -717,6 +724,13 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 <div id="dataset-german" class="section level4 tabset tabset-fade">
 <h4><span class="sub-header">Dataset: German</span></h4>
+<p>This section answers three research questions for the English corpus:</p>
+<ul>
+<li><span class="emphasize">How well the classifiers perform over Eur-Lex dataset?</span><br />
+</li>
+<li><span class="emphasize">How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?</span></li>
+<li><span class="emphasize">Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not?</span></li>
+</ul>
 <p>Similar to the experiments run over the English dataset, for the German dataset the experiments showed that LP combined with Random Forest or KNN recorded the best results for the two type of features(tf-idf and incidence of terms), compared to the low performance produced by the LP method combined with XGBoost. On the other hand, in the contrast to the results for the English dataset,for the German dataset, we observed higher macro F1 over all the nine trained classifiers when we used incidence of terms instead of the tf-idf as features.</p>
 <div class="figure">
 <img src="Figs/German_7000.png" />
@@ -730,7 +744,7 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 <div id="dataset-german-feature-tf-idf" class="section level4 tabset tabset-fade">
 <h4><span class="sub-sub-header">Dataset: German, Feature: Tf-idf</span></h4>
-<p>Unlike the experiments conducted on the English dataset, LP combined with KNN deliverd slightly higher performance than the model combining the LP with Random Forest.</p>
+<p>Unlike the experiments conducted on the English dataset, LP combined with KNN delivered slightly higher performance than the model combining the LP with Random Forest.</p>
 <div id="label-powerset-2" class="section level5">
 <h5>Label Powerset</h5>
 <p><img src="Figs/lp_DE_tfidf1.png" /> <img src="Figs/lp_DE_tfidf2.png" /></p>
@@ -773,6 +787,8 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">datasetWithBalancedLabelsets &lt;-<span class="st"> </span>dataset[.SCUMBLE <span class="op">&lt;=</span><span class="st"> </span>dataset<span class="op">$</span>measures<span class="op">$</span>scumble]</code></pre></div>
 <div id="dataset-english-balanced-labelsets" class="section level4">
 <h4><span class="sub-header">Dataset: English, Balanced labelsets</span></h4>
+<p>This section the research question for the English corpus:<br />
+<span class="emphasize">How the classifiers’ performance changes when the number of labels is reduced, and which features delivered the best performance.</span></p>
 <p>Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Employing the tf-idf features yielded higher macro F1 for classifiers trained on the complete set of labels. In the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:</p>
 <div class="figure">
 <img src="Figs/English_reduced.png" />
@@ -837,6 +853,8 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 <div id="dataset-german-balanced-labelsets" class="section level4">
 <h4><span class="sub-sub-header">Dataset: German, Balanced labelsets</span></h4>
+<p>This section the research question for the German corpus:<br />
+<span class="emphasize">How the classifiers’ performance changes when the number of labels is reduced, and which features delivered the best performance.</span></p>
 <div class="figure">
 <img src="Figs/German_reduced2.png" />
 
@@ -862,11 +880,11 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 </div>
 </div>
-<div id="conclusion" class="section level3">
-<h3><span class="sub-header">Conclusion</span></h3>
+<div id="final-analysis" class="section level3">
+<h3><span class="sub-header">Final Analysis</span></h3>
 <blockquote>
 <blockquote>
-<p>We can conclude for both English and German dataset,the best performance was deliverd by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure and trained on the terms incidence in order to gain the highest macro F1 values.</p>
+<p>We can conclude for both English and German dataset,the best performance was delivered by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure and trained on the terms incidence in order to gain the highest macro F1 values.</p>
 </blockquote>
 </blockquote>
 <ul>
@@ -874,11 +892,19 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 <li><p>As mentioned earlier, LP transform takes into consideration the correlation among the labels. In contrast, the BR transform assumes the labels to be independent and ignores any dependency among labels. We infer that the assumption of the independency of labels does not hold in the case of the EUR-Lex dataset.</p></li>
 <li><p>Contrary to the LP method,each model in the BR transform considers the labels independently- it reduces the number of labels when applying the BR to build an independent classifier for each label, which improves the perfomance of the XGBoost classifier by the model optimization technique the XGB follows.</p></li>
 <li><p>In experiments over the BR transformation method, XGBoost performed better than the Random Forest and the k-nearest neighbour classifiers. We surmise, since XGBoost classifier is an ensemble model uses “Boosting” as a deliberate ensemble technique, whereas Random Forest employs “Bagging” as an ensemble technique and KNN encounters the curse of dimensionality.</p></li>
-<li><p>CC transform method delivered poor performance across all classication models(k-nearest neighbour, Random Forest, XGBoost).</p></li>
-<li><p>XGBoost performed the best with CC, due to the boosting optimization technique the XGBoost based on.</p></li>
+<li><p>CC transform method delivered poor performance across all classication models(k-nearest neighbour, Random Forest, XGBoost). XGBoost performed the best with CC, due to the boosting optimization technique the XGBoost based on.</p></li>
 <li><p>Suprisingly, we found the classifiers trained on the <em>terms incidence</em> features performed better than when trained on the <em>tf-idf</em> features. we think that the occurance of the term in a document was a sufficient distinctive feature of the documents of the legal EUR-Lex dataset.</p></li>
-<li><p>With reduced labels we found that the classifiers overall performed better, though not much, for both English and German dataset.</p></li>
+<li><p>With balanced labelsets we found that the classifiers overall performed better, though not much, for both English and German dataset.</p></li>
 </ul>
+</div>
+<div id="conclusion" class="section level3">
+<h3><span class="sub-header">Conclusion</span></h3>
+<p>The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies that the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature <span class="citation">[<a href="#ref-rabiger2018annotators">1</a>]</span> while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.</p>
+<div id="refs" class="references">
+<div id="ref-rabiger2018annotators">
+<p>1. Räbiger S, Spiliopoulou M, Saygına Y. How do annotators label short texts? Toward understanding the temporal dynamics of tweet labeling. 2018.</p>
+</div>
+</div>
 </div>
 </div>
 

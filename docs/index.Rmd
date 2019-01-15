@@ -45,16 +45,16 @@ There is a difference between *multi-class classification* and *multi-label clas
 To answer the question we need to answer some research questions:  
 
 * How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).  
-* How the classifiers' performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.
+* How the classifiers' performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence.
 * Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.
-* How the classifiers' performance changes when the number of labels is reduced.
+* How the classifiers' performance changes when the number of labels is reduced (disabling the imbalanced labelsets).
 
 
 
 ## Design overview (algorithms and methods)
 * Pre-processing:
      + Exclude stop words, perform lemmatization.
-     + Extract features - term frequency–inverse document frequency(tf-idf) and term incidence.
+     + Extract features - term frequency-inverse document frequency(tf-idf) and term incidence.
      + Generate the MLD [@Gibaja:2015:TML:2737799.2716262] data format, which is needed for multi label data exploration and classification using _mldr_ [@charte2015working] and _utiml_ [@rivolliutiml] packages.
      
 * Statistical exploration:
@@ -144,6 +144,5 @@ verify.packages <- function(pkg) {
 verify.packages(packages)
 
 ```
-
 
 ####  <span class="sub-header"> References</span>
