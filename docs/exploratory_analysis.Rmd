@@ -82,29 +82,28 @@ Therefore we will have two datasets/ARFFs for each language- one containing term
 Since the pre-processing is little different for different languages, we need to execute the following code, to perform the pre-processing for a particular language.
 
 ```{r language_selection, include=TRUE, eval=TRUE, message=FALSE}
-library(dplyr)
 library(udpipe)
 
 init <- function(language) {
   if (language == "english") {
   print("english chosen")
     lang <<- "english" # language chosen - english
-    fileName <<- "../data/english/acquis.cf" # name of the file containing data (english)
-    tfidfFileName <<- "../output/tfidf_EN" # name of tf-idf arff file (english)
-    incFileName <<- "../output/inc_EN" # name of term incidence arff file (english)
-    labelFile <<- "../data/english/desc_en.xml" # name of the label xml file (english)
+    fileName <<- "../data/english/acquis.cf" # file containing data (english)
+    tfidfFileName <<- "../output/tfidf_EN" # tf-idf arff file (english)
+    incFileName <<- "../output/inc_EN" # term incidence arff file (english)
+    labelFile <<- "../data/english/desc_en.xml" # label-names file (english)
   }
   else if (language == "german") {
   print("german chosen")
     lang <<- "german" # language chosen - german  
-    fileName <<- "../data/german/acquis_german.cf" # name of the file containing data (german)
-    tfidfFileName <<- "../output/tfidf_DE" # name of tf-idf arff file (german)
-    incFileName <<- "../output/inc_DE" # name of term incidence arff file (german)
-    labelFile <<- "../data/german/desc_de.xml" # name of the label xml file (german)
+    fileName <<- "../data/german/acquis_german.cf" # file containing data (german)
+    tfidfFileName <<- "../output/tfidf_DE" # tf-idf arff file (german)
+    incFileName <<- "../output/inc_DE" # term incidence arff file (german)
+    labelFile <<- "../data/german/desc_de.xml" # label-names file (german)
     model_file <<- "../output/german-gsd-ud-2.3-181115.udpipe" # udpipe german model for lemmatization
     if (!file.exists(model_file))
-    {
-      model <<- udpipe_download_model(language = "german", model_dir = "../../output/")
+    { #
+      model <<- udpipe_download_model(language = "german", model_dir = "../output/")
     } else {
       model <<- udpipe_load_model(model_file)
     }
@@ -145,6 +144,7 @@ generate_lemma_per_document <- function(content, doc_id) {
 
 The following method performs the preprocessing for the actual text.
 ```{r preprocess_text, include=TRUE, eval=TRUE, message=FALSE}
+library(textstem)
 library(textclean)
 library(tm)
 
@@ -184,7 +184,9 @@ get_clean_content <- function(content) {
 
 We will now load the text for the selected language by *init()*, and inspect the 1st document's content.
 
-```{r load_preprocess_text, include=TRUE, eval=TRUE, echo=TRUE}
+```{r load_preprocess_text, include=TRUE, eval=TRUE, echo=TRUE, message=FALSE}
+library(dplyr)
+
 connection <- fileName  %>% file(open = "r")
 raw_text_char <- connection %>% readLines(encoding = "UTF-8")
 close.connection(connection)
@@ -575,7 +577,7 @@ dtm_tfidf <- cbind(dtm_tfidf, dtm_labels)
 After the document term matrices have been generated we need to generate the ARFF file.
 
 ```{r arff_gen, include=TRUE, eval=FALSE}
-
+library(RWeka)
 
 #generate ARFF for mldr
 generate_ARFF <- function(dtm, arff_name) {
@@ -620,6 +622,7 @@ After loading the MLD, a quick summary of its main characteristics can be obtain
 summary(eurlex)
 ```
 ![](Figs/summary.png)
+
 As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.  
 
 Labels' information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the *labels* member of the *mldr* class.
@@ -664,7 +667,7 @@ The names of the labels gets abbreviated in the plot. We can see from the *fat p
 The label histogram relates labels and instances in a way that shows how well-represented labels are in general. The X axis is assigned to the number of instances and the Y axis to the amount of labels. In our plot the data is concentrated on the left side of the plot, which means that a great number of labels are appearing in very few instances.
 
 ```{r plot_lh, include=TRUE, eval=FALSE }
-plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(0,100))
+plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(0,10))
 ```
 
 <center>![](Figs/LH.png)</center>
@@ -674,7 +677,7 @@ plot(eurlex, type='LH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(
 The labelset histogram is similar to LH plot but, instead of representing the number of instances in which each label appears, it shows the amount of labelsets.
 
 ```{r plot_lsh, include=TRUE, eval=FALSE }
-plot(eurlex, type='LSH',col = brewer.pal(11, 'Spectral'), title='Eurlex', breaks=200, xlim=c(1,10), ylim=c(0,2000))
+plot(eurlex, type='LSH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c(1,10), ylim=c(0,2000))
 ```
 
 <center>![](Figs/LSH.png)</center>
@@ -697,8 +700,6 @@ The cardinality histogram represents the amount of labels instances have in gene
 
 ```{r plot_ch, include=TRUE, eval=FALSE }
 plot(eurlex, type='CH',col = brewer.pal(11, 'Spectral'), title='Eurlex')
-
-
 ```
 <center>![](Figs/CH.png)</center>
 #### <span class="header">Tf-Idf and Term incidence as features</span>

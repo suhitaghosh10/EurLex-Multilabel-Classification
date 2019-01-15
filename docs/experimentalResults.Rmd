@@ -56,7 +56,7 @@ kable(list(classifiermodel,transmodel)) %>%
 
 ```
 
-We have trained nine classifaction models over 4 datasets - English tf-idf, English term incidence, German tf-idf, German term incidence and compared the performance of the classifiers, to answer the research questions:  
+We have trained nine classification models over 4 datasets - English tf-idf, English term incidence, German tf-idf, German term incidence and compared the performance of the classifiers, to answer the research questions:  
 
 * How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).    
 * How the classifiers' performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.  
@@ -149,34 +149,34 @@ remove_unlabeled_instances() %>% #remove instances having no labels
 create_holdout_partition(c(train = train_ratio, test = test_ratio)) #create holdout samples for train and test
 
 ## KNN - K nearest neighbour
-brmodel1 <- br(ds$train, "KNN") #create model - BR +KNN
-prediction1 <- predict(brmodel1, ds$test) #prediction for BR +KNN
+knn_model <- br(ds$train, "KNN") #create model - BR +KNN
+knn_prediction <- predict(knn_model, ds$test) #prediction for BR +KNN
 temp_knn <-
-multilabel_evaluate(ds$test, prediction1, "bipartition") #get evaluation metric score  for BR +KNN
+multilabel_evaluate(ds$test, knn_prediction, "bipartition") #get evaluation metric score  for BR +KNN
 
 #remove memory consuming variables
-rm(brmodel1)
-rm(prediction1)
+rm(knn_model)
+rm(knn_prediction)
 
 ## RF - Random Forest
-brmodel2 <- br(ds$train, "RF") #create model - BR +RF
-prediction2 <- predict(brmodel2, ds$test) #prediction for BR +RF
+rf_brmodel <- br(ds$train, "RF") #create model - BR +RF
+rf_prediction <- predict(rf_brmodel, ds$test) #prediction for BR +RF
 temp_rf <-
-multilabel_evaluate(ds$test, prediction2, "bipartition") #get evaluation metric score for BR +RF
+multilabel_evaluate(ds$test, rf_prediction, "bipartition") #get evaluation metric score for BR +RF
 
 #remove memory consuming variables
-rm(brmodel2)
-rm(prediction2)
+rm(rf_brmodel)
+rm(rf_prediction)
 
 ## XGB - eXtreme Gradient Boosting
-brmodel3 <- br(ds$train, "XGB") #create model - BR +XGB
-prediction3 <- predict(brmodel3, ds$test) #prediction for BR +XGB
+xgb_brmodel <- br(ds$train, "XGB") #create model - BR +XGB
+xgb_prediction <- predict(xgb_brmodel, ds$test) #prediction for BR +XGB
 temp_xgb <-
-multilabel_evaluate(ds$test, prediction3, "bipartition") #get evaluation metric score  for BR +XGB
+multilabel_evaluate(ds$test, xgb_prediction, "bipartition") #get evaluation metric score  for BR +XGB
 
 #remove memory consuming variables
-rm(brmodel3)
-rm(prediction3)
+rm(xgb_brmodel)
+rm(xgb_prediction)
 
 #create dataframe of evaluation metric scores
 if (index == 1) {
@@ -324,7 +324,7 @@ datasetWithBalancedLabelsets <- dataset[.SCUMBLE <= dataset$measures$scumble]
 
 
 ####<span class="sub-sub-header">Dataset: English, Balanced labelsets</span>
-This section the research question for the English corpus:   
+This section the answers research question for the English corpus:   
 <span class="emphasize">How the classifiers' performance changes when the number of labels is reduced, and which features delivered the best performance.</span>  
 
 Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Employing the tf-idf features yielded higher macro F1 for classifiers trained on the complete set of labels. In the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:
@@ -372,7 +372,7 @@ For balanced labelsets, we observed better performance for the incidence feature
 ![](Figs/br_EN_inc2_red.png)
 
 ####<span class="sub-sub-header">Dataset: German, Balanced labelsets</span>
-This section the research question for the German corpus:   
+This section answers the research question for the German corpus:   
 <span class="emphasize">How the classifiers' performance changes when the number of labels is reduced, and which features delivered the best performance.</span> 
 
 ![](Figs/German_reduced2.png)

@@ -376,29 +376,28 @@ Preprocessing will be almost same for both languages - English and German, excep
 We will be using two sets of features - term incidence and tf-idf as features, and will try to answer the research question - <span class="emphasize">“How the classifiers’ performance changes with different features- one with term frequency-inverse document frequency(tf-idf), another with term incidence?” </span><br />
 Therefore we will have two datasets/ARFFs for each language- one containing term-incidence as features and the other containing tf-idf as features.</p>
 <p>Since the pre-processing is little different for different languages, we need to execute the following code, to perform the pre-processing for a particular language.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
-<span class="kw">library</span>(udpipe)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(udpipe)
 
 init &lt;-<span class="st"> </span><span class="cf">function</span>(language) {
   <span class="cf">if</span> (language <span class="op">==</span><span class="st"> &quot;english&quot;</span>) {
   <span class="kw">print</span>(<span class="st">&quot;english chosen&quot;</span>)
     lang &lt;&lt;-<span class="st"> &quot;english&quot;</span> <span class="co"># language chosen - english</span>
-    fileName &lt;&lt;-<span class="st"> &quot;../data/english/acquis.cf&quot;</span> <span class="co"># name of the file containing data (english)</span>
-    tfidfFileName &lt;&lt;-<span class="st"> &quot;../output/tfidf_EN&quot;</span> <span class="co"># name of tf-idf arff file (english)</span>
-    incFileName &lt;&lt;-<span class="st"> &quot;../output/inc_EN&quot;</span> <span class="co"># name of term incidence arff file (english)</span>
-    labelFile &lt;&lt;-<span class="st"> &quot;../data/english/desc_en.xml&quot;</span> <span class="co"># name of the label xml file (english)</span>
+    fileName &lt;&lt;-<span class="st"> &quot;../data/english/acquis.cf&quot;</span> <span class="co"># file containing data (english)</span>
+    tfidfFileName &lt;&lt;-<span class="st"> &quot;../output/tfidf_EN&quot;</span> <span class="co"># tf-idf arff file (english)</span>
+    incFileName &lt;&lt;-<span class="st"> &quot;../output/inc_EN&quot;</span> <span class="co"># term incidence arff file (english)</span>
+    labelFile &lt;&lt;-<span class="st"> &quot;../data/english/desc_en.xml&quot;</span> <span class="co"># label-names file (english)</span>
   }
   <span class="cf">else</span> <span class="cf">if</span> (language <span class="op">==</span><span class="st"> &quot;german&quot;</span>) {
   <span class="kw">print</span>(<span class="st">&quot;german chosen&quot;</span>)
     lang &lt;&lt;-<span class="st"> &quot;german&quot;</span> <span class="co"># language chosen - german  </span>
-    fileName &lt;&lt;-<span class="st"> &quot;../data/german/acquis_german.cf&quot;</span> <span class="co"># name of the file containing data (german)</span>
-    tfidfFileName &lt;&lt;-<span class="st"> &quot;../output/tfidf_DE&quot;</span> <span class="co"># name of tf-idf arff file (german)</span>
-    incFileName &lt;&lt;-<span class="st"> &quot;../output/inc_DE&quot;</span> <span class="co"># name of term incidence arff file (german)</span>
-    labelFile &lt;&lt;-<span class="st"> &quot;../data/german/desc_de.xml&quot;</span> <span class="co"># name of the label xml file (german)</span>
+    fileName &lt;&lt;-<span class="st"> &quot;../data/german/acquis_german.cf&quot;</span> <span class="co"># file containing data (german)</span>
+    tfidfFileName &lt;&lt;-<span class="st"> &quot;../output/tfidf_DE&quot;</span> <span class="co"># tf-idf arff file (german)</span>
+    incFileName &lt;&lt;-<span class="st"> &quot;../output/inc_DE&quot;</span> <span class="co"># term incidence arff file (german)</span>
+    labelFile &lt;&lt;-<span class="st"> &quot;../data/german/desc_de.xml&quot;</span> <span class="co"># label-names file (german)</span>
     model_file &lt;&lt;-<span class="st"> &quot;../output/german-gsd-ud-2.3-181115.udpipe&quot;</span> <span class="co"># udpipe german model for lemmatization</span>
     <span class="cf">if</span> (<span class="op">!</span><span class="kw">file.exists</span>(model_file))
-    {
-      model &lt;&lt;-<span class="st"> </span><span class="kw">udpipe_download_model</span>(<span class="dt">language =</span> <span class="st">&quot;german&quot;</span>, <span class="dt">model_dir =</span> <span class="st">&quot;../../output/&quot;</span>)
+    { <span class="co">#</span>
+      model &lt;&lt;-<span class="st"> </span><span class="kw">udpipe_download_model</span>(<span class="dt">language =</span> <span class="st">&quot;german&quot;</span>, <span class="dt">model_dir =</span> <span class="st">&quot;../output/&quot;</span>)
     } <span class="cf">else</span> {
       model &lt;&lt;-<span class="st"> </span><span class="kw">udpipe_load_model</span>(model_file)
     }
@@ -425,7 +424,8 @@ generate_lemma_per_document &lt;-<span class="st"> </span><span class="cf">funct
   <span class="kw">return</span>(lemma)
 }</code></pre></div>
 <p>The following method performs the preprocessing for the actual text.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(textclean)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(textstem)
+<span class="kw">library</span>(textclean)
 <span class="kw">library</span>(tm)
 
 <span class="co">#generates clean text</span>
@@ -461,7 +461,9 @@ get_clean_content &lt;-<span class="st"> </span><span class="cf">function</span>
   clean_content
 }</code></pre></div>
 <p>We will now load the text for the selected language by <em>init()</em>, and inspect the 1st document’s content.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">connection &lt;-<span class="st"> </span>fileName  <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">file</span>(<span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)
+
+connection &lt;-<span class="st"> </span>fileName  <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">file</span>(<span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
 raw_text_char &lt;-<span class="st"> </span>connection <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">readLines</span>(<span class="dt">encoding =</span> <span class="st">&quot;UTF-8&quot;</span>)
 <span class="kw">close.connection</span>(connection)
 text_content_list &lt;-
@@ -785,7 +787,9 @@ dtm_tfidf &lt;-<span class="st"> </span>text_corpus <span class="op">%&gt;%</spa
 <span class="co"># column bind text and labels to generate tfidf ARFF file</span>
 dtm_tfidf &lt;-<span class="st"> </span><span class="kw">cbind</span>(dtm_tfidf, dtm_labels)</code></pre></div>
 <p>After the document term matrices have been generated we need to generate the ARFF file.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#generate ARFF for mldr</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RWeka)
+
+<span class="co">#generate ARFF for mldr</span>
 generate_ARFF &lt;-<span class="st"> </span><span class="cf">function</span>(dtm, arff_name) {
   <span class="kw">write.arff</span>(dtm, <span class="dt">file =</span> arff_name , <span class="dt">eol =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
   conn &lt;-<span class="st"> </span><span class="kw">file</span>(arff_name, <span class="dt">open =</span> <span class="st">&quot;r&quot;</span>)
@@ -813,12 +817,16 @@ xml_root =<span class="st"> </span><span class="kw">newXMLNode</span>(<span clas
 <div id="exploration-of-mldr-dataset-traits" class="section level4">
 <h4><span class="header">Exploration of MLDR dataset traits </span></h4>
 <p>We load the dataset using <em>mldr</em> method.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)</code></pre></div>
-<pre><code>## Enter mldrGUI() to launch mldr&#39;s web-based GUI</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
+
+eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
 <p>After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual <em>summary()</em> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(eurlex)</code></pre></div>
-<p><img src="Figs/summary.png" /> As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.</p>
+<div class="figure">
+<img src="Figs/summary.png" />
+
+</div>
+<p>As we know the value of scumble lies in the range [0,1], and a low score would denote an MLD with not much concurrence among imbalanced labels and the resampling algorithms would work better. Here we can see a scumble value of 0.4078238, which is a high score, implying there is a good amount of concurrence among imbalanced labels, making it a difficult classification problem. IRLbl value(meanIR) is also quite high indicating a good amount of imbalance.</p>
 <p>Labels’ information in the MLD, including the number of times they appear, their IRLbl and SCUMBLE measures, can be retrieved by using the <em>labels</em> member of the <em>mldr</em> class.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#inspect first 10 labels</span>
 <span class="kw">head</span>(eurlex<span class="op">$</span>labels, <span class="dv">10</span>) </code></pre></div>
@@ -873,7 +881,7 @@ We can choose the labels from the mldr attribute <em>eurlex$labels</em>. But, th
 <div id="label-histogram-lh-plot" class="section level5">
 <h5><span class="header">Label Histogram (LH) Plot </span></h5>
 <p>The label histogram relates labels and instances in a way that shows how well-represented labels are in general. The X axis is assigned to the number of instances and the Y axis to the amount of labels. In our plot the data is concentrated on the left side of the plot, which means that a great number of labels are appearing in very few instances.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">100</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">10</span>))</code></pre></div>
 <center>
 <img src="Figs/LH.png" />
 </center>
@@ -881,7 +889,7 @@ We can choose the labels from the mldr attribute <em>eurlex$labels</em>. But, th
 <div id="labelset-histogram-lsh-plot" class="section level5">
 <h5><span class="header">Labelset Histogram (LSH) Plot </span></h5>
 <p>The labelset histogram is similar to LH plot but, instead of representing the number of instances in which each label appears, it shows the amount of labelsets.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LSH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">breaks=</span><span class="dv">200</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">10</span>), <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">2000</span>))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LSH&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">10</span>), <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">2000</span>))</code></pre></div>
 <center>
 <img src="Figs/LSH.png" />
 </center>

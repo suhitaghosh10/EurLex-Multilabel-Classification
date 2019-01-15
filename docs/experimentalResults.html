@@ -408,11 +408,11 @@ Label powerset
 </tr>
 </tbody>
 </table>
-<p>We have trained nine classifaction models over 4 datasets - English tf-idf, English term incidence, German tf-idf, German term incidence and compared the performance of the classifiers, to answer the research questions:</p>
+<p>We have trained nine classification models over 4 datasets - English tf-idf, English term incidence, German tf-idf, German term incidence and compared the performance of the classifiers, to answer the research questions:</p>
 <ul>
 <li>How well the classifiers perform over Eur-Lex dataset for two languages (English and Deutsch).<br />
 </li>
-<li>How the classifiers’ performance changes with different features- one with term frequency–inverse document frequency(tf-idf), another with term incidence.<br />
+<li>How the classifiers’ performance changes with different features- one with term frequencyâ€“inverse document frequency(tf-idf), another with term incidence.<br />
 </li>
 <li>Which flavour of multilabel transform algorithm perform best among all, the one which considers label correlation or the one which does not.<br />
 </li>
@@ -576,34 +576,34 @@ ds &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="kw">p
 <span class="kw">create_holdout_partition</span>(<span class="kw">c</span>(<span class="dt">train =</span> train_ratio, <span class="dt">test =</span> test_ratio)) <span class="co">#create holdout samples for train and test</span>
 
 ## KNN - K nearest neighbour
-brmodel1 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;KNN&quot;</span>) <span class="co">#create model - BR +KNN</span>
-prediction1 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel1, ds<span class="op">$</span>test) <span class="co">#prediction for BR +KNN</span>
+knn_model &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;KNN&quot;</span>) <span class="co">#create model - BR +KNN</span>
+knn_prediction &lt;-<span class="st"> </span><span class="kw">predict</span>(knn_model, ds<span class="op">$</span>test) <span class="co">#prediction for BR +KNN</span>
 temp_knn &lt;-
-<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction1, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score  for BR +KNN</span>
+<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, knn_prediction, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score  for BR +KNN</span>
 
 <span class="co">#remove memory consuming variables</span>
-<span class="kw">rm</span>(brmodel1)
-<span class="kw">rm</span>(prediction1)
+<span class="kw">rm</span>(knn_model)
+<span class="kw">rm</span>(knn_prediction)
 
 ## RF - Random Forest
-brmodel2 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;RF&quot;</span>) <span class="co">#create model - BR +RF</span>
-prediction2 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel2, ds<span class="op">$</span>test) <span class="co">#prediction for BR +RF</span>
+rf_brmodel &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;RF&quot;</span>) <span class="co">#create model - BR +RF</span>
+rf_prediction &lt;-<span class="st"> </span><span class="kw">predict</span>(rf_brmodel, ds<span class="op">$</span>test) <span class="co">#prediction for BR +RF</span>
 temp_rf &lt;-
-<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction2, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score for BR +RF</span>
+<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, rf_prediction, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score for BR +RF</span>
 
 <span class="co">#remove memory consuming variables</span>
-<span class="kw">rm</span>(brmodel2)
-<span class="kw">rm</span>(prediction2)
+<span class="kw">rm</span>(rf_brmodel)
+<span class="kw">rm</span>(rf_prediction)
 
 ## XGB - eXtreme Gradient Boosting
-brmodel3 &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;XGB&quot;</span>) <span class="co">#create model - BR +XGB</span>
-prediction3 &lt;-<span class="st"> </span><span class="kw">predict</span>(brmodel3, ds<span class="op">$</span>test) <span class="co">#prediction for BR +XGB</span>
+xgb_brmodel &lt;-<span class="st"> </span><span class="kw">br</span>(ds<span class="op">$</span>train, <span class="st">&quot;XGB&quot;</span>) <span class="co">#create model - BR +XGB</span>
+xgb_prediction &lt;-<span class="st"> </span><span class="kw">predict</span>(xgb_brmodel, ds<span class="op">$</span>test) <span class="co">#prediction for BR +XGB</span>
 temp_xgb &lt;-
-<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, prediction3, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score  for BR +XGB</span>
+<span class="kw">multilabel_evaluate</span>(ds<span class="op">$</span>test, xgb_prediction, <span class="st">&quot;bipartition&quot;</span>) <span class="co">#get evaluation metric score  for BR +XGB</span>
 
 <span class="co">#remove memory consuming variables</span>
-<span class="kw">rm</span>(brmodel3)
-<span class="kw">rm</span>(prediction3)
+<span class="kw">rm</span>(xgb_brmodel)
+<span class="kw">rm</span>(xgb_prediction)
 
 <span class="co">#create dataframe of evaluation metric scores</span>
 <span class="cf">if</span> (index <span class="op">==</span><span class="st"> </span><span class="dv">1</span>) {
@@ -781,7 +781,7 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 <div id="dataset-english-balanced-labelsets" class="section level4">
 <h4><span class="sub-sub-header">Dataset: English, Balanced labelsets</span></h4>
-<p>This section the research question for the English corpus:<br />
+<p>This section the answers research question for the English corpus:<br />
 <span class="emphasize">How the classifiers’ performance changes when the number of labels is reduced, and which features delivered the best performance.</span></p>
 <p>Some classifiers scored higher than the highest macro F1 value scored in the case of keeping imbalanced labelsets. Employing the tf-idf features yielded higher macro F1 for classifiers trained on the complete set of labels. In the case of balanced labelsets, classifiers trained on the incidence of terms showed slightly better performance as shown in the following graphs:</p>
 <div class="figure">
@@ -847,7 +847,7 @@ For the purpose of the evaluation task, The <strong>mldr</strong> package equipp
 </div>
 <div id="dataset-german-balanced-labelsets" class="section level4">
 <h4><span class="sub-sub-header">Dataset: German, Balanced labelsets</span></h4>
-<p>This section the research question for the German corpus:<br />
+<p>This section answers the research question for the German corpus:<br />
 <span class="emphasize">How the classifiers’ performance changes when the number of labels is reduced, and which features delivered the best performance.</span></p>
 <div class="figure">
 <img src="Figs/German_reduced2.png" />
