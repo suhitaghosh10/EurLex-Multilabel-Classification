@@ -113,9 +113,9 @@ generate_dataset <-
       xmlParse(labelFile) %>% xpathApply("//LIBELLE", xmlValue) %>% get_clean_label()
     xml_root = newXMLNode("labels")
     
-    for (i in 1:length(label_names)) {
+    for (index in 1:length(label_names)) {
       newXMLNode("label",
-                 attrs = c(name = label_names[i]),
+                 attrs = c(name = label_names[index]),
                  parent = xml_root)
     }
     

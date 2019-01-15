@@ -1,6 +1,6 @@
 ---
 title: "Multilabel Classification of Legal Text (EurLex)"
-csl: ../markdown/biomed-central.csl
+csl: ../docs/biomed-central.csl
 link-citations: yes
 output:
   html_document:
@@ -12,7 +12,7 @@ output:
       smooth_scroll: false
     theme: united
     highlight: haddock
-bibliography: ../markdown/bibliography.bib
+bibliography: ../docs/bibliography.bib
 ---
 
 ##Overview and motivation
@@ -83,7 +83,7 @@ The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer
 
 An example has been shown below in the diagram. On the 1st line there are two lable-ids - *3032, 525* and the document-id is *31958d1006(01)*, and the actual text is on 2nd line.
 
-<center> ![[Fig1. Data format]](../markdown/Figs/acquis.png) </center>
+<center> ![[Fig1. Data format]](../docs/Figs/acquis.png) </center>
 
 The mapping between label-id and label-name has been provided in a XML. A small snippet of the xml has been provided below.
 ```xml
