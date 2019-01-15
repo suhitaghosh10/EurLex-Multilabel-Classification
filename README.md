@@ -10,7 +10,10 @@ https://www.youtube.com/watch?v=3ELi5mLlzgM
 
 # Data URL
 The English and German data is present at the *data* folder.
-Please note if you are downloading the code from Github Web, data would not get downloaded (as it exceeds the limit provided by Github). In such case, please perform the following:
+Please note if you are downloading the code from Github Web (shown below in picture), data would not get downloaded (as it exceeds the limit provided by Github).
+![clone/download](http://www.cs.williams.edu/~dbarowy/cs334s18/assets/tutorials/github/github-clone-button.png)
+
+In such case, please perform the following:
 * Download the data from the links below:
   - [English](https://drive.google.com/drive/folders/1F5HznSWxlZno4iVQSzsXHPhCl-cD644t?usp=sharing)
   - [German](https://drive.google.com/drive/folders/1TncK4erU2ZJc9v1_-RvwM6fDmkkUYKAk?usp=sharing)
