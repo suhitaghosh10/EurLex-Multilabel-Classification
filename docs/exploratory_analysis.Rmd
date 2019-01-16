@@ -548,7 +548,7 @@ library(ggraph)
 #### <span class="header">Preprocessing for mldr </span>
 
 
-To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in this [section](https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html). Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.  
+To perform the exploratory analysis over the multilabel (MLD) dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in this [section](https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html). Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.  
 First we generate _VCorpus_ and then _DocumentTermMatrix_(DTM) of both text and labels. We need to create DTM of labels as we need to append them to the DTM of the text features, to create the _ARFF_ file.
 
 ```{r dtms, include=TRUE, eval=FALSE}
@@ -608,9 +608,9 @@ for (i in 1:length(label_names)) {
 saveXML(xml_root,file=paste(tfidfFileName,".xml", sep=""))
 ```
 
-#### <span class="header">Exploration of MLDR dataset traits </span>
+#### <span class="header">Exploration of MLD dataset traits </span>
 
-We load the dataset using _mldr_ method.
+We load the dataset using _mldr_ method from [mldr](https://cran.r-project.org/web/packages/mldr/mldr.pdf) package.
 ```{r load_mldr, include=TRUE, cached=TRUE}
 library(mldr)
 
@@ -684,7 +684,7 @@ plot(eurlex, type='LSH',col = brewer.pal(11, 'Spectral'), title='Eurlex', xlim=c
 
 ##### <span class="header">Label Bar (LB) Plot </span> 
 
-The label bar plot display exactly the number of instances for each one of the labels and labelsets, respectively.   
+The label bar plot display the number of instances for each one of the labels.   
 
 ```{r plot_lb, include=TRUE, eval=FALSE }
 par(mar=c(10,2,2,2)+0.1)
