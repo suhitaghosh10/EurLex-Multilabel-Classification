@@ -191,7 +191,6 @@ words = tokens$word,
 freq = tokens$n,
 min.freq = 1,
 max.words = 100,
-Random.order = FALSE,
 rot.per = 0.35,
 colors = brewer.pal(8, "Dark2"),
 scale = c(5, 0.2)
@@ -727,7 +726,7 @@ tokens <- text_df %>%
   ungroup()
 
 #generating wordcloud
-wordcloud(words = tokens$word, freq = tokens$n, min.freq = 1, max.words=100, Random.order=FALSE, rot.per=0.35,colors=brewer.pal(8, "Dark2"), scale = c(3, 0.2))
+wordcloud(words = tokens$word, freq = tokens$n, min.freq = 1, max.words=100, rot.per=0.35,colors=brewer.pal(8, "Dark2"), scale = c(3, 0.2))
 ```
 The translated version of English stopwords has been added to German stopword list along with German stopwords provided by _stopwords()_, but we get different prominent words. The words- *mussen, verordnung, europaisch* stands out among others. Similar to english text analysis it will be interesting to see which terms are common for different category of the german legal text. To get that, we need to count words for each category.
 ```{r tf_de, include=TRUE, eval=TRUE }
