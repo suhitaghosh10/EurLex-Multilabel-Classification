@@ -372,7 +372,7 @@ head(eurlex$attributes)
 #inspect last 6 attributes, which are labels (ending with hyphen)
 tail(eurlex$attributes)
 
-#getting indices of some labels/categories in eurlex$attributes, having words - seed/ fodder/marketing /approximation_of_laws_
+#getting indices of some labels/categories in eurlex$attributes, having words - seed/fodder/marketing/approximation_of_laws_
 plot_labels <-  grep('seed|fodder|marketing|approximation_of_laws_',rownames(eurlex[["labels"]])) + (eurlex$measures$num.attributes - eurlex$measures$num.labels)
 
 names(eurlex$attributes)[plot_labels]
@@ -449,6 +449,7 @@ knn_tfidf_br_results_mean <- classify(tfidfFileName, "br", "KNN", FALSE)
 rf_tfidf_br_results_mean <- classify(tfidfFileName, "br", "RF", FALSE)
 xgb_tfidf_br_results_mean <- classify(tfidfFileName, "br", "XGB", FALSE)
 ```
+
 ```{r br_tfidf_plot_en, message=TRUE, include=TRUE,eval=TRUE  }
 classifiers <- c("KNN",'random forest','xgboost')
 performance_br <- as.data.frame(rbind( knn_tfidf_br_results_mean, rf_tfidf_br_results_mean, xgb_tfidf_br_results_mean))
@@ -576,7 +577,7 @@ grid.arrange(g_br, g_lp, g_cc, nrow = 2,ncol = 2)
 Here also LP along with Random Forest performs best with respect to macro-F1. Infact LP+Random Forest performs better than others with respect to most of the other metrics.
 
 #### Comparison among incidence and tf-idf datasets
-Now we will try to answer the research question- *which features proved to be better- tf-idf or term incidence to English corpus?*. We have considered only macro-F1 in the plot.
+Now we will try to answer the research question- *which features proved to be better- tf-idf or term incidence to English corpus?* We have considered only macro-F1 in the plot.
 
 ```{r mld_inc_tfidf_plot, message=TRUE, include=TRUE,eval=TRUE  }
 classifiers <- c("KNN","RF","XGB")
@@ -614,7 +615,7 @@ For the English dataset, we observed higher macro F1 rates over all the nine tra
 
 
 #### Classification using balanced labelsets
-Classification on the tf-idf dataset is done similarly by using BR, LP and CC, but using balanced labelsets. By reducing labels we mean disabling majority labels on instances with highly imbalanced labels. We will try to answer the research question- *whether classification accuracy improves with balanced labelsets?*. To answer this first we have to answer another research question- *which flavour of MLD classification algorithm and classifier(knn,rf,xgb) performs best for balanced labelsets?*
+Classification on the tf-idf dataset is done similarly by using BR, LP and CC, but using balanced labelsets. By reducing labels we mean disabling majority labels on instances with highly imbalanced labels. We will try to answer the research question- *whether classification accuracy improves with balanced labelsets?*. To answer this first we have to answer another research question- *which flavour of MLD classification algorithm and classifier(knn,rf,xgb) performs best for balanced labelsets?*  
 We are considering only tf-idf dataset as performance of the classification was comparable on both the datasets.
 ```{r cls_red_labels_en , message=TRUE, include=TRUE, eval=TRUE, warning= FALSE  }
 knn_tfidf_br_red_results_mean <- classify(tfidfFileName,"br","KNN", TRUE)
@@ -661,7 +662,7 @@ We can conclude for the English balanced labelsets, that we observed better perf
 Now we will perform preprocessing, a brief data exploratory analysis and classification on the **German** corpus and answer rest of the research questions.
 We load German specific configurations.
 ```{r init_de, message=FALSE, warning=FALSE, include=TRUE}
-## remove some memory consuming variables
+## remove some memory consuming variables used in english corpus analysis
 rm(list = c('bigram_graph','bigram_tokens','class_labels_list','dtm_incidence','dtm_labels','dtm_tfidf','eurlex','raw_text_char','text_content_list','text_df','xml_root', 'label_corpus','text_corpus','tokens','tokens_by_label','total_words','freq_by_rank'))
 
 ## load german specific variables
@@ -700,7 +701,7 @@ class_labels_list[[1]] # corresponding label-names for 1st document after prepro
 ```
 After generating a cleaner version of text and labels we can take a deep dive into the first part of our data exploration.
 We generate a dataframe such that each row contains one document's text and one label.
-```{r exploration_df_de, include=TRUE, eval=TRUE }
+```{r exploration_df_de, include=TRUE, eval=TRUE,warning=FALSE,message=FALSE }
 text <- character()
 label <- character()
 for (index in 1:length(text_content_list)) {
@@ -735,13 +736,13 @@ tokens_by_label <- text_df %>%
   dplyr::count(label, word, sort = TRUE) %>% #counts words for each category
   ungroup()
   
-  total_words <- tokens_by_label %>%
+total_words <- tokens_by_label %>%
   group_by(label) %>%
   summarize(total = sum(n))
   
-  tokens_by_label <- left_join(tokens_by_label, total_words)
+tokens_by_label <- left_join(tokens_by_label, total_words)
   
-  tokens_by_label 
+tokens_by_label 
 ```
 Let us have a look at the distribution of (n/total) for some of the document categories.
 ```{r tf_graph_de, include=TRUE, eval=TRUE , warning=FALSE}
@@ -749,7 +750,7 @@ selected_labels <- unique(tokens_by_label$label)[1:8]
 
 tokens_by_label %>% filter(label %in% selected_labels) %>%
 ggplot(aes(n / total, fill = label)) +
-geom_histogram(show.legend = FALSE) +
+geom_histogram(show.legend = FALSE, bins=30) +
 xlim(NA, 0.0009) +
 facet_wrap(~ label, ncol = 2, scales = "free_y")
 ```
@@ -803,14 +804,14 @@ bigram_tokens <- text_df %>%
   dplyr::count(label, bigram, sort = TRUE) %>%
   ungroup()
   
-  total_words <- bigram_tokens %>%
+total_words <- bigram_tokens %>%
   group_by(label) %>%
   summarize(total = sum(n))
   
-  bigram_tokens <- left_join(bigram_tokens, total_words)
-  bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
+bigram_tokens <- left_join(bigram_tokens, total_words)
+bigram_tokens <- bind_tf_idf(bigram_tokens, bigram, label, n)
   
-  bigram_tokens %>%
+bigram_tokens %>%
   filter(
   label == "industrieinvestition_" |
   label == "industriestatistik_" |
@@ -861,7 +862,8 @@ We will now explore the interactions among labels using the concurrence plot. Si
 ```{r mldr_attrib_de, include=TRUE, cached=TRUE }
 #selecting few labels/categories
 plot_labels <- grep('industrie|wirtschaftsstatistische|frischfleisch',rownames(eurlex[["labels"]])) + (eurlex$measures$num.attributes - eurlex$measures$num.labels)
-names(eurlex$attributes)[plot_labels]
+
+head(names(eurlex$attributes)[plot_labels])
 ```
 ```{r plot_lc_de, include=TRUE, eval=TRUE  }
 par(mar=c(0.5,0.5,0.5,0.5))
