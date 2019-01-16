@@ -29,7 +29,7 @@ bibliography: bibliography.bib
 ##Classification
 The EUR-Lex dataset contains 25K documents, which makes it impossible to train a classifier over the whole dataset. We have divided the dataset into 25 subsets, therefore each subset contains 1000 documents. We trained the classifiers over the subsets. The final evaluations results will be the average over the subsets.  
 
-###<span class="sub-header">Classification Models</span>
+####<span class="sub-header">Classification Models</span>
 We have used three multilabel transformation methods : Binary relevance (BR), Label powerset (LP), classifier chain (CC), to transform the dataset into a format, which can be used along existing classification algorithms - Random Forest (RF), k nearest neighbors (KNN), XGboosted trees (XGB). We have used the _knn_ classifier from the package [kknn](https://www.rdocumentation.org/packages/kknn/versions/1.3.1/topics/kknn), _Random Forest_ from [randomForest](https://www.rdocumentation.org/packages/randomForest) and _XGBoost_ from [xgboost](https://cran.r-project.org/web/packages/xgboost/xgboost.pdf). We have used the default parameters for the packages (kknn, randomforest, xgboost) for the classification task.
 
 ```{r  classifiers,echo=FALSE, warning=FALSE}
@@ -99,7 +99,7 @@ gsub("<thead>.*</thead>", "", x)
 
 ```
 
-###<span class="sub-header">Experimental settings</span> 
+####<span class="sub-header">Experimental settings</span> 
 As mentioned earlier, the 25K documents dataset was split into 25 subsets.Each subset was split randomly into two disjoint subsets one for training and the other for testing, with the following proportions (65%  used for training and 35% used for testing).
 
 We reported the results of the different models under different settings. We wanted to explore the performance of the classifiers with two types of features, with two languages and with different number of labelsets. The following table demonstrates the experimental settings:
@@ -190,11 +190,11 @@ xgb <- cbind(xgb, temp_xgb)
 }
 
 ```
-###<span class="sub-header">Experimental Results</span>
+####<span class="sub-header">Experimental Results</span>
 We have applied the nine models over two languages (English and German) and with two types of features (TF-IDF and the terms incidence).  
 For the purpose of the evaluation task, The **mldr** package equipped us with _multilabel_evaluate_ method to inspect many evaluation metrics(accuracy, micro based metrics, macro based metrics, precision, recall, F1, subset-accuracy). We will present all of them for each experiment. Through the exploration process of the Eur-Lex dataset, we come to know the class labels are imbalanced (i.e. some labels are frequent and some are infrequent). In that case considering accuracy is a misleading measure of the performance, instead we consider **F1** as a comparision factor among the classifiers. Infact we consider **macro-F1** as the Macro-average will compute the metric independently for each class and then take the average (hence treating all classes equally), which is desirable in case of class imbalance.
 
-####<span class="sub-header">Dataset: English</span>
+#####<span class="sub-header">Dataset: English</span>
 This section answers three research questions for the English corpus:  
 
 - <span class="emphasize">How well the classifiers perform over Eur-Lex dataset?</span>  
@@ -212,9 +212,9 @@ The expreiments portrayed that LP combined with the Random Forest recorded the b
 
 In the following sections we will display the results in detail for each dataset. 
 
-####<span class="sub-sub-header">Dataset: English, Feature: Tf-idf</span> {.tabset  .tabset-fade}
+#####<span class="sub-sub-header">Dataset: English, Feature: Tf-idf</span> {.tabset  .tabset-fade}
 
-#####Label Powerset
+######Label Powerset
 
 According to the following figures, LP with KNN and Random Forest performed the best, and XGBoost performed the worst.
 
@@ -222,7 +222,7 @@ According to the following figures, LP with KNN and Random Forest performed the 
 
 ![](Figs/lp_EN_tfidf2.png)
 
-#####Binary Relevance
+######Binary Relevance
 We compared the three models where the labels are assumed to be independent. The BR method produced the best results when combined with XGBoost.
 
 ![](Figs/br_EN_tfidf1.png) 
@@ -230,7 +230,7 @@ We compared the three models where the labels are assumed to be independent. The
 
 ![](Figs/br_EN_tfidf2.png) 
 
-#####Classifier Chain
+######Classifier Chain
 Similar to the BR method, CC method performed the best with the XGBoost classifier.
 
 ![](Figs/cc_EN_tfidf1.png) 
@@ -238,29 +238,29 @@ Similar to the BR method, CC method performed the best with the XGBoost classifi
 ![](Figs/cc_EN_tfidf2.png) 
 
 
-#### <span class="sub-sub-header">Dataset: English, Feature: Term incidence</span>{.tabset  .tabset-fade}
+##### <span class="sub-sub-header">Dataset: English, Feature: Term incidence</span>{.tabset  .tabset-fade}
 We wanted to test the performance of the models in case of employing more naive features as the incidence of terms. The experiments showed similar pattern to the experiments with tf-idf dataset-LP with the Random Forest scored the highest macro F1 value, with the XGBoost performing the worst. Nevertheless, classifiers trained on the incidence of terms as features did not score better than the ones trained on the tf-idf features.
 
-#####Label Powerset
+######Label Powerset
 
 ![](Figs/lp_EN_inc1.png)
 
 ![](Figs/lp_EN_inc2.png) 
 
 
-#####Binary Relevance
+######Binary Relevance
 
 ![](Figs/br_EN_inc1.png)
 
 ![](Figs/br_EN_inc2.png) 
 
-#####Classifier Chain
+######Classifier Chain
 
 ![](Figs/cc_EN_inc1.png)
 
 ![](Figs/cc_EN_inc2.png) 
 
-####<span class="sub-header">Dataset: German</span>{.tabset  .tabset-fade}
+#####<span class="sub-header">Dataset: German</span>{.tabset  .tabset-fade}
 This section answers three research questions for the English corpus:  
 
 - <span class="emphasize">How well the classifiers perform over Eur-Lex dataset?</span>  
@@ -278,23 +278,23 @@ On the other hand, in the contrast to the results for the English dataset,for th
 
 In the following sections we will display the results of the experiments run on the German dataset in detail for each type of features.
 
-####<span class="sub-sub-header">Dataset: German, Feature: Tf-idf</span>{.tabset  .tabset-fade}
+#####<span class="sub-sub-header">Dataset: German, Feature: Tf-idf</span>{.tabset  .tabset-fade}
 Unlike the experiments conducted on the English dataset, LP combined with KNN delivered slightly higher performance than the model combining the LP with Random Forest.
 
-#####Label Powerset
+######Label Powerset
 
 ![](Figs/lp_DE_tfidf1.png)
 ![](Figs/lp_DE_tfidf2.png)
 
-#####Binary Relevance
+######Binary Relevance
 The performance of BR was significantly poor over the three models.
 ![](Figs/br_DE_tfidf1.png)
 ![](Figs/br_DE_tfidf2.png)
 
-####<span class="sub-sub-header">Dataset: German dataset, Feature: Incidence of terms</span>{.tabset  .tabset-fade}
+#####<span class="sub-sub-header">Dataset: German dataset, Feature: Incidence of terms</span>{.tabset  .tabset-fade}
 The classifiers performed better over term incidence features, which portrays term incidence are good discriminatory features compared tf-idf, which demands more computational effort compared to term incidence.
 
-#####Label Powerset
+######Label Powerset
 
 ![](Figs/lp_DE_inc1.png) 
 
@@ -303,7 +303,7 @@ The classifiers performed better over term incidence features, which portrays te
 ![](Figs/lp_DE_inc2.png) 
 
 
-#####Binary Relevance
+######Binary Relevance
 
 ![](Figs/br_DE_inc1.png) 
 
@@ -312,7 +312,7 @@ The classifiers performed better over term incidence features, which portrays te
 
 ![](Figs/br_DE_inc2.png)
 
-####<span class="sub-header">Dataset with balanced labelsets
+#####<span class="sub-header">Dataset with balanced labelsets
 Training our classification models on a dataset with such a large number of labels(7000 labels) was a challenging task.
 we surmised that reducing the number of labels would improve the predictive capacity of the classifiers.
 To reduce the large number of labels, we take advantage of the "scumble" attribute provided by the **mldr** package. Scumble measure indicates the concurrence level among frequent and infrequent labels in the same labelsets.
@@ -323,7 +323,7 @@ datasetWithBalancedLabelsets <- dataset[.SCUMBLE <= dataset$measures$scumble]
 ``` 
 
 
-####<span class="sub-sub-header">Dataset: English, Balanced labelsets</span>
+#####<span class="sub-sub-header">Dataset: English, Balanced labelsets</span>
 This section the answers research question for the English corpus:   
 <span class="emphasize">How the classifiers' performance changes when the number of labels is reduced, and which features delivered the best performance.</span>  
 
@@ -335,26 +335,26 @@ Some classifiers scored higher than the highest macro F1 value scored in the cas
 
 ![](Figs/English_reduced_table.png)
 
-####<span class="sub-sub-header"> Dataset: English, Feature: Tf-idf, Balanced labelsets</span>{.tabset  .tabset-fade}
+#####<span class="sub-sub-header"> Dataset: English, Feature: Tf-idf, Balanced labelsets</span>{.tabset  .tabset-fade}
 For the tf-idf features, most of the classifiers trained on the balanced labelsets maintained almost similar levels of performance compared to the performace with the complete set of labels.
 
-#####Label Powerset
+######Label Powerset
 
 ![](Figs/lp_EN_tfidf1_red.png)
 
 ![](Figs/lp_EN_tfidf2_red.png)
 
-#####Binary Relevance
+######Binary Relevance
 
 ![](Figs/br_EN_tfidf1_red.png)
 
 ![](Figs/br_EN_tfidf2_red.png)
 
 
-####<span class="sub-sub-header">Dataset: English, Feature: Term incidence, balanced labelsets</span> {.tabset .tabset-fade}
+#####<span class="sub-sub-header">Dataset: English, Feature: Term incidence, balanced labelsets</span> {.tabset .tabset-fade}
 For balanced labelsets, we observed better performance for the incidence features for all classifiers compared to the performance with the complete labelsets. LP combined with the Random Forest classifier outperformed the performance of the same classification model trained on the complete set with the tf-idf features. We consider incidence of terms as sufficient features even for the English dataset, after pruning the imbalanced labelsets.
 
-#####Label Powerset 
+######Label Powerset 
 
  ![](Figs/lp_EN_inc1_red.png)
  
@@ -363,7 +363,7 @@ For balanced labelsets, we observed better performance for the incidence feature
  
  
 
-#####Binary Relevance
+######Binary Relevance
 
 ![](Figs/br_EN_inc1_red.png)
  
@@ -371,26 +371,26 @@ For balanced labelsets, we observed better performance for the incidence feature
 
 ![](Figs/br_EN_inc2_red.png)
 
-####<span class="sub-sub-header">Dataset: German, Balanced labelsets</span>
+#####<span class="sub-sub-header">Dataset: German, Balanced labelsets</span>
 This section answers the research question for the German corpus:   
 <span class="emphasize">How the classifiers' performance changes when the number of labels is reduced, and which features delivered the best performance.</span> 
 
 ![](Figs/German_reduced2.png)
 
-####<span class="sub-sub-header">Dataset: German, Feature: Tf-idf, Balanced labelsets</span>
+#####<span class="sub-sub-header">Dataset: German, Feature: Tf-idf, Balanced labelsets</span>
 After removing the imbalanced labelsets, the macro F1 for the combination of LP with Random Forest increased by around 15%.
 
 ![](Figs/lp_DE_tfidf1_red.png)
 
 ![](Figs/lp_DE_tfidf2_red.png)
 
-####<span class="sub-sub-header">Dataset: German, Feature: Term incidence, balanced labelsets</span>
+#####<span class="sub-sub-header">Dataset: German, Feature: Term incidence, balanced labelsets</span>
 
 ![](Figs/lp_DE_rf_inc2_red.png)
 
 
   
-###<span class="sub-header">Final Analysis</span>
+####<span class="sub-header">Final Analysis</span>
 
 >>We can conclude for both English and German dataset,the best performance was delivered by the LP transform combined with the Random Forest classifier after removing imbalanced labelsets through exploiting the scumble measure and trained on the terms incidence in order to gain the highest macro F1 values.
 
@@ -409,8 +409,8 @@ After removing the imbalanced labelsets, the macro F1 for the combination of LP 
 - With balanced labelsets we found that the classifiers overall performed better, though not much, for both English and German dataset.
 
 
-###<span class="sub-header">Conclusion</span>
+####<span class="sub-header">Conclusion</span>
 
 The best score for macro-F1/F1 we could get for the English dataset is 0.265/0.365 and for German dataset is 0.269/0.458, and the publications using the earlier version of the dataset having 4000 labels also reported a poor F1 score less than 0.5. It implies that the features which we have used might not have behaved as discriminatory as expected, but we cannot rule out the bias of the annotators, which might have prevented us to get good results. The annotators categorizing the document might have been influenced by various aspects as mentioned in literature [@rabiger2018annotators] while assigning them to the categories. Therefore it seems challenging for the machine learning algorithms to match with the human annotated categories.
 
-####<span class="sub-header">References</span>
+#####<span class="sub-header">References</span>

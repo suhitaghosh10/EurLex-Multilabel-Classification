@@ -95,6 +95,8 @@ The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer
 [![screencast link](Figs/eurlex_First_Frame.png)](http://www.youtube.com/watch?v=3ELi5mLlzgM"Screencast"){target="_blank"}
 </div>
 
+&nbsp;
+
 ### <span class="header"> R packages</span>
 
 The following packages must be installed in R-Studio.
