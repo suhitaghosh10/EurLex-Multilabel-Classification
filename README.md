@@ -11,7 +11,7 @@ https://www.youtube.com/watch?v=3ELi5mLlzgM
 # Data URL
 The English and German data is present at the *data* folder.
 Please note if you are downloading the code from Github Web (shown below in picture), data would _not_ get downloaded (as it exceeds the limit provided by Github).  
-<img src="http://www.cs.williams.edu/~dbarowy/cs334s18/assets/tutorials/github/github-clone-button.png" width="300" height="100">
+<img src="https://github.com/suhitaghosh10/EurLexClassification/blob/master/docs/Figs/git.png">
 
 In such case, please perform the following:
 * Download the data from the links below:
