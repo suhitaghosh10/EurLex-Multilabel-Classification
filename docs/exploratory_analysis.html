@@ -764,7 +764,7 @@ bigram_tokens <span class="op">%&gt;%</span>
 </div>
 <div id="preprocessing-for-mldr" class="section level4">
 <h4><span class="header">Preprocessing for mldr </span></h4>
-<p>To perform the exploratory analysis over the MLD dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in this <a href="https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html">section</a>. Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.<br />
+<p>To perform the exploratory analysis over the multilabel (MLD) dataset traits we need to generate the dataset in the format which can read by <span class="emphasize">mldr</span> package, as discussed in this <a href="https://suhitaghosh10.github.io/EurLexClassification/multilabel_classification_intro.html">section</a>. Since our objective in performing exploratory analysis over the multilabel dataset is to inspect certain multi-label dataset traits (label distribution, relationship among labels and label imbalance), it is fine if we perform the analysis over one of the datasets (tf-idf or incidence). Therefore we generate one of the datasets for exploratory purpose. We generate the tf-idf dataset.<br />
 First we generate <em>VCorpus</em> and then <em>DocumentTermMatrix</em>(DTM) of both text and labels. We need to create DTM of labels as we need to append them to the DTM of the text features, to create the <em>ARFF</em> file.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#corpus of text</span>
 text_corpus &lt;-<span class="st"> </span><span class="kw">VCorpus</span>(<span class="kw">VectorSource</span>(text_content_list))
@@ -814,9 +814,9 @@ xml_root =<span class="st"> </span><span class="kw">newXMLNode</span>(<span clas
 <span class="co">#generate xml file</span>
 <span class="kw">saveXML</span>(xml_root,<span class="dt">file=</span><span class="kw">paste</span>(tfidfFileName,<span class="st">&quot;.xml&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;&quot;</span>))</code></pre></div>
 </div>
-<div id="exploration-of-mldr-dataset-traits" class="section level4">
-<h4><span class="header">Exploration of MLDR dataset traits </span></h4>
-<p>We load the dataset using <em>mldr</em> method.</p>
+<div id="exploration-of-mld-dataset-traits" class="section level4">
+<h4><span class="header">Exploration of MLD dataset traits </span></h4>
+<p>We load the dataset using <em>mldr</em> method from <a href="https://cran.r-project.org/web/packages/mldr/mldr.pdf">mldr</a> package.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
 
 eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
@@ -876,7 +876,7 @@ We can choose the labels from the mldr attribute <em>eurlex$labels</em>. But, th
 <center>
 <img src="Figs/concurrence_plot.png" />
 </center>
-<p>The names of the labels gets abbreviated in the plot. We can see from the <em>fat pink band</em> many instances are common to the categories/labels - <em>water_treatment_ (wat_ent_)</em> and <em>wastewater_ (was_ter)</em> as expected, and also we saw in top-k words/bigram that many words/bigrams were appearing common for these labels. Also bands emanating from pollution related labels <em>pollution_control_ (pol_rol_)</em> and <em>pollution_control_measures_ (pol_res)</em> meets the arc containing <em>atmospheric_pollution_ (atm_ion)</em>, which implies many instances share labels atmosphere pollution and pollution control measures. We can also see the thin orange bands for labels - <em>employment_policy_ (emp_icy)</em> and <em>fight_against_unemployment_ (fig_ent)</em> sharing common instances, and they don’t meet the arcs containing pollution related instances, and even in top-k words/bigrams we had observed there were no common words between employment and pollution/water related labels. Also we see a lot of thread like bands appearing in the plot which implies imbalanced labels appear frequently together, a situation which could limit the possible improvement of a preprocessing technique. [3]</p>
+<p>The names of the labels gets abbreviated in the plot. We can see from the <em>fat pink band</em> many instances are common to the categories/labels - <em>water_treatment_ (wat_ent_)</em> and <em>wastewater_ (was_ter)</em> as expected, and also we saw in top-k words/bigram that many words/bigrams were appearing common for these labels. Also bands emanating from pollution related labels <em>pollution_control_ (pol_rol_)</em> and <em>pollution_control_measures_ (pol_res)</em> meets the arc containing <em>atmospheric_pollution_ (atm_ion)</em>, which implies many instances share labels atmosphere pollution and pollution control measures. We can also see the thin orange bands for labels - <em>employment_policy_ (emp_icy)</em> and <em>fight_against_unemployment_ (fig_ent)</em> sharing common instances, and they don’t meet the arcs containing pollution related instances, and even in top-k words/bigrams we had observed there were no common words between employment and pollution/water related labels. Also we see a lot of thread like bands appearing in the plot which implies many categories exist which have very less instances.</p>
 </div>
 <div id="label-histogram-lh-plot" class="section level5">
 <h5><span class="header">Label Histogram (LH) Plot </span></h5>
@@ -896,7 +896,7 @@ We can choose the labels from the mldr attribute <em>eurlex$labels</em>. But, th
 </div>
 <div id="label-bar-lb-plot" class="section level5">
 <h5><span class="header">Label Bar (LB) Plot </span></h5>
-<p>The label bar plot display exactly the number of instances for each one of the labels and labelsets, respectively.</p>
+<p>The label bar plot display the number of instances for each one of the labels.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>)<span class="op">+</span><span class="fl">0.1</span>)
 <span class="kw">plot</span>(eurlex, <span class="dt">type=</span><span class="st">&#39;LB&#39;</span>,<span class="dt">col =</span> <span class="kw">brewer.pal</span>(<span class="dv">11</span>, <span class="st">&#39;Spectral&#39;</span>), <span class="dt">title=</span><span class="st">&#39;Eurlex&#39;</span>, <span class="dt">labelIndices=</span>plot_labels)</code></pre></div>
 <center>

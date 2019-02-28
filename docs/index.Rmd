@@ -90,6 +90,10 @@ The [data](https://ec.europa.eu/jrc/en/language-technologies/jrc-eurovoc-indexer
 - [German](https://drive.google.com/drive/folders/1TncK4erU2ZJc9v1_-RvwM6fDmkkUYKAk?usp=sharing)
 
 
+### <span class="header">GitHub URL</span>
+The [R scripts](https://github.com/suhitaghosh10/EurLexClassification/tree/master/scripts), [process notebook](https://github.com/suhitaghosh10/EurLexClassification/tree/master/reports) and other resources have been stored at the repository-  
+https://github.com/suhitaghosh10/EurLexClassification.git
+
 ### <span class="header"> Screencast</span>
 <div class="screencast">
 [![screencast link](Figs/eurlex_First_Frame.png)](http://www.youtube.com/watch?v=3ELi5mLlzgM"Screencast"){target="_blank"}
