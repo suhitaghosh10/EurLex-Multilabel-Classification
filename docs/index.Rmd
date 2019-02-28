@@ -101,6 +101,12 @@ https://github.com/suhitaghosh10/EurLexClassification.git
 
 &nbsp;
 
+### <span class="header"> Team</span>
+
+- [Suhita Ghosh](https://www.linkedin.com/in/suhitaghosh/)  
+- [Noor Jamaludeen](https://github.com/NOOR-JAMALUDEEN)
+
+
 ### <span class="header"> R packages</span>
 
 The following packages must be installed in R-Studio.
