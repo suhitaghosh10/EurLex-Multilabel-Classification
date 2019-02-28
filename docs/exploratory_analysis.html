@@ -817,9 +817,9 @@ xml_root =<span class="st"> </span><span class="kw">newXMLNode</span>(<span clas
 <div id="exploration-of-mld-dataset-traits" class="section level4">
 <h4><span class="header">Exploration of MLD dataset traits </span></h4>
 <p>We load the dataset using <em>mldr</em> method from <a href="https://cran.r-project.org/web/packages/mldr/mldr.pdf">mldr</a> package.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)
-
-eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(mldr)</code></pre></div>
+<pre><code>## Enter mldrGUI() to launch mldr&#39;s web-based GUI</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eurlex &lt;-<span class="st"> </span><span class="kw">mldr</span>(<span class="st">&quot;output/tfidf_EN&quot;</span>)</code></pre></div>
 <p>After loading the MLD, a quick summary of its main characteristics can be obtained by means of the usual <em>summary()</em> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(eurlex)</code></pre></div>
 <div class="figure">
