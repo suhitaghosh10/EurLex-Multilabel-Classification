@@ -3,7 +3,7 @@
 A single text document often has multiple semantic aspects. A single news article related to politics may have aspects related to trade, technology and defense. In the perspective of machine learning, we can interpret the various aspects as multiple class labels of an instance (a document). In this project we explore a public multi labelled legal text dataset that has been manually annotated over a decade. It contains laws related to the European Union, including treaties, legislation, case-law and legislative proposals, in 24 different languages. This is popularly known as the EUR-Lex dataset containing about twenty thousand documents and seven thousand labels. A skewed distribution of multiple labels per document, along with existence of the same data in multiple languages, makes this data set an interesting proposition.
 
 # Website URL
-https://suhitaghosh10.github.io/EurLex-Multi-label-Classification/
+https://suhitaghosh10.github.io/EurLex-Multilabel-Classification/
 
 # Screencast URL
 https://www.youtube.com/watch?v=3ELi5mLlzgM
